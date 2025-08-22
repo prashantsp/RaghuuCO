@@ -1,46 +1,63 @@
 # System Design & Architecture Document
 ## RAGHUU CO Legal Practice Management System
 
-### Document Version: 1.0
+### Document Version: 2.0
 ### Date: August 22, 2025
-### Technology Stack: Node.js/React/PostgreSQL
+### Technology Stack: Node.js/React/PostgreSQL (Raw SQL)
 
 ---
 
 ## Architecture Overview
 
-The RAGHUU CO Legal Practice Management System follows a modern three-tier architecture built on the PERN stack (PostgreSQL, Express.js, React, Node.js) with a microservices-oriented approach for scalability and maintainability.
+The RAGHUU CO Legal Practice Management System follows a modern three-tier architecture built on the PERN stack (PostgreSQL, Express.js, React, Node.js) with a microservices-oriented approach for scalability and maintainability. The system uses raw SQL for database operations to ensure maximum control and performance.
 
 ### Architecture Principles
 1. **Separation of Concerns**: Clear separation between presentation, business logic, and data layers
 2. **Scalability**: Horizontal scaling capabilities with containerized deployment
 3. **Security-First**: End-to-end encryption and role-based access control
 4. **API-First**: RESTful APIs for all operations with potential GraphQL implementation
-5. **Mobile-Responsive**: Progressive Web App (PWA) capabilities
+5. **Mobile-First**: Progressive Web App (PWA) with responsive design
 6. **Compliance-Ready**: Built-in audit trails and Indian legal compliance features
+7. **Raw SQL Approach**: Direct database control for optimal performance and flexibility
 
 ## High-Level System Architecture
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                    Client Layer (React PWA)                     â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                     API Gateway (Express.js)                    â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚  Application Services Layer (Node.js Microservices)            â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”             â”‚
-â”‚  â”‚   Auth       â”‚ â”‚  Case Mgmt   â”‚ â”‚  Document    â”‚             â”‚
-â”‚  â”‚   Service    â”‚ â”‚   Service    â”‚ â”‚   Service    â”‚             â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜             â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”             â”‚
-â”‚  â”‚   Billing    â”‚ â”‚   Calendar   â”‚ â”‚  Notificationâ”‚             â”‚
-â”‚  â”‚   Service    â”‚ â”‚   Service    â”‚ â”‚   Service    â”‚             â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                    Data Access Layer (Prisma ORM)               â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚                   Database Layer (PostgreSQL)                   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    Client Layer (React PWA - Mobile First)                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                     API Gateway (Express.js)                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Application Services Layer (Node.js Microservices)                        │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐               │
+│  │   Auth          │ │  Case Mgmt      │ │  Document       │               │
+│  │   Service       │ │   Service       │ │   Service       │               │
+│  │                 │ │                 │ │                 │               │
+│  │ • Social Login  │ │ • Case CRUD     │ │ • File Upload   │               │
+│  │ • JWT Auth      │ │ • Workflows     │ │ • Version Ctrl  │               │
+│  │ • RBAC          │ │ • Timeline      │ │ • OCR           │               │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘               │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐               │
+│  │   Billing       │ │   Calendar      │ │  Notification   │               │
+│  │   Service       │ │   Service       │ │   Service       │               │
+│  │                 │ │                 │ │                 │               │
+│  │ • Time Tracking │ │ • Court Dates   │ │ • Email         │               │
+│  │ • Invoicing     │ │ • Scheduling    │ │ • SMS           │               │
+│  │ • Payments      │ │ • Integration   │ │ • Push          │               │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                    Data Access Layer (Raw SQL)                             │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐               │
+│  │   Query         │ │   Transaction   │ │   Connection    │               │
+│  │   Builder       │ │   Manager       │ │   Pool          │               │
+│  │                 │ │                 │ │                 │               │
+│  │ • Parameterized │ │ • ACID          │ │ • PgBouncer     │               │
+│  │ • SQL Injection │ │ • Rollback      │ │ • Health Checks │               │
+│  │ • Prevention    │ │ • Isolation     │ │ • Load Balance  │               │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                   Database Layer (PostgreSQL)                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Technology Stack Selection
@@ -54,20 +71,22 @@ The RAGHUU CO Legal Practice Management System follows a modern three-tier archi
 - **Routing**: React Router v6 for client-side routing
 - **Forms**: React Hook Form with Yup validation
 - **PWA**: Service workers for offline capabilities
+- **Mobile-First**: Responsive design with touch-optimized interfaces
 
 ### Backend Stack
 **Node.js with Express.js and TypeScript**
 - **Why Node.js**: JavaScript ecosystem consistency, excellent I/O performance
 - **Why Express.js**: Mature framework, extensive middleware ecosystem
 - **API Architecture**: RESTful APIs with OpenAPI 3.0 documentation
-- **ORM**: Prisma for type-safe database operations
-- **Authentication**: JWT with refresh tokens, bcrypt for password hashing
+- **Database**: Raw SQL with pg library for direct database control
+- **Authentication**: Passport.js with JWT, supporting Google, LinkedIn, Microsoft 365
 - **File Upload**: Multer with AWS S3 or local storage options
 - **Task Queue**: Bull Queue with Redis for background processing
 
 ### Database Design
 **PostgreSQL 14+ with JSON support**
 - **Why PostgreSQL**: ACID compliance, JSON support, excellent performance
+- **Raw SQL Approach**: Direct control over queries for optimization
 - **Connection Pooling**: PgBouncer for connection management
 - **Backup Strategy**: Daily automated backups with point-in-time recovery
 - **Indexing Strategy**: B-tree indexes for queries, GIN indexes for JSON fields
@@ -85,19 +104,35 @@ The RAGHUU CO Legal Practice Management System follows a modern three-tier archi
 ### Core Entity Relationships
 
 ```sql
--- Users table with role-based access
+-- Enhanced users table with social login support
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255), -- NULL for social-only users
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     role user_role NOT NULL,
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT true,
+    email_verified BOOLEAN DEFAULT false,
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Social login accounts linking
+CREATE TABLE social_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL, -- 'google', 'linkedin', 'microsoft'
+    provider_user_id VARCHAR(255) NOT NULL,
+    access_token TEXT,
+    refresh_token TEXT,
+    expires_at TIMESTAMP,
+    profile_data JSONB, -- Store provider-specific profile data
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_user_id)
 );
 
 -- Clients with comprehensive contact information
@@ -194,6 +229,46 @@ CREATE TABLE calendar_events (
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Comprehensive audit logging
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id),
+    action VARCHAR(100) NOT NULL, -- 'create', 'update', 'delete', 'view'
+    resource_type VARCHAR(100) NOT NULL, -- 'case', 'client', 'document'
+    resource_id UUID,
+    old_values JSONB,
+    new_values JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    session_id VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Conflict of interest tracking
+CREATE TABLE conflict_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID NOT NULL REFERENCES cases(id),
+    client_id UUID NOT NULL REFERENCES clients(id),
+    opposing_party_name VARCHAR(255),
+    conflict_type VARCHAR(100), -- 'direct', 'indirect', 'potential'
+    risk_level VARCHAR(50), -- 'low', 'medium', 'high'
+    mitigation_measures TEXT,
+    checked_by UUID REFERENCES users(id),
+    checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data protection compliance
+CREATE TABLE data_consents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    consent_type VARCHAR(100) NOT NULL, -- 'data_processing', 'marketing', 'third_party'
+    consent_given BOOLEAN NOT NULL,
+    consent_date TIMESTAMP NOT NULL,
+    withdrawal_date TIMESTAMP,
+    ip_address INET,
+    user_agent TEXT
+);
 ```
 
 ### Key Database Features
@@ -203,6 +278,160 @@ CREATE TABLE calendar_events (
 4. **Enum Types**: For controlled vocabulary and data integrity
 5. **Audit Trails**: Comprehensive created_at/updated_at timestamps with user tracking
 6. **Soft Deletes**: is_active flags instead of hard deletes for compliance
+7. **Social Login Support**: Dedicated table for OAuth provider accounts
+8. **Compliance Features**: Audit logs, conflict checks, data consents
+
+## Raw SQL Implementation
+
+### Database Service Layer
+```typescript
+// Database service with raw SQL
+class DatabaseService {
+  private pool: Pool;
+
+  constructor() {
+    this.pool = new Pool({
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+  }
+
+  async query(sql: string, params: any[] = []): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(sql, params);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  async transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // User management queries
+  async getUserByEmail(email: string): Promise<User | null> {
+    const sql = `
+      SELECT id, email, password_hash, first_name, last_name, role, is_active, email_verified
+      FROM users 
+      WHERE email = $1 AND is_active = true
+    `;
+    const users = await this.query(sql, [email]);
+    return users[0] || null;
+  }
+
+  async createUser(userData: CreateUserData): Promise<User> {
+    const sql = `
+      INSERT INTO users (email, password_hash, first_name, last_name, role, phone)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, email, first_name, last_name, role, is_active, created_at
+    `;
+    const users = await this.query(sql, [
+      userData.email,
+      userData.passwordHash,
+      userData.firstName,
+      userData.lastName,
+      userData.role,
+      userData.phone
+    ]);
+    return users[0];
+  }
+
+  // Social login queries
+  async linkSocialAccount(userId: string, provider: string, providerUserId: string, profileData: any): Promise<void> {
+    const sql = `
+      INSERT INTO social_accounts (user_id, provider, provider_user_id, profile_data)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (provider, provider_user_id) 
+      DO UPDATE SET 
+        user_id = $1,
+        profile_data = $4,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+    await this.query(sql, [userId, provider, providerUserId, JSON.stringify(profileData)]);
+  }
+
+  async findUserBySocialAccount(provider: string, providerUserId: string): Promise<User | null> {
+    const sql = `
+      SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.is_active
+      FROM users u
+      JOIN social_accounts sa ON u.id = sa.user_id
+      WHERE sa.provider = $1 AND sa.provider_user_id = $2 AND u.is_active = true
+    `;
+    const users = await this.query(sql, [provider, providerUserId]);
+    return users[0] || null;
+  }
+
+  // Case management queries
+  async getCasesByUser(userId: string, role: string): Promise<Case[]> {
+    let sql: string;
+    let params: any[];
+
+    if (role === 'client') {
+      sql = `
+        SELECT c.*, cl.first_name as client_first_name, cl.last_name as client_last_name
+        FROM cases c
+        JOIN clients cl ON c.client_id = cl.id
+        WHERE cl.id IN (SELECT client_id FROM client_users WHERE user_id = $1)
+        AND c.is_active = true
+        ORDER BY c.updated_at DESC
+      `;
+      params = [userId];
+    } else {
+      sql = `
+        SELECT c.*, cl.first_name as client_first_name, cl.last_name as client_last_name
+        FROM cases c
+        JOIN clients cl ON c.client_id = cl.id
+        WHERE c.assigned_partner = $1 
+           OR $1 = ANY(c.assigned_associates)
+           OR $2 IN ('super_admin', 'partner')
+        AND c.is_active = true
+        ORDER BY c.updated_at DESC
+      `;
+      params = [userId, role];
+    }
+
+    return await this.query(sql, params);
+  }
+
+  // Audit logging
+  async logAuditEvent(auditData: AuditLogData): Promise<void> {
+    const sql = `
+      INSERT INTO audit_logs (user_id, action, resource_type, resource_id, old_values, new_values, ip_address, user_agent, session_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `;
+    await this.query(sql, [
+      auditData.userId,
+      auditData.action,
+      auditData.resourceType,
+      auditData.resourceId,
+      auditData.oldValues ? JSON.stringify(auditData.oldValues) : null,
+      auditData.newValues ? JSON.stringify(auditData.newValues) : null,
+      auditData.ipAddress,
+      auditData.userAgent,
+      auditData.sessionId
+    ]);
+  }
+}
+```
 
 ## API Design
 
@@ -210,53 +439,136 @@ CREATE TABLE calendar_events (
 
 ```
 /api/v1/
-â”œâ”€â”€ /auth
-â”‚   â”œâ”€â”€ POST /login
-â”‚   â”œâ”€â”€ POST /logout
-â”‚   â”œâ”€â”€ POST /refresh-token
-â”‚   â””â”€â”€ POST /forgot-password
-â”œâ”€â”€ /users
-â”‚   â”œâ”€â”€ GET /users (with pagination, filtering)
-â”‚   â”œâ”€â”€ POST /users
-â”‚   â”œâ”€â”€ GET /users/:id
-â”‚   â”œâ”€â”€ PUT /users/:id
-â”‚   â””â”€â”€ DELETE /users/:id
-â”œâ”€â”€ /clients
-â”‚   â”œâ”€â”€ GET /clients
-â”‚   â”œâ”€â”€ POST /clients
-â”‚   â”œâ”€â”€ GET /clients/:id
-â”‚   â””â”€â”€ PUT /clients/:id
-â”œâ”€â”€ /cases
-â”‚   â”œâ”€â”€ GET /cases
-â”‚   â”œâ”€â”€ POST /cases
-â”‚   â”œâ”€â”€ GET /cases/:id
-â”‚   â”œâ”€â”€ PUT /cases/:id
-â”‚   â”œâ”€â”€ GET /cases/:id/documents
-â”‚   â”œâ”€â”€ GET /cases/:id/time-entries
-â”‚   â””â”€â”€ GET /cases/:id/timeline
-â”œâ”€â”€ /documents
-â”‚   â”œâ”€â”€ POST /documents/upload
-â”‚   â”œâ”€â”€ GET /documents/:id
-â”‚   â”œâ”€â”€ GET /documents/:id/download
-â”‚   â””â”€â”€ DELETE /documents/:id
-â””â”€â”€ /reports
-    â”œâ”€â”€ GET /reports/financial
-    â”œâ”€â”€ GET /reports/productivity
-    â””â”€â”€ GET /reports/case-analytics
+├── /auth
+│   ├── POST /login
+│   ├── POST /logout
+│   ├── POST /refresh-token
+│   ├── POST /forgot-password
+│   ├── GET /google
+│   ├── GET /google/callback
+│   ├── GET /linkedin
+│   ├── GET /linkedin/callback
+│   ├── GET /microsoft
+│   └── GET /microsoft/callback
+├── /users
+│   ├── GET /users (with pagination, filtering)
+│   ├── POST /users
+│   ├── GET /users/:id
+│   ├── PUT /users/:id
+│   ├── DELETE /users/:id
+│   └── GET /users/:id/profile
+├── /clients
+│   ├── GET /clients
+│   ├── POST /clients
+│   ├── GET /clients/:id
+│   ├── PUT /clients/:id
+│   ├── GET /clients/:id/cases
+│   └── POST /clients/:id/conflict-check
+├── /cases
+│   ├── GET /cases
+│   ├── POST /cases
+│   ├── GET /cases/:id
+│   ├── PUT /cases/:id
+│   ├── GET /cases/:id/documents
+│   ├── GET /cases/:id/time-entries
+│   ├── GET /cases/:id/timeline
+│   └── POST /cases/:id/assign
+├── /documents
+│   ├── POST /documents/upload
+│   ├── GET /documents/:id
+│   ├── GET /documents/:id/download
+│   ├── PUT /documents/:id
+│   ├── DELETE /documents/:id
+│   └── GET /documents/search
+├── /calendar
+│   ├── GET /events
+│   ├── POST /events
+│   ├── GET /events/:id
+│   ├── PUT /events/:id
+│   ├── DELETE /events/:id
+│   └── GET /events/upcoming
+├── /billing
+│   ├── GET /time-entries
+│   ├── POST /time-entries
+│   ├── GET /invoices
+│   ├── POST /invoices
+│   ├── GET /invoices/:id
+│   └── POST /invoices/:id/pay
+└── /reports
+    ├── GET /reports/financial
+    ├── GET /reports/productivity
+    ├── GET /reports/case-analytics
+    └── GET /reports/audit-logs
 ```
 
 ### API Security Features
 1. **JWT Authentication**: Stateless authentication with access and refresh tokens
 2. **Rate Limiting**: Express-rate-limit for API protection
 3. **Input Validation**: Joi/Yup validation for all request parameters
-4. **SQL Injection Prevention**: Parameterized queries through Prisma ORM
+4. **SQL Injection Prevention**: Parameterized queries through raw SQL
 5. **CORS Configuration**: Properly configured cross-origin resource sharing
 6. **API Versioning**: Version-based routing for backward compatibility
+7. **Social Login Security**: OAuth 2.0 with state parameter validation
 
 ## Security Architecture
 
 ### Authentication & Authorization
 ```typescript
+// Passport.js configuration for all providers
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
+import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
+
+// Google OAuth 2.0
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/auth/google/callback",
+  scope: ['profile', 'email']
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const db = new DatabaseService();
+    let user = await db.findUserBySocialAccount('google', profile.id);
+    
+    if (!user) {
+      // Create new user from Google profile
+      const userData = {
+        email: profile.emails[0].value,
+        firstName: profile.name.givenName,
+        lastName: profile.name.familyName,
+        role: 'client' // Default role, can be changed by admin
+      };
+      user = await db.createUser(userData);
+      await db.linkSocialAccount(user.id, 'google', profile.id, profile);
+    }
+    
+    return done(null, user);
+  } catch (error) {
+    return done(error, null);
+  }
+}));
+
+// LinkedIn OAuth 2.0
+passport.use(new LinkedInStrategy({
+  clientID: process.env.LINKEDIN_CLIENT_ID,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  callbackURL: "/auth/linkedin/callback",
+  scope: ['r_emailaddress', 'r_liteprofile']
+}, async (accessToken, refreshToken, profile, done) => {
+  // Similar implementation for LinkedIn
+}));
+
+// Microsoft 365 OAuth 2.0
+passport.use(new MicrosoftStrategy({
+  clientID: process.env.MICROSOFT_CLIENT_ID,
+  clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+  callbackURL: "/auth/microsoft/callback",
+  scope: ['user.read', 'email', 'profile']
+}, async (accessToken, refreshToken, profile, done) => {
+  // Similar implementation for Microsoft
+}));
+
 // JWT token structure
 interface JWTPayload {
   userId: string;
@@ -275,7 +587,8 @@ const PERMISSIONS = {
   CLIENT_WRITE: 'client:write',
   BILLING_READ: 'billing:read',
   BILLING_WRITE: 'billing:write',
-  ADMIN_ACCESS: 'admin:access'
+  ADMIN_ACCESS: 'admin:access',
+  AUDIT_ACCESS: 'audit:access'
 };
 
 const ROLE_PERMISSIONS = {
@@ -293,69 +606,148 @@ const ROLE_PERMISSIONS = {
 3. **Document Storage**: Encrypted file storage with access-controlled URLs
 4. **Password Security**: bcrypt with salt rounds for password hashing
 
-### Audit & Compliance
-```typescript
-// Audit log structure
-interface AuditLog {
-  id: string;
-  userId: string;
-  action: string;
-  resource: string;
-  resourceId: string;
-  oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
-  ipAddress: string;
-  userAgent: string;
-  timestamp: Date;
-}
-```
-
-## Frontend Architecture
+## Frontend Architecture (Mobile-First)
 
 ### Component Structure
 ```
 src/
-â”œâ”€â”€ components/
-â”‚   â”œâ”€â”€ ui/ (Reusable UI components)
-â”‚   â”œâ”€â”€ forms/ (Form components)
-â”‚   â”œâ”€â”€ layout/ (Layout components)
-â”‚   â””â”€â”€ feature/ (Feature-specific components)
-â”œâ”€â”€ pages/ (Route components)
-â”œâ”€â”€ hooks/ (Custom React hooks)
-â”œâ”€â”€ services/ (API service functions)
-â”œâ”€â”€ store/ (Redux store configuration)
-â”œâ”€â”€ utils/ (Utility functions)
-â”œâ”€â”€ types/ (TypeScript type definitions)
-â””â”€â”€ constants/ (Application constants)
+├── components/
+│   ├── ui/ (Reusable UI components)
+│   │   ├── Button/
+│   │   ├── Input/
+│   │   ├── Modal/
+│   │   └── Card/
+│   ├── forms/ (Form components)
+│   │   ├── LoginForm/
+│   │   ├── CaseForm/
+│   │   └── ClientForm/
+│   ├── layout/ (Layout components)
+│   │   ├── Header/
+│   │   ├── Sidebar/
+│   │   ├── Footer/
+│   │   └── MobileNav/
+│   └── feature/ (Feature-specific components)
+│       ├── cases/
+│       ├── clients/
+│       ├── documents/
+│       └── billing/
+├── pages/ (Route components)
+├── hooks/ (Custom React hooks)
+├── services/ (API service functions)
+├── store/ (Redux store configuration)
+├── utils/ (Utility functions)
+├── types/ (TypeScript type definitions)
+├── constants/ (Application constants)
+└── styles/ (Global styles and themes)
 ```
 
-### State Management Strategy
+### Mobile-First Design System
 ```typescript
-// Redux store structure
-interface RootState {
-  auth: AuthState;
-  cases: CasesState;
-  clients: ClientsState;
-  documents: DocumentsState;
-  ui: UIState;
-}
+// Responsive breakpoints
+export const breakpoints = {
+  mobile: '320px',
+  tablet: '768px',
+  desktop: '1024px',
+  wide: '1440px'
+};
 
-// React Query for server state
-const useCases = () => {
-  return useQuery({
-    queryKey: ['cases'],
-    queryFn: () => casesApi.getCases(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+// Mobile-first CSS approach
+export const mobileFirst = {
+  container: `
+    padding: 1rem;
+    max-width: 100%;
+    
+    @media (min-width: ${breakpoints.tablet}) {
+      padding: 2rem;
+      max-width: 750px;
+    }
+    
+    @media (min-width: ${breakpoints.desktop}) {
+      padding: 3rem;
+      max-width: 1200px;
+    }
+  `,
+  
+  grid: `
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    
+    @media (min-width: ${breakpoints.tablet}) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: ${breakpoints.desktop}) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+  `
+};
+
+// Touch-friendly components
+export const touchTarget = {
+  minHeight: '44px',
+  minWidth: '44px',
+  padding: '12px 16px',
+  borderRadius: '8px'
 };
 ```
 
-### Performance Optimization
-1. **Code Splitting**: Lazy loading of route components
-2. **Bundle Optimization**: Webpack bundle analyzer for size optimization
-3. **Image Optimization**: WebP format with fallbacks
-4. **Caching Strategy**: Service worker for offline functionality
-5. **Virtual Scrolling**: For large data lists
+### Progressive Web App Features
+```typescript
+// Service Worker for offline functionality
+// public/sw.js
+const CACHE_NAME = 'raghuu-legal-v1';
+const urlsToCache = [
+  '/',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/offline.html',
+  '/manifest.json'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(event.request);
+      })
+  );
+});
+
+// Web App Manifest
+// public/manifest.json
+{
+  "name": "RaghuuCO Legal Practice Management",
+  "short_name": "RaghuuCO",
+  "description": "Legal practice management system",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+```
 
 ## Scalability Considerations
 
@@ -393,6 +785,12 @@ interface CalendarService {
   createEvent(event: CalendarEvent): Promise<string>;
   updateEvent(eventId: string, event: Partial<CalendarEvent>): Promise<void>;
   syncEvents(): Promise<CalendarEvent[]>;
+}
+
+// SMS service integration
+interface SMSService {
+  sendSMS(to: string, message: string): Promise<void>;
+  sendBulkSMS(recipients: string[], message: string): Promise<void>;
 }
 ```
 
@@ -432,6 +830,12 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET}
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET}
     depends_on:
       - db
       - redis
@@ -490,4 +894,4 @@ app.get('/health', async (req, res) => {
 });
 ```
 
-This architecture provides a robust, scalable, and secure foundation for the RAGHUU CO Legal Practice Management System, ensuring high performance, maintainability, and compliance with Indian legal industry requirements.
+This architecture provides a robust, scalable, and secure foundation for the RAGHUU CO Legal Practice Management System, ensuring high performance, maintainability, and compliance with Indian legal industry requirements while supporting all social login providers and mobile-first design principles.
