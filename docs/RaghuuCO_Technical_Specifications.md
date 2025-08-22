@@ -6,9 +6,60 @@
 
 ---
 
-## 1. API Specifications
+## 1. UI/UX Requirements
 
-### 1.1 Authentication Endpoints
+### 1.1 Design System
+- **Framework**: Material-UI (MUI) with custom theming
+- **Data Grid**: ag-grid-community for responsive data tables
+- **Mobile-First**: Responsive design with touch optimization
+- **Cross-Platform**: Desktop, tablet, mobile support
+- **Orientation**: Portrait and landscape mode support
+- **Accessibility**: WCAG 2.1 compliance
+
+### 1.2 ag-grid-community Configuration
+```typescript
+// Grid configuration for mobile responsiveness
+const mobileGridConfig = {
+  // Touch-friendly settings
+  enableTouch: true,
+  suppressTouch: false,
+  
+  // Mobile-optimized layout
+  domLayout: 'autoHeight',
+  suppressColumnVirtualisation: false,
+  
+  // Responsive column management
+  defaultColDef: {
+    resizable: true,
+    sortable: true,
+    filter: true,
+    minWidth: 80,
+    flex: 1,
+  },
+  
+  // Mobile-specific features
+  enableRangeSelection: true,
+  enableFillHandle: true,
+  rowSelection: 'multiple',
+  
+  // Performance optimization
+  rowBuffer: 10,
+  maxBlocksInCache: 10,
+  cacheBlockSize: 100,
+};
+```
+
+### 1.3 Security & Compliance Features
+- **Session Timeout**: Configurable idle timeouts (default: 30 minutes)
+- **Multi-Factor Authentication**: TOTP support
+- **Audit Logging**: Comprehensive activity tracking
+- **Data Encryption**: AES-256 for sensitive data
+- **Access Control**: Role-based permissions
+- **Compliance**: Indian legal industry standards
+
+## 2. API Specifications
+
+### 2.1 Authentication Endpoints
 
 #### POST /api/v1/auth/login
 **Description**: Local user authentication
@@ -51,6 +102,55 @@
 
 #### GET /api/v1/auth/microsoft
 **Description**: Initiate Microsoft 365 OAuth flow
+
+#### POST /api/v1/auth/refresh-session
+**Description**: Refresh user session to prevent timeout
+```json
+{
+  "refreshToken": "valid_refresh_token"
+}
+```
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "new_jwt_token",
+    "refreshToken": "new_refresh_token",
+    "expiresIn": 3600
+  }
+}
+```
+
+#### POST /api/v1/auth/logout
+**Description**: Logout user and invalidate session
+```json
+{
+  "refreshToken": "valid_refresh_token"
+}
+```
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Successfully logged out"
+}
+```
+
+#### GET /api/v1/auth/session-status
+**Description**: Check current session status and remaining time
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "isActive": true,
+    "remainingTime": 1800,
+    "lastActivity": "2025-08-22T10:30:00Z",
+    "timeoutWarning": false
+  }
+}
+```
 
 ### 1.2 User Management Endpoints
 

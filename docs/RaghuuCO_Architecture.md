@@ -68,10 +68,12 @@ The RAGHUU CO Legal Practice Management System follows a modern three-tier archi
 - **Why TypeScript**: Type safety, better IDE support, reduced runtime errors
 - **State Management**: Redux Toolkit for complex state, React Query for server state
 - **UI Framework**: Material-UI (MUI) for consistent design system
+- **Data Grid**: ag-grid-community for responsive, mobile-optimized data tables
 - **Routing**: React Router v6 for client-side routing
 - **Forms**: React Hook Form with Yup validation
 - **PWA**: Service workers for offline capabilities
 - **Mobile-First**: Responsive design with touch-optimized interfaces
+- **Theme**: Custom Material-UI theme with modern, sleek design
 
 ### Backend Stack
 **Node.js with Express.js and TypeScript**
@@ -512,6 +514,39 @@ class DatabaseService {
 
 ## Security Architecture
 
+### Session Management & Timeout
+```typescript
+// Session timeout configuration
+interface SessionConfig {
+  idleTimeout: number; // 30 minutes default
+  absoluteTimeout: number; // 8 hours maximum
+  warningTime: number; // 5 minutes before timeout
+  refreshTokenExpiry: number; // 7 days
+}
+
+// Session monitoring
+class SessionManager {
+  private idleTimer: NodeJS.Timeout;
+  private warningTimer: NodeJS.Timeout;
+  
+  startIdleMonitoring(userId: string) {
+    this.idleTimer = setTimeout(() => {
+      this.showTimeoutWarning();
+    }, SESSION_CONFIG.warningTime);
+  }
+  
+  resetIdleTimer() {
+    clearTimeout(this.idleTimer);
+    this.startIdleMonitoring();
+  }
+  
+  private showTimeoutWarning() {
+    // Show warning modal to user
+    // Auto-logout after warning period
+  }
+}
+```
+
 ### Authentication & Authorization
 ```typescript
 // Passport.js configuration for all providers
@@ -607,6 +642,118 @@ const ROLE_PERMISSIONS = {
 4. **Password Security**: bcrypt with salt rounds for password hashing
 
 ## Frontend Architecture (Mobile-First)
+
+### UI/UX Design Principles
+- **Clean & Modern**: Minimalist design with clear visual hierarchy
+- **Sleek Interface**: Smooth animations and transitions
+- **Mobile-First**: Touch-optimized interactions and responsive layouts
+- **Accessibility**: WCAG 2.1 compliance for all users
+- **Cross-Platform**: Consistent experience across desktop, tablet, and mobile
+- **Orientation Support**: Seamless switching between portrait and landscape
+
+### Data Grid Implementation (ag-grid-community)
+```typescript
+// ag-grid configuration for responsive design
+const gridOptions: GridOptions = {
+  // Mobile-optimized settings
+  domLayout: 'autoHeight',
+  suppressColumnVirtualisation: false,
+  suppressRowVirtualisation: false,
+  
+  // Touch-friendly interactions
+  enableRangeSelection: true,
+  enableFillHandle: true,
+  enableRangeHandle: true,
+  
+  // Responsive column definitions
+  defaultColDef: {
+    resizable: true,
+    sortable: true,
+    filter: true,
+    minWidth: 100,
+    flex: 1,
+  },
+  
+  // Mobile-specific configurations
+  columnDefs: [
+    {
+      field: 'caseNumber',
+      headerName: 'Case #',
+      width: 120,
+      pinned: 'left',
+      cellRenderer: 'agGroupCellRenderer',
+    },
+    {
+      field: 'title',
+      headerName: 'Case Title',
+      flex: 2,
+      cellRenderer: 'agCellRenderer',
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 100,
+      cellRenderer: 'statusRenderer',
+    },
+    {
+      field: 'clientName',
+      headerName: 'Client',
+      flex: 1,
+    },
+    {
+      field: 'assignedTo',
+      headerName: 'Assigned To',
+      width: 150,
+    },
+    {
+      field: 'nextHearing',
+      headerName: 'Next Hearing',
+      width: 130,
+      cellRenderer: 'dateRenderer',
+    }
+  ],
+  
+  // Mobile-responsive features
+  onGridReady: (params) => {
+    params.api.sizeColumnsToFit();
+  },
+  
+  // Touch gesture support
+  enableTouch: true,
+  suppressTouch: false,
+  
+  // Performance optimization
+  rowBuffer: 10,
+  maxBlocksInCache: 10,
+  cacheBlockSize: 100,
+};
+
+// Responsive grid wrapper component
+const ResponsiveDataGrid: React.FC<GridProps> = ({ data, ...props }) => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return (
+    <div className={`data-grid-container ${isMobile ? 'mobile' : 'desktop'}`}>
+      <AgGridReact
+        {...gridOptions}
+        {...props}
+        data={data}
+        className={isMobile ? 'ag-theme-material-mobile' : 'ag-theme-material'}
+      />
+    </div>
+  );
+};
+```
 
 ### Component Structure
 ```

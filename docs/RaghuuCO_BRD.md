@@ -43,16 +43,124 @@ The system will serve as the central hub for case management, client communicati
 - **External Partners**: Other law firms, experts, investigators
 - **IT Support**: System maintenance and technical support
 
+## User Roles & Access Control
+
+### Role-Based Access Control (RBAC) System
+
+#### 1. Super Admin
+**Primary Responsibilities**: System administration, user management, security oversight
+**Key Features**:
+- Complete system access and configuration
+- User account creation, modification, and deletion
+- Role assignment and permission management
+- System-wide audit log access and monitoring
+- Security settings configuration
+- Backup and recovery management
+- System performance monitoring
+- Compliance reporting and oversight
+
+#### 2. Partner
+**Primary Responsibilities**: Strategic case management, client relationships, business oversight
+**Key Features**:
+- Full case management capabilities
+- Client relationship management
+- Financial oversight and billing management
+- Team assignment and supervision
+- Strategic case planning and review
+- Client communication and updates
+- Performance analytics and reporting
+- Conflict checking and resolution
+- Document review and approval
+- Calendar and scheduling management
+
+#### 3. Senior Associate
+**Primary Responsibilities**: Case strategy, client consultations, court representations
+**Key Features**:
+- Case creation and management
+- Client consultation and communication
+- Document preparation and review
+- Court date management
+- Time tracking and billing
+- Case strategy development
+- Team collaboration and mentoring
+- Client portal access management
+- Document version control
+- Case analytics and reporting
+
+#### 4. Junior Associate
+**Primary Responsibilities**: Research, document preparation, case support
+**Key Features**:
+- Case research and analysis
+- Document preparation and drafting
+- Time tracking and billing
+- Case file management
+- Client communication support
+- Calendar and deadline tracking
+- Document search and retrieval
+- Basic reporting access
+- Team collaboration tools
+- Learning and training resources
+
+#### 5. Paralegal
+**Primary Responsibilities**: Administrative support, document management, case coordination
+**Key Features**:
+- Document filing and organization
+- Case file management
+- Client communication support
+- Calendar and scheduling assistance
+- Document preparation support
+- Time tracking assistance
+- Basic case information access
+- Administrative reporting
+- File organization and indexing
+- Client intake support
+
+#### 6. Client
+**Primary Responsibilities**: Case monitoring, communication, document access
+**Key Features**:
+- Personal case information access
+- Document viewing and download
+- Communication with legal team
+- Case status updates and notifications
+- Calendar and appointment viewing
+- Payment and billing information
+- Document upload and sharing
+- Secure messaging with legal team
+- Case timeline and milestone tracking
+- Profile and contact information management
+
+#### 7. Guest
+**Primary Responsibilities**: Limited access for external collaborators
+**Key Features**:
+- Restricted document access (by invitation)
+- Limited case information viewing
+- Secure communication channels
+- Temporary access management
+- Audit trail for all activities
+- Time-limited access permissions
+- Document sharing capabilities
+- Basic profile management
+
+### Security Features for All Roles
+- **Session Timeout**: Configurable idle timeouts (default: 30 minutes)
+- **Multi-Factor Authentication**: TOTP support for enhanced security
+- **Activity Monitoring**: Comprehensive audit logging
+- **Access Control**: Principle of least privilege
+- **Data Encryption**: AES-256 encryption for sensitive data
+- **Compliance Reporting**: Automated compliance monitoring
+
 ## Business Requirements
 
 ### Functional Requirements
 
 #### 1. User Management & Authentication
-- **Multi-role user system** with role-based access control
+- **Multi-role user system** with role-based access control (RBAC)
 - **Secure authentication** with two-factor authentication (2FA)
+- **Session timeout management** with configurable idle timeouts
 - **User roles**: Super Admin, Partner, Senior Associate, Junior Associate, Paralegal, Client, Guest
 - **Profile management** with photo, contact details, specialization areas
 - **Activity logging** and audit trails for compliance
+- **Login attempt monitoring** and account lockout protection
 
 #### 2. Client Management
 - **Client onboarding** with digital intake forms
