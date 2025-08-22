@@ -45,6 +45,14 @@ The RAGHUU CO Legal Practice Management System follows a modern three-tier archi
 │  │ • Invoicing     │ │ • Scheduling    │ │ • SMS           │               │
 │  │ • Payments      │ │ • Integration   │ │ • Push          │               │
 │  └─────────────────┘ └─────────────────┘ └─────────────────┘               │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐               │
+│  │   Content       │ │   Analytics     │ │   Engagement    │               │
+│  │   Management    │ │   Service       │ │   Service       │               │
+│  │                 │ │                 │ │                 │               │
+│  │ • Articles      │ │ • Performance   │ │ • Newsletter    │               │
+│  │ • Blog Posts    │ │ • Analytics     │ │ • Comments      │               │
+│  │ • SEO           │ │ • Reporting     │ │ • Social Media  │               │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                    Data Access Layer (Raw SQL)                             │
 │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐               │
@@ -271,6 +279,92 @@ CREATE TABLE data_consents (
     ip_address INET,
     user_agent TEXT
 );
+
+-- Content management system
+CREATE TABLE content_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    parent_category_id UUID REFERENCES content_categories(id),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE articles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    excerpt TEXT,
+    content TEXT NOT NULL,
+    category_id UUID REFERENCES content_categories(id),
+    author_id UUID NOT NULL REFERENCES users(id),
+    status content_status_enum DEFAULT 'draft', -- 'draft', 'review', 'published', 'archived'
+    published_at TIMESTAMP,
+    featured_image_url TEXT,
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    meta_keywords TEXT[],
+    seo_score INTEGER DEFAULT 0,
+    view_count INTEGER DEFAULT 0,
+    is_featured BOOLEAN DEFAULT false,
+    is_public BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE article_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id), -- NULL for anonymous comments
+    guest_name VARCHAR(100), -- For anonymous comments
+    guest_email VARCHAR(255), -- For anonymous comments
+    content TEXT NOT NULL,
+    status comment_status_enum DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    parent_comment_id UUID REFERENCES article_comments(id),
+    is_public BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE newsletters (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    template_id UUID,
+    status newsletter_status_enum DEFAULT 'draft', -- 'draft', 'scheduled', 'sent'
+    scheduled_at TIMESTAMP,
+    sent_at TIMESTAMP,
+    recipient_count INTEGER DEFAULT 0,
+    open_count INTEGER DEFAULT 0,
+    click_count INTEGER DEFAULT 0,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE newsletter_subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
+    subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    unsubscribe_date TIMESTAMP,
+    source VARCHAR(100), -- 'website', 'client_portal', 'manual'
+    preferences JSONB -- Newsletter preferences
+);
+
+CREATE TABLE content_analytics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content_id UUID NOT NULL, -- Article or newsletter ID
+    content_type content_type_enum NOT NULL, -- 'article', 'newsletter'
+    user_id UUID REFERENCES users(id),
+    action analytics_action_enum NOT NULL, -- 'view', 'like', 'share', 'comment'
+    ip_address INET,
+    user_agent TEXT,
+    referrer TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ### Key Database Features
@@ -496,10 +590,30 @@ class DatabaseService {
 │   ├── POST /invoices
 │   ├── GET /invoices/:id
 │   └── POST /invoices/:id/pay
+├── /content
+│   ├── GET /content/articles
+│   ├── POST /content/articles
+│   ├── GET /content/articles/:id
+│   ├── PUT /content/articles/:id
+│   ├── DELETE /content/articles/:id
+│   ├── GET /content/categories
+│   ├── POST /content/categories
+│   ├── GET /content/articles/:id/comments
+│   ├── POST /content/articles/:id/comments
+│   └── PUT /content/comments/:id
+├── /newsletters
+│   ├── GET /newsletters
+│   ├── POST /newsletters
+│   ├── GET /newsletters/:id
+│   ├── PUT /newsletters/:id
+│   ├── POST /newsletters/:id/send
+│   ├── GET /newsletters/subscribers
+│   └── POST /newsletters/subscribe
 └── /reports
     ├── GET /reports/financial
     ├── GET /reports/productivity
     ├── GET /reports/case-analytics
+    ├── GET /reports/content-analytics
     └── GET /reports/audit-logs
 ```
 

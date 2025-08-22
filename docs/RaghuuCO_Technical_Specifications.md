@@ -335,7 +335,175 @@ const mobileGridConfig = {
 - `dateFrom`: string
 - `dateTo`: string
 
-### 1.6 Calendar Endpoints
+### 1.6 Content Management Endpoints
+
+#### GET /api/v1/content/articles
+**Query Parameters**:
+- `page`: number (default: 1)
+- `limit`: number (default: 20)
+- `category`: string (filter by category)
+- `status`: string (draft, published, archived)
+- `search`: string (search in title and content)
+- `author`: string (filter by author)
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "articles": [
+      {
+        "id": "uuid",
+        "title": "Understanding Property Rights in India",
+        "slug": "understanding-property-rights-india",
+        "excerpt": "A comprehensive guide to property rights...",
+        "category": {
+          "id": "uuid",
+          "name": "Real Estate Law"
+        },
+        "author": {
+          "id": "uuid",
+          "name": "Raghuu Rao"
+        },
+        "status": "published",
+        "publishedAt": "2025-08-22T10:00:00Z",
+        "viewCount": 1250,
+        "featuredImageUrl": "https://example.com/image.jpg",
+        "metaTitle": "Property Rights Guide - RaghuuCO Legal",
+        "metaDescription": "Comprehensive guide to property rights in India"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 50,
+      "pages": 3
+    }
+  }
+}
+```
+
+#### POST /api/v1/content/articles
+**Request Body**:
+```json
+{
+  "title": "New Legal Article Title",
+  "excerpt": "Brief description of the article",
+  "content": "Full article content in markdown format",
+  "categoryId": "uuid",
+  "status": "draft",
+  "featuredImageUrl": "https://example.com/image.jpg",
+  "metaTitle": "SEO Title",
+  "metaDescription": "SEO Description",
+  "metaKeywords": ["legal", "property", "rights"],
+  "isPublic": true,
+  "isFeatured": false
+}
+```
+
+#### GET /api/v1/content/articles/:id
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "article": {
+      "id": "uuid",
+      "title": "Understanding Property Rights in India",
+      "slug": "understanding-property-rights-india",
+      "excerpt": "A comprehensive guide to property rights...",
+      "content": "Full article content...",
+      "category": {
+        "id": "uuid",
+        "name": "Real Estate Law"
+      },
+      "author": {
+        "id": "uuid",
+        "name": "Raghuu Rao"
+      },
+      "status": "published",
+      "publishedAt": "2025-08-22T10:00:00Z",
+      "viewCount": 1250,
+      "featuredImageUrl": "https://example.com/image.jpg",
+      "metaTitle": "Property Rights Guide - RaghuuCO Legal",
+      "metaDescription": "Comprehensive guide to property rights in India",
+      "metaKeywords": ["legal", "property", "rights"],
+      "seoScore": 85,
+      "isPublic": true,
+      "isFeatured": false,
+      "createdAt": "2025-08-20T10:00:00Z",
+      "updatedAt": "2025-08-22T10:00:00Z"
+    }
+  }
+}
+```
+
+#### POST /api/v1/content/articles/:id/comments
+**Request Body**:
+```json
+{
+  "content": "Great article! Very informative.",
+  "guestName": "John Doe", // Optional for anonymous comments
+  "guestEmail": "john@example.com" // Optional for anonymous comments
+}
+```
+
+### 1.7 Newsletter Endpoints
+
+#### GET /api/v1/newsletters
+**Query Parameters**:
+- `page`: number (default: 1)
+- `limit`: number (default: 20)
+- `status`: string (draft, scheduled, sent)
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "newsletters": [
+      {
+        "id": "uuid",
+        "title": "Monthly Legal Update - August 2025",
+        "subject": "Legal Updates and Insights",
+        "status": "sent",
+        "scheduledAt": "2025-08-01T10:00:00Z",
+        "sentAt": "2025-08-01T10:00:00Z",
+        "recipientCount": 500,
+        "openCount": 250,
+        "clickCount": 75,
+        "createdBy": {
+          "id": "uuid",
+          "name": "Raghuu Rao"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 25,
+      "pages": 2
+    }
+  }
+}
+```
+
+#### POST /api/v1/newsletters/subscribe
+**Request Body**:
+```json
+{
+  "email": "subscriber@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "source": "website",
+  "preferences": {
+    "categories": ["real_estate", "constitutional"],
+    "frequency": "monthly"
+  }
+}
+```
+
+### 1.8 Calendar Endpoints
 
 #### GET /api/v1/calendar/events
 **Query Parameters**:

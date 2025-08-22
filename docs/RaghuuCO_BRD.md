@@ -72,6 +72,10 @@ The system will serve as the central hub for case management, client communicati
 - Conflict checking and resolution
 - Document review and approval
 - Calendar and scheduling management
+- **Content Management**: Article creation, editing, and publishing
+- **Thought Leadership**: Legal insights and expert commentary
+- **Client Engagement**: Newsletter and content strategy
+- **Content Approval**: Review and approve team content
 
 #### 3. Senior Associate
 **Primary Responsibilities**: Case strategy, client consultations, court representations
@@ -86,6 +90,10 @@ The system will serve as the central hub for case management, client communicati
 - Client portal access management
 - Document version control
 - Case analytics and reporting
+- **Content Creation**: Legal articles and blog posts
+- **Expert Commentary**: Legal analysis and insights
+- **Client Education**: Educational content creation
+- **Content Collaboration**: Team content development
 
 #### 4. Junior Associate
 **Primary Responsibilities**: Research, document preparation, case support
@@ -100,6 +108,10 @@ The system will serve as the central hub for case management, client communicati
 - Basic reporting access
 - Team collaboration tools
 - Learning and training resources
+- **Content Research**: Legal research for articles
+- **Draft Content**: Initial content drafting
+- **Content Review**: Review and feedback on content
+- **Learning Resources**: Access to educational content
 
 #### 5. Paralegal
 **Primary Responsibilities**: Administrative support, document management, case coordination
@@ -128,6 +140,10 @@ The system will serve as the central hub for case management, client communicati
 - Secure messaging with legal team
 - Case timeline and milestone tracking
 - Profile and contact information management
+- **Content Access**: Legal articles and educational materials
+- **Newsletter Subscription**: Legal updates and insights
+- **Content Engagement**: Comment and feedback on articles
+- **Knowledge Base**: Access to legal resources and FAQs
 
 #### 7. Guest
 **Primary Responsibilities**: Limited access for external collaborators
@@ -140,6 +156,10 @@ The system will serve as the central hub for case management, client communicati
 - Time-limited access permissions
 - Document sharing capabilities
 - Basic profile management
+- **Public Content Access**: Legal articles and insights
+- **Newsletter Subscription**: Legal updates and newsletters
+- **Content Engagement**: Comment on public articles
+- **Lead Generation**: Contact forms and engagement tracking
 
 ### Security Features for All Roles
 - **Session Timeout**: Configurable idle timeouts (default: 30 minutes)
@@ -208,10 +228,23 @@ The system will serve as the central hub for case management, client communicati
 - **Client portal** announcements and updates
 - **Communication logs** for compliance and reference
 
-#### 8. Reporting & Analytics
+#### 8. Content Management & Client Engagement
+- **Article/Blog Management**: Create, edit, and publish legal articles
+- **Content Categories**: Organize content by legal practice areas
+- **Client Portal Content**: Educational materials and legal updates
+- **Newsletter System**: Automated client communication
+- **Content Analytics**: Track engagement and readership metrics
+- **SEO Optimization**: Meta tags, keywords, and search optimization
+- **Social Media Integration**: Share content across platforms
+- **Comment System**: Client feedback and engagement
+- **Content Scheduling**: Plan and schedule content publication
+- **Multimedia Support**: Images, videos, and document attachments
+
+#### 9. Reporting & Analytics
 - **Financial reports**: Revenue, profitability, billing analysis
 - **Productivity reports**: Time utilization, case completion rates
 - **Client reports**: Case status, billing summaries
+- **Content analytics**: Article performance and engagement metrics
 - **Business intelligence** dashboard for key metrics
 - **Customizable reports** for different user roles
 
