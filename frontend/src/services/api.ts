@@ -12,6 +12,7 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { toast } from 'react-hot-toast';
+import logger from '@/utils/logger';
 import { store } from '@/store';
 import { clearAuth } from '@/store/slices/authSlice';
 import { LoginCredentials, RegisterData, User, AuthTokens, ApiResponse } from '@/types';
@@ -41,9 +42,19 @@ const createApiClient = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
+      // Log API request
+      logger.apiRequest(
+        config.method?.toUpperCase() || 'GET',
+        config.url || '',
+        0, // Status will be logged in response interceptor
+        0, // Duration will be calculated in response interceptor
+        { headers: config.headers }
+      );
+
       return config;
     },
     (error) => {
+      logger.error('API request interceptor error', error, 'ApiService');
       return Promise.reject(error);
     }
   );
@@ -51,9 +62,25 @@ const createApiClient = (): AxiosInstance => {
   // Response interceptor
   client.interceptors.response.use(
     (response: AxiosResponse) => {
+      // Log successful API response
+      logger.apiRequest(
+        response.config.method?.toUpperCase() || 'GET',
+        response.config.url || '',
+        response.status,
+        Date.now() - (response.config.metadata?.startTime || Date.now()),
+        { data: response.data }
+      );
+      
       return response;
     },
     async (error) => {
+      // Log API error
+      logger.error(
+        `API Error: ${error.response?.status || 'Network Error'}`,
+        error,
+        'ApiService'
+      );
+      
       const originalRequest = error.config;
 
       // Handle 401 Unauthorized errors

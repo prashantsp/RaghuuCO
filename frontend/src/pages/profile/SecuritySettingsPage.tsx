@@ -55,6 +55,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { api } from '@/services/api';
 import QRCode from 'qrcode';
+import logger from '@/utils/logger';
 
 interface SecuritySettings {
   twoFactorEnabled: boolean;
@@ -99,7 +100,7 @@ const SecuritySettingsPage: React.FC = () => {
       const response = await api.get('/security/2fa/status');
       setSettings(response.data.data);
     } catch (error) {
-      console.error('Error fetching security settings:', error);
+      logger.error('Error fetching security settings', error, 'SecuritySettingsPage');
       setError('Failed to fetch security settings');
       toast.error('Failed to fetch security settings');
     } finally {
@@ -120,7 +121,7 @@ const SecuritySettingsPage: React.FC = () => {
       setTwoFactorDialog(true);
       setActiveStep(0);
     } catch (error) {
-      console.error('Error setting up 2FA:', error);
+      logger.error('Error setting up 2FA', error, 'SecuritySettingsPage');
       toast.error('Failed to setup 2FA');
     } finally {
       setSaving(false);
@@ -140,7 +141,7 @@ const SecuritySettingsPage: React.FC = () => {
       setVerificationCode('');
       fetchSecuritySettings();
     } catch (error) {
-      console.error('Error verifying 2FA:', error);
+      logger.error('Error verifying 2FA', error, 'SecuritySettingsPage');
       toast.error('Invalid verification code');
     } finally {
       setSaving(false);
@@ -159,7 +160,7 @@ const SecuritySettingsPage: React.FC = () => {
       setVerificationCode('');
       fetchSecuritySettings();
     } catch (error) {
-      console.error('Error disabling 2FA:', error);
+      logger.error('Error disabling 2FA', error, 'SecuritySettingsPage');
       toast.error('Failed to disable 2FA');
     } finally {
       setSaving(false);
@@ -192,7 +193,7 @@ const SecuritySettingsPage: React.FC = () => {
         confirmPassword: ''
       });
     } catch (error) {
-      console.error('Error changing password:', error);
+      logger.error('Error changing password', error, 'SecuritySettingsPage');
       toast.error('Failed to change password');
     } finally {
       setSaving(false);
@@ -208,7 +209,7 @@ const SecuritySettingsPage: React.FC = () => {
       setSettings(prev => prev ? { ...prev, ...updates } : null);
       toast.success('Security settings updated successfully');
     } catch (error) {
-      console.error('Error updating security settings:', error);
+      logger.error('Error updating security settings', error, 'SecuritySettingsPage');
       toast.error('Failed to update security settings');
     } finally {
       setSaving(false);
@@ -223,7 +224,7 @@ const SecuritySettingsPage: React.FC = () => {
       setSettings(prev => prev ? { ...prev, backupCodes: response.data.data.backupCodes } : null);
       toast.success('New backup codes generated');
     } catch (error) {
-      console.error('Error generating backup codes:', error);
+      logger.error('Error generating backup codes', error, 'SecuritySettingsPage');
       toast.error('Failed to generate backup codes');
     } finally {
       setSaving(false);

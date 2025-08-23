@@ -13,6 +13,15 @@ import logger from '@/utils/logger';
 
 /**
  * Tax Configuration Interface
+ * Defines the configuration for various tax rates used in calculations
+ * 
+ * @interface TaxConfig
+ * @property {number} gstRate - Goods and Services Tax rate percentage
+ * @property {number} tdsRate - Tax Deducted at Source rate percentage
+ * @property {number} cgstRate - Central GST rate percentage
+ * @property {number} sgstRate - State GST rate percentage
+ * @property {number} igstRate - Integrated GST rate percentage
+ * @property {number} cessRate - Additional cess rate percentage
  */
 interface TaxConfig {
   gstRate: number;
@@ -25,6 +34,19 @@ interface TaxConfig {
 
 /**
  * Tax Calculation Result Interface
+ * Defines the structure of tax calculation results
+ * 
+ * @interface TaxCalculationResult
+ * @property {number} subtotal - Original amount before tax
+ * @property {number} gstAmount - Total GST amount (CGST + SGST + IGST)
+ * @property {number} cgstAmount - Central GST amount
+ * @property {number} sgstAmount - State GST amount
+ * @property {number} igstAmount - Integrated GST amount
+ * @property {number} tdsAmount - Tax Deducted at Source amount
+ * @property {number} cessAmount - Additional cess amount
+ * @property {number} totalTax - Total tax amount
+ * @property {number} grandTotal - Final amount including all taxes
+ * @property {Object} breakdown - Detailed breakdown of tax components
  */
 interface TaxCalculationResult {
   subtotal: number;
@@ -57,6 +79,17 @@ export class TaxService {
 
   /**
    * Calculate GST for a given amount
+   * 
+   * @param amount - The base amount for GST calculation
+   * @param gstRate - The GST rate percentage (default: 18%)
+   * @returns The calculated GST amount rounded to 2 decimal places
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const gstAmount = taxService.calculateGST(1000, 18);
+   * // Returns: 180.00
+   * ```
    */
   calculateGST(amount: number, gstRate: number = this.defaultConfig.gstRate): number {
     try {
@@ -75,6 +108,17 @@ export class TaxService {
 
   /**
    * Calculate CGST and SGST (for intra-state transactions)
+   * 
+   * @param amount - The base amount for tax calculation
+   * @param gstRate - The GST rate percentage (default: 18%)
+   * @returns Object containing CGST and SGST amounts
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const { cgst, sgst } = taxService.calculateCGSTSGST(1000, 18);
+   * // Returns: { cgst: 90.00, sgst: 90.00 }
+   * ```
    */
   calculateCGSTSGST(amount: number, gstRate: number = this.defaultConfig.gstRate): { cgst: number; sgst: number } {
     try {
@@ -98,6 +142,17 @@ export class TaxService {
 
   /**
    * Calculate IGST (for inter-state transactions)
+   * 
+   * @param amount - The base amount for IGST calculation
+   * @param igstRate - The IGST rate percentage (default: 18%)
+   * @returns The calculated IGST amount rounded to 2 decimal places
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const igstAmount = taxService.calculateIGST(1000, 18);
+   * // Returns: 180.00
+   * ```
    */
   calculateIGST(amount: number, igstRate: number = this.defaultConfig.igstRate): number {
     try {
@@ -116,6 +171,17 @@ export class TaxService {
 
   /**
    * Calculate TDS (Tax Deducted at Source)
+   * 
+   * @param amount - The base amount for TDS calculation
+   * @param tdsRate - The TDS rate percentage (default: 10%)
+   * @returns The calculated TDS amount rounded to 2 decimal places
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const tdsAmount = taxService.calculateTDS(10000, 10);
+   * // Returns: 1000.00
+   * ```
    */
   calculateTDS(amount: number, tdsRate: number = this.defaultConfig.tdsRate): number {
     try {
@@ -134,6 +200,17 @@ export class TaxService {
 
   /**
    * Calculate Cess (additional tax)
+   * 
+   * @param amount - The base amount for cess calculation
+   * @param cessRate - The cess rate percentage (default: 0%)
+   * @returns The calculated cess amount rounded to 2 decimal places
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const cessAmount = taxService.calculateCess(1000, 5);
+   * // Returns: 50.00
+   * ```
    */
   calculateCess(amount: number, cessRate: number = this.defaultConfig.cessRate): number {
     try {
@@ -152,6 +229,27 @@ export class TaxService {
 
   /**
    * Comprehensive tax calculation for invoices
+   * 
+   * @param params - Tax calculation parameters
+   * @param params.subtotal - The invoice subtotal amount
+   * @param params.isInterState - Whether the transaction is inter-state
+   * @param params.isTDSApplicable - Whether TDS is applicable
+   * @param params.gstRate - GST rate percentage (optional)
+   * @param params.tdsRate - TDS rate percentage (optional)
+   * @param params.cessRate - Cess rate percentage (optional)
+   * @param params.clientType - Type of client (individual or company)
+   * @returns Complete tax calculation result with breakdown
+   * @throws Error if calculation fails
+   * 
+   * @example
+   * ```typescript
+   * const result = taxService.calculateInvoiceTax({
+   *   subtotal: 10000,
+   *   isInterState: false,
+   *   isTDSApplicable: true,
+   *   clientType: 'company'
+   * });
+   * ```
    */
   calculateInvoiceTax(params: {
     subtotal: number;

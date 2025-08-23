@@ -16,6 +16,14 @@ const db = new DatabaseService();
 
 /**
  * Report Parameter Interface
+ * Defines the structure of report parameters
+ * 
+ * @interface ReportParameter
+ * @property {string} name - Parameter name
+ * @property {'string' | 'number' | 'date' | 'boolean' | 'array'} type - Parameter data type
+ * @property {any} value - Parameter value
+ * @property {boolean} required - Whether the parameter is required
+ * @property {any} [defaultValue] - Default value for the parameter
  */
 interface ReportParameter {
   name: string;
@@ -27,6 +35,17 @@ interface ReportParameter {
 
 /**
  * Report Template Interface
+ * Defines the structure of report templates
+ * 
+ * @interface ReportTemplate
+ * @property {string} id - Unique template identifier
+ * @property {string} name - Template name
+ * @property {string} description - Template description
+ * @property {string} query - SQL query for the report
+ * @property {ReportParameter[]} parameters - Array of template parameters
+ * @property {string} dataSource - Data source identifier
+ * @property {'json' | 'csv' | 'pdf' | 'excel'} outputFormat - Output format
+ * @property {string} [schedule] - Cron expression for scheduled reports
  */
 interface ReportTemplate {
   id: string;
@@ -41,6 +60,20 @@ interface ReportTemplate {
 
 /**
  * Report Execution Result Interface
+ * Defines the structure of report execution results
+ * 
+ * @interface ReportExecutionResult
+ * @property {string} executionId - Unique execution identifier
+ * @property {string} templateId - Template ID that was executed
+ * @property {'running' | 'completed' | 'failed' | 'cancelled'} status - Execution status
+ * @property {Date} startTime - When execution started
+ * @property {Date} [endTime] - When execution completed
+ * @property {number} [duration] - Execution duration in milliseconds
+ * @property {number} rowCount - Number of rows returned
+ * @property {any[]} data - Report data
+ * @property {string} [error] - Error message if failed
+ * @property {ReportParameter[]} parameters - Parameters used for execution
+ * @property {string} [outputUrl] - URL to output file if generated
  */
 interface ReportExecutionResult {
   executionId: string;
@@ -63,6 +96,21 @@ interface ReportExecutionResult {
 export class ReportExecutionService {
   /**
    * Execute a report from template
+   * 
+   * @param templateId - The ID of the report template to execute
+   * @param parameters - Array of report parameters with values
+   * @param userId - The ID of the user executing the report
+   * @returns Promise<ReportExecutionResult> - Complete execution result
+   * @throws Error if template not found or execution fails
+   * 
+   * @example
+   * ```typescript
+   * const result = await reportExecutionService.executeReport(
+   *   'template-123',
+   *   [{ name: 'startDate', type: 'date', value: '2025-01-01', required: true }],
+   *   'user-456'
+   * );
+   * ```
    */
   async executeReport(
     templateId: string,
@@ -138,6 +186,18 @@ export class ReportExecutionService {
 
   /**
    * Get report template by ID
+   * 
+   * @param templateId - The ID of the report template
+   * @returns Promise<ReportTemplate | null> - The report template or null if not found
+   * @throws Error if database query fails
+   * 
+   * @example
+   * ```typescript
+   * const template = await reportExecutionService.getReportTemplate('template-123');
+   * if (template) {
+   *   console.log('Template found:', template.name);
+   * }
+   * ```
    */
   async getReportTemplate(templateId: string): Promise<ReportTemplate | null> {
     try {
@@ -168,6 +228,17 @@ export class ReportExecutionService {
 
   /**
    * Validate report parameters
+   * 
+   * @param templateParams - Array of template parameter definitions
+   * @param providedParams - Array of provided parameter values
+   * @throws Error if validation fails (missing required params, type mismatch, etc.)
+   * 
+   * @example
+   * ```typescript
+   * const templateParams = [{ name: 'startDate', type: 'date', required: true }];
+   * const providedParams = [{ name: 'startDate', type: 'date', value: '2025-01-01', required: true }];
+   * reportExecutionService.validateParameters(templateParams, providedParams);
+   * ```
    */
   validateParameters(templateParams: ReportParameter[], providedParams: ReportParameter[]): void {
     try {
