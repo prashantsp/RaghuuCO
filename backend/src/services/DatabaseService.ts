@@ -658,6 +658,191 @@ export class DatabaseService {
     const query = SQLQueries.AUDIT_LOGS.GET_AUDIT_LOGS_BY_USER;
     return await this.query(query, [userId]);
   }
+
+  // Social Account Management Methods
+
+  /**
+   * Create social account
+   * @param socialData - Social account data
+   * @returns Promise with created social account
+   */
+  async createSocialAccount(socialData: {
+    userId: string;
+    provider: string;
+    providerId: string;
+    accessToken: string;
+    refreshToken?: string;
+    profileData?: any;
+  }): Promise<any> {
+    const query = SQLQueries.SOCIAL_ACCOUNTS.CREATE_SOCIAL_ACCOUNT;
+    const params = [
+      socialData.userId,
+      socialData.provider,
+      socialData.providerId,
+      socialData.accessToken,
+      socialData.refreshToken,
+      socialData.profileData ? JSON.stringify(socialData.profileData) : null
+    ];
+
+    const result = await this.queryOne(query, params);
+    logger.businessEvent('social_account_created', 'social_account', result.id, socialData.userId);
+    return result;
+  }
+
+  /**
+   * Get social account by provider and provider ID
+   * @param provider - Social provider
+   * @param providerId - Provider user ID
+   * @returns Promise with social account data
+   */
+  async getSocialAccountByProvider(provider: string, providerId: string): Promise<any> {
+    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_BY_PROVIDER;
+    return await this.queryOne(query, [provider, providerId]);
+  }
+
+  /**
+   * Get social accounts by user ID
+   * @param userId - User ID
+   * @returns Promise with social accounts array
+   */
+  async getSocialAccountsByUserId(userId: string): Promise<any[]> {
+    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_BY_USER_ID;
+    return await this.query(query, [userId]);
+  }
+
+  /**
+   * Update social account
+   * @param id - Social account ID
+   * @param updateData - Update data
+   * @returns Promise with updated social account
+   */
+  async updateSocialAccount(id: string, updateData: {
+    accessToken: string;
+    refreshToken?: string;
+    profileData?: any;
+  }): Promise<any> {
+    const query = SQLQueries.SOCIAL_ACCOUNTS.UPDATE_SOCIAL_ACCOUNT;
+    const params = [
+      updateData.accessToken,
+      updateData.refreshToken,
+      updateData.profileData ? JSON.stringify(updateData.profileData) : null,
+      id
+    ];
+
+    const result = await this.queryOne(query, params);
+    if (result) {
+      logger.businessEvent('social_account_updated', 'social_account', id, 'system');
+    }
+    return result;
+  }
+
+  /**
+   * Delete social account
+   * @param id - Social account ID
+   * @returns Promise<void>
+   */
+  async deleteSocialAccount(id: string): Promise<void> {
+    const query = SQLQueries.SOCIAL_ACCOUNTS.DELETE_SOCIAL_ACCOUNT;
+    await this.query(query, [id]);
+    logger.businessEvent('social_account_deleted', 'social_account', id, 'system');
+  }
+
+  // User Session Management Methods
+
+  /**
+   * Create user session
+   * @param sessionData - Session data
+   * @returns Promise with created session
+   */
+  async createUserSession(sessionData: {
+    userId: string;
+    sessionToken: string;
+    refreshToken: string;
+    ipAddress?: string;
+    userAgent?: string;
+    expiresAt: Date;
+  }): Promise<any> {
+    const query = SQLQueries.USER_SESSIONS.CREATE_SESSION;
+    const params = [
+      sessionData.userId,
+      sessionData.sessionToken,
+      sessionData.refreshToken,
+      sessionData.ipAddress,
+      sessionData.userAgent,
+      sessionData.expiresAt
+    ];
+
+    const result = await this.queryOne(query, params);
+    logger.businessEvent('session_created', 'session', result.id, sessionData.userId);
+    return result;
+  }
+
+  /**
+   * Get user session by token
+   * @param sessionToken - Session token
+   * @returns Promise with session data
+   */
+  async getUserSessionByToken(sessionToken: string): Promise<any> {
+    const query = SQLQueries.USER_SESSIONS.GET_BY_TOKEN;
+    return await this.queryOne(query, [sessionToken]);
+  }
+
+  /**
+   * Get user sessions by user ID
+   * @param userId - User ID
+   * @returns Promise with sessions array
+   */
+  async getUserSessionsByUserId(userId: string): Promise<any[]> {
+    const query = SQLQueries.USER_SESSIONS.GET_BY_USER_ID;
+    return await this.query(query, [userId]);
+  }
+
+  /**
+   * Update user session
+   * @param id - Session ID
+   * @param updateData - Update data
+   * @returns Promise with updated session
+   */
+  async updateUserSession(id: string, updateData: {
+    refreshToken?: string;
+    expiresAt?: Date;
+    lastActivity?: Date;
+  }): Promise<any> {
+    const query = SQLQueries.USER_SESSIONS.UPDATE_SESSION;
+    const params = [
+      updateData.refreshToken,
+      updateData.expiresAt,
+      updateData.lastActivity,
+      id
+    ];
+
+    const result = await this.queryOne(query, params);
+    if (result) {
+      logger.businessEvent('session_updated', 'session', id, 'system');
+    }
+    return result;
+  }
+
+  /**
+   * Delete user session
+   * @param id - Session ID
+   * @returns Promise<void>
+   */
+  async deleteUserSession(id: string): Promise<void> {
+    const query = SQLQueries.USER_SESSIONS.DELETE_SESSION;
+    await this.query(query, [id]);
+    logger.businessEvent('session_deleted', 'session', id, 'system');
+  }
+
+  /**
+   * Delete expired sessions
+   * @returns Promise<void>
+   */
+  async deleteExpiredSessions(): Promise<void> {
+    const query = SQLQueries.USER_SESSIONS.DELETE_EXPIRED_SESSIONS;
+    await this.query(query);
+    logger.info('Expired sessions cleaned up');
+  }
 }
 
 export default DatabaseService;
