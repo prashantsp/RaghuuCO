@@ -1,12 +1,8 @@
 {
   "name": "raghuuco-legal-practice-management",
   "version": "1.0.0",
-  "description": "RAGHUU CO Legal Practice Management System",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "description": "Comprehensive legal practice management system for RAGHUU CO",
+  "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
@@ -14,43 +10,143 @@
     "build": "npm run build:backend && npm run build:frontend",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
     "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm run test",
-    "test:frontend": "cd frontend && npm run test",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:backend": "cd backend && npm run test:coverage",
+    "test:coverage:frontend": "cd frontend && npm run test:coverage",
     "lint": "npm run lint:backend && npm run lint:frontend",
     "lint:backend": "cd backend && npm run lint",
     "lint:frontend": "cd frontend && npm run lint",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint:fix": "npm run lint:fix:backend && npm run lint:fix:frontend",
+    "lint:fix:backend": "cd backend && npm run lint:fix",
+    "lint:fix:frontend": "cd frontend && npm run lint:fix",
+    "format": "npm run format:backend && npm run format:frontend",
+    "format:backend": "cd backend && npm run format",
+    "format:frontend": "cd frontend && npm run format",
+    "format:check": "npm run format:check:backend && npm run format:check:frontend",
+    "format:check:backend": "cd backend && npm run format:check",
+    "format:check:frontend": "cd frontend && npm run format:check",
+    "type-check": "npm run type-check:backend && npm run type-check:frontend",
+    "type-check:backend": "cd backend && npm run type-check",
+    "type-check:frontend": "cd frontend && npm run type-check",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "clean": "npm run clean:backend && npm run clean:frontend",
+    "clean:backend": "cd backend && npm run clean",
+    "clean:frontend": "cd frontend && npm run clean",
+    "docker:build": "docker-compose -f docker-compose.prod.yml build",
+    "docker:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:restart": "docker-compose -f docker-compose.prod.yml restart",
+    "docker:clean": "docker-compose -f docker-compose.prod.yml down -v --remove-orphans",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed",
+    "db:reset": "cd backend && npm run db:reset",
+    "db:backup": "cd backend && npm run db:backup",
+    "db:restore": "cd backend && npm run db:restore",
+    "security:audit": "cd backend && npm run security:audit",
+    "security:scan": "npm audit --audit-level=moderate && cd backend && npm audit --audit-level=moderate && cd ../frontend && npm audit --audit-level=moderate",
+    "performance:test": "docker-compose -f docker-compose.prod.yml --profile performance-test up k6",
+    "load:test": "k6 run tests/performance/load-test.js",
+    "stress:test": "k6 run tests/performance/stress-test.js",
+    "monitoring:start": "docker-compose -f docker-compose.prod.yml up prometheus grafana elasticsearch kibana filebeat -d",
+    "monitoring:stop": "docker-compose -f docker-compose.prod.yml stop prometheus grafana elasticsearch kibana filebeat",
+    "monitoring:logs": "docker-compose -f docker-compose.prod.yml logs prometheus grafana elasticsearch kibana filebeat",
+    "cdn:start": "docker-compose -f docker-compose.prod.yml --profile cdn-local up cdn -d",
+    "cdn:stop": "docker-compose -f docker-compose.prod.yml stop cdn",
+    "cdn:warm": "docker-compose -f docker-compose.prod.yml --profile cdn-warming up cdn-warmer",
+    "backup:create": "docker-compose -f docker-compose.prod.yml up backup",
+    "backup:list": "ls -la backup/",
+    "backup:restore": "cd backend && npm run db:restore",
+    "deploy:staging": "npm run build && docker-compose -f docker-compose.prod.yml up -d",
+    "deploy:production": "npm run build && docker-compose -f docker-compose.prod.yml up -d",
+    "health:check": "curl -f http://localhost:5000/api/v1/health && curl -f http://localhost:3000",
+    "logs:backend": "cd backend && npm run logs",
+    "logs:frontend": "cd frontend && npm run logs",
+    "logs:all": "docker-compose -f docker-compose.prod.yml logs -f",
     "check:jsdoc": "node scripts/check-jsdoc.js",
     "check:sql": "node scripts/check-sql-centralization.js",
     "check:access": "node scripts/check-access-control.js",
     "check:logging": "npm run check:logging:backend && npm run check:logging:frontend",
     "check:logging:backend": "cd backend && npm run check:logging",
     "check:logging:frontend": "cd frontend && npm run check:logging",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2",
-    "prettier": "^3.1.1"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/raghuuco/legal-practice-management.git"
+    "check:all": "npm run check:jsdoc && npm run check:sql && npm run check:access && npm run check:logging",
+    "analytics:generate": "cd backend && npm run analytics:generate",
+    "analytics:export": "cd backend && npm run analytics:export",
+    "reports:generate": "cd backend && npm run reports:generate",
+    "reports:export": "cd backend && npm run reports:export",
+    "cache:clear": "cd backend && npm run cache:clear",
+    "cache:warm": "cd backend && npm run cache:warm",
+    "optimize:db": "cd backend && npm run optimize:db",
+    "optimize:images": "cd frontend && npm run optimize:images",
+    "optimize:all": "npm run optimize:db && npm run optimize:images",
+    "validate:env": "node scripts/validate-env.js",
+    "validate:config": "node scripts/validate-config.js",
+    "validate:all": "npm run validate:env && npm run validate:config",
+    "setup:dev": "npm run install:all && npm run db:migrate && npm run db:seed",
+    "setup:prod": "npm run install:all && npm run build && npm run db:migrate",
+    "ci:test": "npm run lint && npm run type-check && npm run test && npm run test:coverage",
+    "ci:build": "npm run build && npm run docker:build",
+    "ci:deploy": "npm run ci:build && npm run deploy:staging",
+    "precommit": "npm run lint && npm run type-check && npm run test",
+    "prepush": "npm run ci:test && npm run security:scan",
+    "postinstall": "npm run check:all"
   },
   "keywords": [
     "legal",
     "practice-management",
     "law-firm",
     "case-management",
-    "document-management"
+    "document-management",
+    "billing",
+    "time-tracking",
+    "client-portal",
+    "react",
+    "nodejs",
+    "postgresql",
+    "typescript"
   ],
-  "author": "RAGHUU CO",
-  "license": "MIT"
+  "author": "RAGHUU CO Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/raghuuco/legal-practice-management.git"
+  },
+  "bugs": {
+    "url": "https://github.com/raghuuco/legal-practice-management/issues"
+  },
+  "homepage": "https://github.com/raghuuco/legal-practice-management#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run prepush"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
 }
