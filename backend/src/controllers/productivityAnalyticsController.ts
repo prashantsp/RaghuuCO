@@ -24,75 +24,67 @@ const db = new DatabaseService();
 export const getProductivityOverview = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
-    const { startDate, endDate } = req.query;
 
-    logger.info('Getting productivity overview', { userId, startDate, endDate });
+    logger.info('Getting productivity overview', { userId });
 
-    const start = startDate || new Date(new Date().getFullYear(), 0, 1);
-    const end = endDate || new Date();
-
-    // Get overall productivity metrics
-    const productivityResult = await db.query(`
+    // Get current month productivity metrics
+    const currentMonthResult = await db.query(`
       SELECT 
-        SUM(total_hours_worked) as total_hours,
-        SUM(billable_hours) as billable_hours,
-        SUM(non_billable_hours) as non_billable_hours,
-        SUM(tasks_completed) as tasks_completed,
-        SUM(tasks_pending) as tasks_pending,
-        SUM(cases_handled) as cases_handled,
-        AVG(efficiency_score) as avg_efficiency,
-        AVG(utilization_rate) as avg_utilization
-      FROM productivity_metrics 
-      WHERE metric_date >= $1 AND metric_date <= $2
-    `, [start, end]);
+        COALESCE(SUM(duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(*) as total_entries,
+        COUNT(DISTINCT user_id) as active_users
+      FROM time_entries 
+      WHERE DATE_TRUNC('month', start_time) = DATE_TRUNC('month', CURRENT_DATE)
+    `);
 
-    // Get user productivity ranking
-    const userRankingResult = await db.query(`
+    // Get task completion metrics
+    const taskCompletionResult = await db.query(`
       SELECT 
-        u.id,
+        COUNT(*) as total_tasks,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_tasks,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks,
+        COUNT(CASE WHEN due_date < CURRENT_DATE AND status NOT IN ('completed', 'cancelled') THEN 1 END) as overdue_tasks
+      FROM tasks 
+      WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
+    `);
+
+    // Get case productivity metrics
+    const caseProductivityResult = await db.query(`
+      SELECT 
+        COUNT(*) as total_cases,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_cases,
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_cases,
+        AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/86400) as avg_case_duration_days
+      FROM cases 
+      WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
+    `);
+
+    // Get top performers
+    const topPerformersResult = await db.query(`
+      SELECT 
         u.first_name,
         u.last_name,
-        u.role,
-        SUM(pm.total_hours_worked) as total_hours,
-        SUM(pm.billable_hours) as billable_hours,
-        SUM(pm.tasks_completed) as tasks_completed,
-        AVG(pm.efficiency_score) as avg_efficiency,
-        AVG(pm.utilization_rate) as avg_utilization
-      FROM productivity_metrics pm
-      JOIN users u ON pm.user_id = u.id
-      WHERE pm.metric_date >= $1 AND pm.metric_date <= $2
-      GROUP BY u.id, u.first_name, u.last_name, u.role
-      ORDER BY avg_efficiency DESC
-      LIMIT 10
-    `, [start, end]);
-
-    // Get time utilization by category
-    const timeUtilizationResult = await db.query(`
-      SELECT 
-        t.task_type,
-        SUM(tte.duration_minutes) as total_minutes,
-        COUNT(tte.id) as time_entries,
-        AVG(tte.duration_minutes) as avg_duration
-      FROM task_time_entries tte
-      JOIN tasks t ON tte.task_id = t.id
-      WHERE tte.start_time >= $1 AND tte.start_time <= $2
-      GROUP BY t.task_type
-      ORDER BY total_minutes DESC
-    `, [start, end]);
+        COALESCE(SUM(te.duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(DISTINCT t.id) as tasks_completed
+      FROM users u
+      LEFT JOIN time_entries te ON u.id = te.user_id 
+        AND DATE_TRUNC('month', te.start_time) = DATE_TRUNC('month', CURRENT_DATE)
+      LEFT JOIN tasks t ON u.id = t.assigned_to 
+        AND t.status = 'completed' 
+        AND DATE_TRUNC('month', t.completed_date) = DATE_TRUNC('month', CURRENT_DATE)
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
+      GROUP BY u.id, u.first_name, u.last_name
+      ORDER BY billable_minutes DESC
+      LIMIT 5
+    `);
 
     const overview = {
-      productivity: {
-        totalHours: parseFloat(productivityResult.rows[0]?.total_hours || '0'),
-        billableHours: parseFloat(productivityResult.rows[0]?.billable_hours || '0'),
-        nonBillableHours: parseFloat(productivityResult.rows[0]?.non_billable_hours || '0'),
-        tasksCompleted: parseInt(productivityResult.rows[0]?.tasks_completed || '0'),
-        tasksPending: parseInt(productivityResult.rows[0]?.tasks_pending || '0'),
-        casesHandled: parseInt(productivityResult.rows[0]?.cases_handled || '0'),
-        avgEfficiency: parseFloat(productivityResult.rows[0]?.avg_efficiency || '0'),
-        avgUtilization: parseFloat(productivityResult.rows[0]?.avg_utilization || '0')
-      },
-      userRanking: userRankingResult.rows,
-      timeUtilization: timeUtilizationResult.rows
+      currentMonth: currentMonthResult.rows[0],
+      taskCompletion: taskCompletionResult.rows[0],
+      caseProductivity: caseProductivityResult.rows[0],
+      topPerformers: topPerformersResult.rows
     };
 
     logger.info('Productivity overview fetched successfully', { userId });
@@ -114,93 +106,94 @@ export const getProductivityOverview = async (req: Request, res: Response) => {
 };
 
 /**
- * Get user productivity analytics
+ * Get individual user productivity analytics
  * 
  * @route GET /api/v1/productivity-analytics/user/:userId
  * @access Private
  */
 export const getUserProductivityAnalytics = async (req: Request, res: Response) => {
   try {
-    const { userId: targetUserId } = req.params;
-    const userId = (req.user as any)?.id;
-    const { startDate, endDate } = req.query;
+    const { userId } = req.params;
+    const { period = '30' } = req.query;
 
-    logger.info('Getting user productivity analytics', { userId, targetUserId, startDate, endDate });
+    logger.info('Getting user productivity analytics', { userId, period });
 
-    const start = startDate || new Date(new Date().getFullYear(), 0, 1);
-    const end = endDate || new Date();
-
-    // Get user productivity metrics
-    const productivityResult = await db.query(`
-      SELECT 
-        metric_date,
-        total_hours_worked,
-        billable_hours,
-        non_billable_hours,
-        tasks_completed,
-        tasks_pending,
-        cases_handled,
-        efficiency_score,
-        utilization_rate
-      FROM productivity_metrics 
-      WHERE user_id = $1 AND metric_date >= $2 AND metric_date <= $3
-      ORDER BY metric_date
-    `, [targetUserId, start, end]);
-
-    // Get user's task completion trends
-    const taskTrendsResult = await db.query(`
-      SELECT 
-        DATE_TRUNC('week', t.created_at) as week,
-        COUNT(*) as tasks_created,
-        COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as tasks_completed,
-        AVG(EXTRACT(EPOCH FROM (t.completed_date - t.created_at))/86400) as avg_completion_days
-      FROM tasks t
-      WHERE t.assigned_to = $1 AND t.created_at >= $2 AND t.created_at <= $3
-      GROUP BY DATE_TRUNC('week', t.created_at)
-      ORDER BY week
-    `, [targetUserId, start, end]);
-
-    // Get user's time tracking details
+    // Get user time tracking data
     const timeTrackingResult = await db.query(`
       SELECT 
-        DATE_TRUNC('day', tte.start_time) as date,
-        SUM(tte.duration_minutes) as total_minutes,
-        SUM(CASE WHEN tte.is_billable THEN tte.duration_minutes ELSE 0 END) as billable_minutes,
-        COUNT(*) as time_entries
-      FROM task_time_entries tte
-      WHERE tte.user_id = $1 AND tte.start_time >= $2 AND tte.start_time <= $3
-      GROUP BY DATE_TRUNC('day', tte.start_time)
-      ORDER BY date
-    `, [targetUserId, start, end]);
+        DATE_TRUNC('day', start_time) as date,
+        COALESCE(SUM(duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(*) as entries_count
+      FROM time_entries 
+      WHERE user_id = $1 
+      AND start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('day', start_time)
+      ORDER BY date DESC
+    `, [userId]);
 
-    // Get user's case performance
-    const casePerformanceResult = await db.query(`
+    // Get task completion data
+    const taskCompletionResult = await db.query(`
       SELECT 
-        c.id,
+        DATE_TRUNC('day', completed_date) as date,
+        COUNT(*) as tasks_completed,
+        AVG(EXTRACT(EPOCH FROM (completed_date - created_at))/3600) as avg_completion_hours
+      FROM tasks 
+      WHERE assigned_to = $1 
+      AND status = 'completed'
+      AND completed_date >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('day', completed_date)
+      ORDER BY date DESC
+    `, [userId]);
+
+    // Get case productivity data
+    const caseProductivityResult = await db.query(`
+      SELECT 
         c.case_number,
         c.title,
         c.status,
         c.created_at,
         c.updated_at,
-        COUNT(t.id) as total_tasks,
-        COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as completed_tasks,
-        SUM(tte.duration_minutes) as total_time_minutes
+        COALESCE(SUM(te.duration_minutes), 0) as total_time_minutes,
+        COUNT(DISTINCT t.id) as tasks_count,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed') as completed_tasks
       FROM cases c
+      LEFT JOIN time_entries te ON c.id = te.case_id AND te.user_id = $1
       LEFT JOIN tasks t ON c.id = t.case_id AND t.assigned_to = $1
-      LEFT JOIN task_time_entries tte ON t.id = tte.task_id
-      WHERE c.assigned_to = $1 AND c.created_at >= $2 AND c.created_at <= $3
+      WHERE c.assigned_to = $1
+      AND c.created_at >= CURRENT_DATE - INTERVAL '${period} days'
       GROUP BY c.id, c.case_number, c.title, c.status, c.created_at, c.updated_at
-      ORDER BY c.created_at DESC
-    `, [targetUserId, start, end]);
+      ORDER BY c.updated_at DESC
+    `, [userId]);
+
+    // Get productivity summary
+    const productivitySummaryResult = await db.query(`
+      SELECT 
+        COALESCE(SUM(te.duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(DISTINCT te.id) as time_entries,
+        COUNT(DISTINCT t.id) as total_tasks,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed') as completed_tasks,
+        COUNT(DISTINCT c.id) as total_cases,
+        COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'completed') as completed_cases
+      FROM users u
+      LEFT JOIN time_entries te ON u.id = te.user_id 
+        AND te.start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN tasks t ON u.id = t.assigned_to 
+        AND t.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN cases c ON u.id = c.assigned_to 
+        AND c.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.id = $1
+    `, [userId]);
 
     const analytics = {
-      productivity: productivityResult.rows,
-      taskTrends: taskTrendsResult.rows,
       timeTracking: timeTrackingResult.rows,
-      casePerformance: casePerformanceResult.rows
+      taskCompletion: taskCompletionResult.rows,
+      caseProductivity: caseProductivityResult.rows,
+      summary: productivitySummaryResult.rows[0]
     };
 
-    logger.info('User productivity analytics fetched successfully', { userId, targetUserId });
+    logger.info('User productivity analytics fetched successfully', { userId });
 
     res.json({
       success: true,
@@ -211,7 +204,7 @@ export const getUserProductivityAnalytics = async (req: Request, res: Response) 
     res.status(500).json({
       success: false,
       error: {
-        code: 'USER_PRODUCTIVITY_ANALYTICS_ERROR',
+        code: 'USER_PRODUCTIVITY_ERROR',
         message: 'Failed to get user productivity analytics'
       }
     });
@@ -227,80 +220,81 @@ export const getUserProductivityAnalytics = async (req: Request, res: Response) 
 export const getTeamProductivityAnalytics = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
-    const { startDate, endDate, role } = req.query;
+    const { period = '30' } = req.query;
 
-    logger.info('Getting team productivity analytics', { userId, startDate, endDate, role });
+    logger.info('Getting team productivity analytics', { userId, period });
 
-    const start = startDate || new Date(new Date().getFullYear(), 0, 1);
-    const end = endDate || new Date();
-
-    let roleFilter = '';
-    if (role) {
-      roleFilter = `AND u.role = '${role}'`;
-    }
-
-    // Get team productivity summary
-    const teamSummaryResult = await db.query(`
+    // Get team time tracking summary
+    const teamTimeTrackingResult = await db.query(`
       SELECT 
-        u.role,
-        COUNT(DISTINCT u.id) as user_count,
-        SUM(pm.total_hours_worked) as total_hours,
-        SUM(pm.billable_hours) as billable_hours,
-        SUM(pm.tasks_completed) as tasks_completed,
-        AVG(pm.efficiency_score) as avg_efficiency,
-        AVG(pm.utilization_rate) as avg_utilization
-      FROM productivity_metrics pm
-      JOIN users u ON pm.user_id = u.id
-      WHERE pm.metric_date >= $1 AND pm.metric_date <= $2 ${roleFilter}
-      GROUP BY u.role
-      ORDER BY avg_efficiency DESC
-    `, [start, end]);
-
-    // Get team performance comparison
-    const teamComparisonResult = await db.query(`
-      SELECT 
-        u.id,
         u.first_name,
         u.last_name,
         u.role,
-        SUM(pm.total_hours_worked) as total_hours,
-        SUM(pm.billable_hours) as billable_hours,
-        SUM(pm.tasks_completed) as tasks_completed,
-        AVG(pm.efficiency_score) as avg_efficiency,
-        AVG(pm.utilization_rate) as avg_utilization,
-        COUNT(DISTINCT c.id) as cases_handled
-      FROM productivity_metrics pm
-      JOIN users u ON pm.user_id = u.id
-      LEFT JOIN cases c ON u.id = c.assigned_to
-      WHERE pm.metric_date >= $1 AND pm.metric_date <= $2 ${roleFilter}
-      GROUP BY u.id, u.first_name, u.last_name, u.role
-      ORDER BY avg_efficiency DESC
-    `, [start, end]);
-
-    // Get team workload distribution
-    const workloadDistributionResult = await db.query(`
-      SELECT 
-        u.id,
-        u.first_name,
-        u.last_name,
-        u.role,
-        COUNT(t.id) as total_tasks,
-        COUNT(CASE WHEN t.status = 'pending' THEN 1 END) as pending_tasks,
-        COUNT(CASE WHEN t.status = 'in_progress' THEN 1 END) as in_progress_tasks,
-        COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as completed_tasks,
-        COUNT(c.id) as active_cases
+        COALESCE(SUM(te.duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(DISTINCT te.id) as time_entries,
+        ROUND(
+          CASE 
+            WHEN COALESCE(SUM(te.duration_minutes), 0) > 0 
+            THEN (COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) / COALESCE(SUM(te.duration_minutes), 0)) * 100
+            ELSE 0 
+          END, 2
+        ) as billable_percentage
       FROM users u
-      LEFT JOIN tasks t ON u.id = t.assigned_to
-      LEFT JOIN cases c ON u.id = c.assigned_to AND c.status IN ('active', 'pending')
-      WHERE u.role != 'client' ${roleFilter}
+      LEFT JOIN time_entries te ON u.id = te.user_id 
+        AND te.start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
       GROUP BY u.id, u.first_name, u.last_name, u.role
-      ORDER BY total_tasks DESC
+      ORDER BY billable_minutes DESC
+    `);
+
+    // Get team task completion summary
+    const teamTaskCompletionResult = await db.query(`
+      SELECT 
+        u.first_name,
+        u.last_name,
+        u.role,
+        COUNT(DISTINCT t.id) as total_tasks,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed') as completed_tasks,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'in_progress') as in_progress_tasks,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.due_date < CURRENT_DATE AND t.status NOT IN ('completed', 'cancelled')) as overdue_tasks,
+        ROUND(
+          CASE 
+            WHEN COUNT(DISTINCT t.id) > 0 
+            THEN (COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed')::float / COUNT(DISTINCT t.id)) * 100
+            ELSE 0 
+          END, 2
+        ) as completion_rate
+      FROM users u
+      LEFT JOIN tasks t ON u.id = t.assigned_to 
+        AND t.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
+      GROUP BY u.id, u.first_name, u.last_name, u.role
+      ORDER BY completion_rate DESC
+    `);
+
+    // Get team case productivity summary
+    const teamCaseProductivityResult = await db.query(`
+      SELECT 
+        u.first_name,
+        u.last_name,
+        u.role,
+        COUNT(DISTINCT c.id) as total_cases,
+        COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'completed') as completed_cases,
+        COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'active') as active_cases,
+        AVG(EXTRACT(EPOCH FROM (c.updated_at - c.created_at))/86400) as avg_case_duration_days
+      FROM users u
+      LEFT JOIN cases c ON u.id = c.assigned_to 
+        AND c.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
+      GROUP BY u.id, u.first_name, u.last_name, u.role
+      ORDER BY completed_cases DESC
     `);
 
     const analytics = {
-      teamSummary: teamSummaryResult.rows,
-      teamComparison: teamComparisonResult.rows,
-      workloadDistribution: workloadDistributionResult.rows
+      timeTracking: teamTimeTrackingResult.rows,
+      taskCompletion: teamTaskCompletionResult.rows,
+      caseProductivity: teamCaseProductivityResult.rows
     };
 
     logger.info('Team productivity analytics fetched successfully', { userId });
@@ -314,7 +308,7 @@ export const getTeamProductivityAnalytics = async (req: Request, res: Response) 
     res.status(500).json({
       success: false,
       error: {
-        code: 'TEAM_PRODUCTIVITY_ANALYTICS_ERROR',
+        code: 'TEAM_PRODUCTIVITY_ERROR',
         message: 'Failed to get team productivity analytics'
       }
     });
@@ -330,72 +324,73 @@ export const getTeamProductivityAnalytics = async (req: Request, res: Response) 
 export const getEfficiencyMetrics = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
-    const { startDate, endDate, userId: targetUserId } = req.query;
+    const { period = '90' } = req.query;
 
-    logger.info('Getting efficiency metrics', { userId, startDate, endDate, targetUserId });
+    logger.info('Getting efficiency metrics', { userId, period });
 
-    const start = startDate || new Date(new Date().getFullYear(), 0, 1);
-    const end = endDate || new Date();
-
-    let userFilter = '';
-    if (targetUserId) {
-      userFilter = `AND pm.user_id = '${targetUserId}'`;
-    }
-
-    // Get efficiency trends
-    const efficiencyTrendsResult = await db.query(`
+    // Get time utilization efficiency
+    const timeUtilizationResult = await db.query(`
       SELECT 
-        DATE_TRUNC('week', pm.metric_date) as week,
-        AVG(pm.efficiency_score) as avg_efficiency,
-        AVG(pm.utilization_rate) as avg_utilization,
-        SUM(pm.billable_hours) as total_billable_hours,
-        SUM(pm.total_hours_worked) as total_hours
-      FROM productivity_metrics pm
-      WHERE pm.metric_date >= $1 AND pm.metric_date <= $2 ${userFilter}
-      GROUP BY DATE_TRUNC('week', pm.metric_date)
-      ORDER BY week
-    `, [start, end]);
+        DATE_TRUNC('week', start_time) as week,
+        COALESCE(SUM(duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END), 0) as billable_minutes,
+        ROUND(
+          CASE 
+            WHEN COALESCE(SUM(duration_minutes), 0) > 0 
+            THEN (COALESCE(SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END), 0) / COALESCE(SUM(duration_minutes), 0)) * 100
+            ELSE 0 
+          END, 2
+        ) as utilization_rate
+      FROM time_entries 
+      WHERE start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('week', start_time)
+      ORDER BY week DESC
+    `);
 
-    // Get efficiency by task type
-    const efficiencyByTaskTypeResult = await db.query(`
+    // Get task efficiency metrics
+    const taskEfficiencyResult = await db.query(`
       SELECT 
-        t.task_type,
-        COUNT(t.id) as total_tasks,
-        COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as completed_tasks,
-        AVG(EXTRACT(EPOCH FROM (t.completed_date - t.created_at))/86400) as avg_completion_days,
-        SUM(t.actual_hours) as total_actual_hours,
-        SUM(t.estimated_hours) as total_estimated_hours
-      FROM tasks t
-      WHERE t.created_at >= $1 AND t.created_at <= $2 ${userFilter}
-      GROUP BY t.task_type
-      ORDER BY total_tasks DESC
-    `, [start, end]);
+        DATE_TRUNC('week', created_at) as week,
+        COUNT(*) as total_tasks,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_tasks,
+        AVG(EXTRACT(EPOCH FROM (completed_date - created_at))/3600) as avg_completion_hours,
+        ROUND(
+          CASE 
+            WHEN COUNT(*) > 0 
+            THEN (COUNT(CASE WHEN status = 'completed' THEN 1 END)::float / COUNT(*)) * 100
+            ELSE 0 
+          END, 2
+        ) as completion_rate
+      FROM tasks 
+      WHERE created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('week', created_at)
+      ORDER BY week DESC
+    `);
 
-    // Get time accuracy metrics
-    const timeAccuracyResult = await db.query(`
+    // Get case efficiency metrics
+    const caseEfficiencyResult = await db.query(`
       SELECT 
-        t.id,
-        t.title,
-        t.task_type,
-        t.estimated_hours,
-        t.actual_hours,
-        CASE 
-          WHEN t.estimated_hours > 0 THEN 
-            ((t.actual_hours - t.estimated_hours) / t.estimated_hours) * 100
-          ELSE 0
-        END as accuracy_percentage
-      FROM tasks t
-      WHERE t.status = 'completed' 
-      AND t.created_at >= $1 AND t.created_at <= $2 ${userFilter}
-      AND t.estimated_hours > 0
-      ORDER BY accuracy_percentage DESC
-      LIMIT 20
-    `, [start, end]);
+        DATE_TRUNC('week', created_at) as week,
+        COUNT(*) as total_cases,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_cases,
+        AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/86400) as avg_case_duration_days,
+        ROUND(
+          CASE 
+            WHEN COUNT(*) > 0 
+            THEN (COUNT(CASE WHEN status = 'completed' THEN 1 END)::float / COUNT(*)) * 100
+            ELSE 0 
+          END, 2
+        ) as completion_rate
+      FROM cases 
+      WHERE created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('week', created_at)
+      ORDER BY week DESC
+    `);
 
     const metrics = {
-      efficiencyTrends: efficiencyTrendsResult.rows,
-      efficiencyByTaskType: efficiencyByTaskTypeResult.rows,
-      timeAccuracy: timeAccuracyResult.rows
+      timeUtilization: timeUtilizationResult.rows,
+      taskEfficiency: taskEfficiencyResult.rows,
+      caseEfficiency: caseEfficiencyResult.rows
     };
 
     logger.info('Efficiency metrics fetched successfully', { userId });
@@ -425,49 +420,77 @@ export const getEfficiencyMetrics = async (req: Request, res: Response) => {
 export const getPerformanceBenchmarking = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
-    const { startDate, endDate } = req.query;
+    const { period = '90' } = req.query;
 
-    logger.info('Getting performance benchmarking', { userId, startDate, endDate });
+    logger.info('Getting performance benchmarking', { userId, period });
 
-    const start = startDate || new Date(new Date().getFullYear(), 0, 1);
-    const end = endDate || new Date();
-
-    // Get industry benchmarks (mock data - in real implementation, this would come from external sources)
-    const industryBenchmarks = {
-      avgEfficiency: 75.0,
-      avgUtilization: 80.0,
-      avgBillableHours: 160.0,
-      avgTaskCompletion: 85.0
-    };
-
-    // Get current performance vs benchmarks
-    const currentPerformanceResult = await db.query(`
+    // Get role-based benchmarks
+    const roleBenchmarksResult = await db.query(`
       SELECT 
-        AVG(pm.efficiency_score) as avg_efficiency,
-        AVG(pm.utilization_rate) as avg_utilization,
-        AVG(pm.billable_hours) as avg_billable_hours,
-        (COUNT(CASE WHEN t.status = 'completed' THEN 1 END) * 100.0 / COUNT(t.id)) as task_completion_rate
-      FROM productivity_metrics pm
-      LEFT JOIN tasks t ON pm.user_id = t.assigned_to
-      WHERE pm.metric_date >= $1 AND pm.metric_date <= $2
-    `, [start, end]);
+        u.role,
+        COUNT(DISTINCT u.id) as user_count,
+        AVG(COALESCE(SUM(te.duration_minutes), 0)) as avg_total_minutes,
+        AVG(COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0)) as avg_billable_minutes,
+        AVG(COUNT(DISTINCT t.id)) as avg_tasks,
+        AVG(COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed')) as avg_completed_tasks,
+        AVG(COUNT(DISTINCT c.id)) as avg_cases,
+        AVG(COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'completed')) as avg_completed_cases
+      FROM users u
+      LEFT JOIN time_entries te ON u.id = te.user_id 
+        AND te.start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN tasks t ON u.id = t.assigned_to 
+        AND t.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN cases c ON u.id = c.assigned_to 
+        AND c.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
+      GROUP BY u.role, u.id
+    `);
 
-    const current = currentPerformanceResult.rows[0];
+    // Get top performers by role
+    const topPerformersByRoleResult = await db.query(`
+      SELECT 
+        u.role,
+        u.first_name,
+        u.last_name,
+        COALESCE(SUM(te.duration_minutes), 0) as total_minutes,
+        COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) as billable_minutes,
+        COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'completed') as completed_tasks,
+        COUNT(DISTINCT c.id) FILTER (WHERE c.status = 'completed') as completed_cases,
+        ROUND(
+          CASE 
+            WHEN COALESCE(SUM(te.duration_minutes), 0) > 0 
+            THEN (COALESCE(SUM(CASE WHEN te.is_billable THEN te.duration_minutes ELSE 0 END), 0) / COALESCE(SUM(te.duration_minutes), 0)) * 100
+            ELSE 0 
+          END, 2
+        ) as utilization_rate
+      FROM users u
+      LEFT JOIN time_entries te ON u.id = te.user_id 
+        AND te.start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN tasks t ON u.id = t.assigned_to 
+        AND t.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      LEFT JOIN cases c ON u.id = c.assigned_to 
+        AND c.created_at >= CURRENT_DATE - INTERVAL '${period} days'
+      WHERE u.role IN ('partner', 'senior_associate', 'junior_associate', 'paralegal')
+      GROUP BY u.role, u.id, u.first_name, u.last_name
+      ORDER BY u.role, billable_minutes DESC
+    `);
+
+    // Get performance trends
+    const performanceTrendsResult = await db.query(`
+      SELECT 
+        DATE_TRUNC('month', start_time) as month,
+        AVG(COALESCE(SUM(duration_minutes), 0)) as avg_total_minutes,
+        AVG(COALESCE(SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END), 0)) as avg_billable_minutes
+      FROM time_entries 
+      WHERE start_time >= CURRENT_DATE - INTERVAL '${period} days'
+      GROUP BY DATE_TRUNC('month', start_time), user_id
+      ORDER BY month DESC
+    `);
 
     const benchmarking = {
-      industryBenchmarks,
-      currentPerformance: {
-        avgEfficiency: parseFloat(current?.avg_efficiency || '0'),
-        avgUtilization: parseFloat(current?.avg_utilization || '0'),
-        avgBillableHours: parseFloat(current?.avg_billable_hours || '0'),
-        taskCompletionRate: parseFloat(current?.task_completion_rate || '0')
-      },
-      comparison: {
-        efficiencyGap: parseFloat(current?.avg_efficiency || '0') - industryBenchmarks.avgEfficiency,
-        utilizationGap: parseFloat(current?.avg_utilization || '0') - industryBenchmarks.avgUtilization,
-        billableHoursGap: parseFloat(current?.avg_billable_hours || '0') - industryBenchmarks.avgBillableHours,
-        taskCompletionGap: parseFloat(current?.task_completion_rate || '0') - industryBenchmarks.avgTaskCompletion
-      }
+      roleBenchmarks: roleBenchmarksResult.rows,
+      topPerformersByRole: topPerformersByRoleResult.rows,
+      performanceTrends: performanceTrendsResult.rows
     };
 
     logger.info('Performance benchmarking fetched successfully', { userId });

@@ -90,7 +90,14 @@ async function createEnums(): Promise<void> {
     `CREATE TYPE task_priority_enum AS ENUM ('low', 'medium', 'high', 'urgent')`,
     `CREATE TYPE task_type_enum AS ENUM ('research', 'document_preparation', 'court_appearance', 'client_meeting', 'administrative', 'billing', 'other')`,
     `CREATE TYPE client_portal_user_status_enum AS ENUM ('active', 'inactive', 'suspended')`,
-    `CREATE TYPE document_security_level_enum AS ENUM ('public', 'internal', 'confidential', 'restricted')`
+    `CREATE TYPE document_security_level_enum AS ENUM ('public', 'internal', 'confidential', 'restricted')`,
+    
+    // Content management enums
+    `CREATE TYPE content_status_enum AS ENUM ('draft', 'review', 'published', 'archived')`,
+    `CREATE TYPE comment_status_enum AS ENUM ('pending', 'approved', 'rejected')`,
+    `CREATE TYPE newsletter_status_enum AS ENUM ('draft', 'scheduled', 'sent')`,
+    `CREATE TYPE content_type_enum AS ENUM ('article', 'newsletter')`,
+    `CREATE TYPE analytics_action_enum AS ENUM ('view', 'like', 'share', 'comment')`
   ];
 
   for (const enumQuery of enums) {
@@ -573,6 +580,105 @@ async function createTables(): Promise<void> {
       is_public BOOLEAN DEFAULT false,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Content categories table
+    `CREATE TABLE IF NOT EXISTS content_categories (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      slug VARCHAR(255) UNIQUE NOT NULL,
+      description TEXT,
+      parent_category_id UUID REFERENCES content_categories(id),
+      is_active BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Articles table
+    `CREATE TABLE IF NOT EXISTS articles (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title VARCHAR(255) NOT NULL,
+      slug VARCHAR(255) UNIQUE NOT NULL,
+      excerpt TEXT,
+      content TEXT NOT NULL,
+      featured_image_url VARCHAR(500),
+      category_id UUID REFERENCES content_categories(id),
+      author_id UUID NOT NULL REFERENCES users(id),
+      status content_status_enum DEFAULT 'draft',
+      published_at TIMESTAMP,
+      meta_title VARCHAR(255),
+      meta_description TEXT,
+      tags TEXT[],
+      view_count INTEGER DEFAULT 0,
+      like_count INTEGER DEFAULT 0,
+      share_count INTEGER DEFAULT 0,
+      seo_score INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Article comments table
+    `CREATE TABLE IF NOT EXISTS article_comments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+      author_name VARCHAR(255) NOT NULL,
+      author_email VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      status comment_status_enum DEFAULT 'pending',
+      parent_comment_id UUID REFERENCES article_comments(id),
+      ip_address INET,
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Newsletters table
+    `CREATE TABLE IF NOT EXISTS newsletters (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      template_id UUID REFERENCES email_templates(id),
+      status newsletter_status_enum DEFAULT 'draft',
+      scheduled_at TIMESTAMP,
+      sent_at TIMESTAMP,
+      recipient_count INTEGER DEFAULT 0,
+      opened_count INTEGER DEFAULT 0,
+      clicked_count INTEGER DEFAULT 0,
+      created_by UUID REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Newsletter subscribers table
+    `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      email VARCHAR(255) UNIQUE NOT NULL,
+      first_name VARCHAR(100),
+      last_name VARCHAR(100),
+      is_active BOOLEAN DEFAULT true,
+      subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      unsubscribe_date TIMESTAMP,
+      unsubscribe_reason TEXT,
+      source VARCHAR(100) DEFAULT 'website',
+      ip_address INET,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Content analytics table
+    `CREATE TABLE IF NOT EXISTS content_analytics (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      content_type content_type_enum NOT NULL,
+      content_id UUID NOT NULL,
+      action analytics_action_enum NOT NULL,
+      user_id UUID REFERENCES users(id),
+      ip_address INET,
+      user_agent TEXT,
+      referrer_url VARCHAR(500),
+      session_id VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
     // Audit logs table

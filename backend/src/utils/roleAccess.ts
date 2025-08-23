@@ -103,7 +103,16 @@ export enum Permission {
   // System administration
   VIEW_AUDIT_LOGS = 'view_audit_logs',
   MANAGE_SYSTEM_SETTINGS = 'manage_system_settings',
-  ACCESS_ADMIN_PANEL = 'access_admin_panel'
+  ACCESS_ADMIN_PANEL = 'access_admin_panel',
+
+  // Content Management Permissions
+  CREATE_CONTENT = 'CREATE_CONTENT',
+  VIEW_CONTENT = 'VIEW_CONTENT',
+  UPDATE_CONTENT = 'UPDATE_CONTENT',
+  DELETE_CONTENT = 'DELETE_CONTENT',
+  MANAGE_CONTENT_CATEGORIES = 'MANAGE_CONTENT_CATEGORIES',
+  MANAGE_NEWSLETTERS = 'MANAGE_NEWSLETTERS',
+  VIEW_CONTENT_ANALYTICS = 'VIEW_CONTENT_ANALYTICS'
 }
 
 /**
@@ -123,7 +132,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS, Permission.DELETE_PAYMENTS,
     Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
     Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS, Permission.EXPORT_DATA,
-    Permission.VIEW_AUDIT_LOGS, Permission.MANAGE_SYSTEM_SETTINGS, Permission.ACCESS_ADMIN_PANEL
+    Permission.VIEW_AUDIT_LOGS, Permission.MANAGE_SYSTEM_SETTINGS, Permission.ACCESS_ADMIN_PANEL,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.PARTNER]: [
@@ -138,7 +149,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS, Permission.DELETE_PAYMENTS,
     Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
     Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS, Permission.EXPORT_DATA,
-    Permission.VIEW_AUDIT_LOGS
+    Permission.VIEW_AUDIT_LOGS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.SENIOR_ASSOCIATE]: [
@@ -152,7 +165,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_BILLING_RATES, Permission.CREATE_BILLING_RATES, Permission.UPDATE_BILLING_RATES,
     Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS,
     Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
-    Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS
+    Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.ASSOCIATE]: [
@@ -166,7 +181,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_BILLING_RATES,
     Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS,
     Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
-    Permission.VIEW_REPORTS
+    Permission.VIEW_REPORTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.PARALEGAL]: [
@@ -180,7 +197,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_BILLING_RATES,
     Permission.VIEW_PAYMENTS,
     Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
-    Permission.VIEW_REPORTS
+    Permission.VIEW_REPORTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.CLIENT]: [
@@ -189,13 +208,17 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
     Permission.VIEW_INVOICES,
     Permission.VIEW_PAYMENTS,
-    Permission.VIEW_CALENDAR
+    Permission.VIEW_CALENDAR,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ],
 
   [UserRole.GUEST]: [
     // Minimal access for public information
     Permission.VIEW_CASES,
-    Permission.VIEW_DOCUMENTS
+    Permission.VIEW_DOCUMENTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT, Permission.DELETE_CONTENT,
+    Permission.MANAGE_CONTENT_CATEGORIES, Permission.MANAGE_NEWSLETTERS, Permission.VIEW_CONTENT_ANALYTICS
   ]
 };
 

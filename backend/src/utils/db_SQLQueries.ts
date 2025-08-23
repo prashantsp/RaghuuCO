@@ -1701,6 +1701,304 @@ export const SQLQueries = {
       WHERE im.case_id = $1 AND im.is_client_message = true
       ORDER BY im.created_at DESC
     `
+  },
+
+  // Content Management SQL Queries
+  CONTENT_CATEGORIES: {
+    CREATE: `
+      INSERT INTO content_categories (name, slug, description, parent_category_id, is_active, sort_order)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT cc.*, pcc.name as parent_category_name
+      FROM content_categories cc
+      LEFT JOIN content_categories pcc ON cc.parent_category_id = pcc.id
+      WHERE cc.id = $1
+    `,
+    GET_ALL: `
+      SELECT cc.*, pcc.name as parent_category_name,
+             (SELECT COUNT(*) FROM articles WHERE category_id = cc.id AND status = 'published') as article_count
+      FROM content_categories cc
+      LEFT JOIN content_categories pcc ON cc.parent_category_id = pcc.id
+      WHERE cc.is_active = true
+      ORDER BY cc.sort_order ASC, cc.name ASC
+    `,
+    GET_HIERARCHICAL: `
+      WITH RECURSIVE category_tree AS (
+        SELECT id, name, slug, description, parent_category_id, is_active, sort_order, 0 as level
+        FROM content_categories
+        WHERE parent_category_id IS NULL AND is_active = true
+        UNION ALL
+        SELECT cc.id, cc.name, cc.slug, cc.description, cc.parent_category_id, cc.is_active, cc.sort_order, ct.level + 1
+        FROM content_categories cc
+        JOIN category_tree ct ON cc.parent_category_id = ct.id
+        WHERE cc.is_active = true
+      )
+      SELECT * FROM category_tree ORDER BY level, sort_order, name
+    `,
+    UPDATE: `
+      UPDATE content_categories SET name = $2, slug = $3, description = $4, 
+                                   parent_category_id = $5, is_active = $6, sort_order = $7,
+                                   updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM content_categories WHERE id = $1
+    `,
+    GET_BY_SLUG: `
+      SELECT * FROM content_categories WHERE slug = $1 AND is_active = true
+    `
+  },
+
+  ARTICLES: {
+    CREATE: `
+      INSERT INTO articles (title, slug, excerpt, content, featured_image_url, category_id, 
+                           author_id, status, published_at, meta_title, meta_description, tags)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE a.id = $1
+    `,
+    GET_BY_SLUG: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE a.slug = $1 AND a.status = 'published'
+    `,
+    GET_ALL: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE ($1::text IS NULL OR a.status = $1)
+      AND ($2::uuid IS NULL OR a.category_id = $2)
+      AND ($3::uuid IS NULL OR a.author_id = $3)
+      ORDER BY a.created_at DESC
+      LIMIT $4 OFFSET $5
+    `,
+    GET_PUBLISHED: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE a.status = 'published'
+      AND ($1::uuid IS NULL OR a.category_id = $1)
+      ORDER BY a.published_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+    UPDATE: `
+      UPDATE articles SET title = $2, slug = $3, excerpt = $4, content = $5,
+                         featured_image_url = $6, category_id = $7, status = $8,
+                         published_at = $9, meta_title = $10, meta_description = $11,
+                         tags = $12, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM articles WHERE id = $1
+    `,
+    INCREMENT_VIEW_COUNT: `
+      UPDATE articles SET view_count = view_count + 1 WHERE id = $1
+    `,
+    INCREMENT_LIKE_COUNT: `
+      UPDATE articles SET like_count = like_count + 1 WHERE id = $1
+    `,
+    INCREMENT_SHARE_COUNT: `
+      UPDATE articles SET share_count = share_count + 1 WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE a.status = 'published'
+      AND (a.title ILIKE $1 OR a.content ILIKE $1 OR a.excerpt ILIKE $1)
+      ORDER BY a.published_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+    GET_FEATURED: `
+      SELECT a.*, u.first_name as author_first_name, u.last_name as author_last_name,
+             cc.name as category_name, cc.slug as category_slug
+      FROM articles a
+      LEFT JOIN users u ON a.author_id = u.id
+      LEFT JOIN content_categories cc ON a.category_id = cc.id
+      WHERE a.status = 'published'
+      ORDER BY a.view_count DESC, a.published_at DESC
+      LIMIT $1
+    `
+  },
+
+  ARTICLE_COMMENTS: {
+    CREATE: `
+      INSERT INTO article_comments (article_id, author_name, author_email, content, 
+                                   parent_comment_id, ip_address, user_agent)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `,
+    GET_BY_ARTICLE_ID: `
+      SELECT ac.*, 
+             (SELECT COUNT(*) FROM article_comments WHERE parent_comment_id = ac.id AND status = 'approved') as reply_count
+      FROM article_comments ac
+      WHERE ac.article_id = $1 AND ac.status = 'approved'
+      ORDER BY ac.created_at ASC
+    `,
+    GET_BY_ID: `
+      SELECT * FROM article_comments WHERE id = $1
+    `,
+    UPDATE_STATUS: `
+      UPDATE article_comments SET status = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM article_comments WHERE id = $1
+    `,
+    GET_PENDING: `
+      SELECT ac.*, a.title as article_title, a.slug as article_slug
+      FROM article_comments ac
+      JOIN articles a ON ac.article_id = a.id
+      WHERE ac.status = 'pending'
+      ORDER BY ac.created_at DESC
+      LIMIT $1 OFFSET $2
+    `
+  },
+
+  NEWSLETTERS: {
+    CREATE: `
+      INSERT INTO newsletters (title, subject, content, template_id, status, scheduled_at, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT n.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name,
+             et.name as template_name
+      FROM newsletters n
+      LEFT JOIN users u ON n.created_by = u.id
+      LEFT JOIN email_templates et ON n.template_id = et.id
+      WHERE n.id = $1
+    `,
+    GET_ALL: `
+      SELECT n.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+      FROM newsletters n
+      LEFT JOIN users u ON n.created_by = u.id
+      ORDER BY n.created_at DESC
+      LIMIT $1 OFFSET $2
+    `,
+    UPDATE: `
+      UPDATE newsletters SET title = $2, subject = $3, content = $4, template_id = $5,
+                             status = $6, scheduled_at = $7, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM newsletters WHERE id = $1
+    `,
+    UPDATE_SENT_STATS: `
+      UPDATE newsletters SET sent_at = $2, recipient_count = $3, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `,
+    UPDATE_OPENED_COUNT: `
+      UPDATE newsletters SET opened_count = opened_count + 1 WHERE id = $1
+    `,
+    UPDATE_CLICKED_COUNT: `
+      UPDATE newsletters SET clicked_count = clicked_count + 1 WHERE id = $1
+    `,
+    GET_SCHEDULED: `
+      SELECT * FROM newsletters 
+      WHERE status = 'scheduled' AND scheduled_at <= NOW()
+      ORDER BY scheduled_at ASC
+    `
+  },
+
+  NEWSLETTER_SUBSCRIBERS: {
+    CREATE: `
+      INSERT INTO newsletter_subscribers (email, first_name, last_name, source, ip_address)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `,
+    GET_BY_EMAIL: `
+      SELECT * FROM newsletter_subscribers WHERE email = $1
+    `,
+    GET_ALL: `
+      SELECT * FROM newsletter_subscribers 
+      WHERE is_active = true
+      ORDER BY subscription_date DESC
+      LIMIT $1 OFFSET $2
+    `,
+    UNSUBSCRIBE: `
+      UPDATE newsletter_subscribers SET is_active = false, unsubscribe_date = NOW(),
+                                       unsubscribe_reason = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE email = $1 RETURNING *
+    `,
+    RESUBSCRIBE: `
+      UPDATE newsletter_subscribers SET is_active = true, unsubscribe_date = NULL,
+                                       unsubscribe_reason = NULL, updated_at = CURRENT_TIMESTAMP
+      WHERE email = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM newsletter_subscribers WHERE id = $1
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_subscribers,
+        COUNT(CASE WHEN is_active = true THEN 1 END) as active_subscribers,
+        COUNT(CASE WHEN is_active = false THEN 1 END) as unsubscribed_subscribers,
+        COUNT(CASE WHEN subscription_date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as new_last_30_days
+      FROM newsletter_subscribers
+    `
+  },
+
+  CONTENT_ANALYTICS: {
+    CREATE: `
+      INSERT INTO content_analytics (content_type, content_id, action, user_id, ip_address, 
+                                    user_agent, referrer_url, session_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `,
+    GET_CONTENT_STATS: `
+      SELECT 
+        content_type,
+        content_id,
+        action,
+        COUNT(*) as count,
+        COUNT(DISTINCT user_id) as unique_users,
+        COUNT(DISTINCT ip_address) as unique_ips
+      FROM content_analytics
+      WHERE content_id = $1 AND content_type = $2
+      GROUP BY content_type, content_id, action
+    `,
+    GET_POPULAR_CONTENT: `
+      SELECT 
+        content_type,
+        content_id,
+        action,
+        COUNT(*) as count
+      FROM content_analytics
+      WHERE action = $1 AND created_at >= $2
+      GROUP BY content_type, content_id, action
+      ORDER BY count DESC
+      LIMIT $3
+    `,
+    GET_USER_ACTIVITY: `
+      SELECT 
+        content_type,
+        content_id,
+        action,
+        created_at
+      FROM content_analytics
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `
   }
 };
 

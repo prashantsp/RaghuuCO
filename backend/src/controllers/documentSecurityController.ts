@@ -268,7 +268,7 @@ export const getDocumentSecurityMetadata = async (req: Request, res: Response) =
 };
 
 /**
- * Get document access audit log
+ * Get document audit logs
  * 
  * @route GET /api/v1/document-security/:id/audit
  * @access Private
@@ -277,45 +277,12 @@ export const getDocumentAuditLog = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
-    logger.info('Getting document audit log', { userId, documentId: id });
+    logger.info('Getting document audit log', { documentId: id, userId });
 
-    // Get audit logs for document
-    const result = await db.query(`
-      SELECT al.*, u.first_name, u.last_name, u.email
-      FROM audit_logs al
-      LEFT JOIN users u ON al.user_id = u.id
-      WHERE al.entity_type = 'document' AND al.entity_id = $1
-      ORDER BY al.created_at DESC
-      LIMIT $2 OFFSET $3
-    `, [id, parseInt(limit as string), offset]);
+    const result = await documentSecurityService.getDocumentAuditLog(id);
 
-    const auditLogs = result.rows;
-
-    // Get total count
-    const countResult = await db.query(`
-      SELECT COUNT(*) as total
-      FROM audit_logs
-      WHERE entity_type = 'document' AND entity_id = $1
-    `, [id]);
-
-    const total = parseInt(countResult.rows[0]?.total || '0');
-    const totalPages = Math.ceil(total / parseInt(limit as string));
-
-    res.json({
-      success: true,
-      data: {
-        auditLogs,
-        pagination: {
-          page: parseInt(page as string),
-          limit: parseInt(limit as string),
-          total,
-          totalPages
-        }
-      }
-    });
+    res.json(result);
   } catch (error) {
     logger.error('Error getting document audit log', error as Error);
     res.status(500).json({
@@ -339,17 +306,11 @@ export const checkDocumentAccess = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
-    logger.info('Checking document access', { userId, documentId: id });
+    logger.info('Checking document access permissions', { documentId: id, userId });
 
-    const hasAccess = await documentSecurityService.checkDocumentAccess(id, userId);
+    const result = await documentSecurityService.checkDocumentAccess(id, userId);
 
-    res.json({
-      success: true,
-      data: {
-        hasAccess,
-        documentId: id
-      }
-    });
+    res.json(result);
   } catch (error) {
     logger.error('Error checking document access', error as Error);
     res.status(500).json({

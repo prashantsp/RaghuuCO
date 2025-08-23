@@ -47,6 +47,7 @@ import financialDashboardRoutes from './routes/financialDashboardRoutes';
 import productivityAnalyticsRoutes from './routes/productivityAnalyticsRoutes';
 import customReportBuilderRoutes from './routes/customReportBuilderRoutes';
 import clientPortalRoutes from './routes/clientPortalRoutes';
+import contentManagementRoutes from './routes/contentManagementRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -216,3 +217,4 @@ app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
 app.use('/api/v1/productivity-analytics', productivityAnalyticsRoutes);
 app.use('/api/v1/custom-report-builder', customReportBuilderRoutes);
 app.use('/api/v1/client-portal', clientPortalRoutes);
+app.use('/api/v1/content', contentManagementRoutes);
