@@ -30,46 +30,34 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     logger.info('Fetching dashboard statistics', { userId });
 
     // Get counts for different entities
-    const [
-      casesCount,
-      clientsCount,
-      documentsCount,
-      timeEntriesCount,
-      calendarEventsCount,
-      billingCount
-    ] = await Promise.all([
-      db.query('SELECT COUNT(*) as count FROM cases WHERE created_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM clients WHERE created_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM documents WHERE uploaded_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM time_entries WHERE user_id = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM calendar_events WHERE created_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM invoices WHERE created_by = $1', [userId])
-    ]);
+    // Get user statistics using centralized query
+    const statsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
+    const userStats = statsResult.rows[0];
 
     // Calculate trends (simplified - in production, you'd compare with previous period)
     const stats = {
       cases: {
-        count: parseInt(casesCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.cases_count || '0'),
         trend: 5 // Mock trend percentage
       },
       clients: {
-        count: parseInt(clientsCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.clients_count || '0'),
         trend: 12 // Mock trend percentage
       },
       documents: {
-        count: parseInt(documentsCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.documents_count || '0'),
         trend: 8 // Mock trend percentage
       },
       time_entries: {
-        count: parseInt(timeEntriesCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.time_entries_count || '0'),
         trend: -3 // Mock trend percentage
       },
       calendar_events: {
-        count: parseInt(calendarEventsCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.calendar_events_count || '0'),
         trend: 15 // Mock trend percentage
       },
       billing: {
-        count: parseInt(billingCount.rows[0]?.count || '0'),
+        count: parseInt(userStats.invoices_count || '0'),
         trend: 20 // Mock trend percentage
       }
     };
@@ -105,23 +93,8 @@ export const getRecentActivities = async (req: Request, res: Response) => {
 
     logger.info('Fetching recent activities', { userId, limit });
 
-    // Get recent audit logs for the user
-    const activitiesQuery = `
-      SELECT 
-        al.id,
-        al.action,
-        al.resource_type,
-        al.resource_id,
-        al.created_at,
-        al.old_values,
-        al.new_values
-      FROM audit_logs al
-      WHERE al.user_id = $1
-      ORDER BY al.created_at DESC
-      LIMIT $2
-    `;
-
-    const activities = await db.query(activitiesQuery, [userId, limit]);
+    // Get recent audit logs for the user using centralized query
+    const activities = await db.query(SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
 
     // Format activities for frontend
     const formattedActivities = activities.rows.map((activity: any) => ({
@@ -166,24 +139,15 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     logger.info('Fetching dashboard summary', { userId });
 
-    // Get summary data
-    const [
-      activeCases,
-      pendingTasks,
-      upcomingEvents,
-      recentDocuments
-    ] = await Promise.all([
-      db.query('SELECT COUNT(*) as count FROM cases WHERE status = $1 AND created_by = $2', ['active', userId]),
-      db.query('SELECT COUNT(*) as count FROM calendar_events WHERE start_datetime > NOW() AND created_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM calendar_events WHERE start_datetime BETWEEN NOW() AND NOW() + INTERVAL \'7 days\' AND created_by = $1', [userId]),
-      db.query('SELECT COUNT(*) as count FROM documents WHERE uploaded_by = $1 AND created_at > NOW() - INTERVAL \'7 days\'', [userId])
-    ]);
+    // Get summary data using centralized query
+    const trendsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
+    const trends = trendsResult.rows[0];
 
     const summary = {
-      activeCases: parseInt(activeCases.rows[0]?.count || '0'),
-      pendingTasks: parseInt(pendingTasks.rows[0]?.count || '0'),
-      upcomingEvents: parseInt(upcomingEvents.rows[0]?.count || '0'),
-      recentDocuments: parseInt(recentDocuments.rows[0]?.count || '0')
+      activeCases: parseInt(trends.active_cases || '0'),
+      pendingTasks: parseInt(trends.upcoming_events || '0'),
+      upcomingEvents: parseInt(trends.events_this_week || '0'),
+      recentDocuments: parseInt(trends.recent_documents || '0')
     };
 
     logger.info('Dashboard summary fetched successfully', { userId, summary });

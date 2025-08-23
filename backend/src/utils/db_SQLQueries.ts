@@ -2116,6 +2116,262 @@ export const SQLQueries = {
       ORDER BY e.expense_date DESC
       LIMIT $2 OFFSET $3
     `
+  },
+
+  /**
+   * Dashboard Queries
+   * Contains all SQL operations related to dashboard statistics and activities
+   */
+  DASHBOARD: {
+    GET_USER_STATS: `
+      SELECT 
+        (SELECT COUNT(*) FROM cases WHERE created_by = $1) as cases_count,
+        (SELECT COUNT(*) FROM clients WHERE created_by = $1) as clients_count,
+        (SELECT COUNT(*) FROM documents WHERE uploaded_by = $1) as documents_count,
+        (SELECT COUNT(*) FROM time_entries WHERE user_id = $1) as time_entries_count,
+        (SELECT COUNT(*) FROM calendar_events WHERE created_by = $1) as calendar_events_count,
+        (SELECT COUNT(*) FROM invoices WHERE created_by = $1) as invoices_count
+    `,
+    GET_USER_TRENDS: `
+      SELECT 
+        (SELECT COUNT(*) FROM cases WHERE status = $1 AND created_by = $2) as active_cases,
+        (SELECT COUNT(*) FROM calendar_events WHERE start_datetime > NOW() AND created_by = $1) as upcoming_events,
+        (SELECT COUNT(*) FROM calendar_events WHERE start_datetime BETWEEN NOW() AND NOW() + INTERVAL '7 days' AND created_by = $1) as events_this_week,
+        (SELECT COUNT(*) FROM documents WHERE uploaded_by = $1 AND created_at > NOW() - INTERVAL '7 days') as recent_documents
+    `,
+    GET_RECENT_ACTIVITIES: `
+      SELECT 
+        al.id,
+        al.action,
+        al.resource_type,
+        al.resource_id,
+        al.created_at,
+        al.old_values,
+        al.new_values
+      FROM audit_logs al
+      WHERE al.user_id = $1
+      ORDER BY al.created_at DESC
+      LIMIT $2
+    `
+  },
+
+  /**
+   * Security Queries
+   * Contains all SQL operations related to security features including 2FA and backup codes
+   */
+  SECURITY: {
+    UPDATE_2FA_SECRET: `
+      UPDATE users 
+      SET two_factor_secret = $1, two_factor_enabled = true 
+      WHERE id = $2
+    `,
+    GET_2FA_SECRET: `
+      SELECT two_factor_secret 
+      FROM users 
+      WHERE id = $1
+    `,
+    DISABLE_2FA: `
+      UPDATE users 
+      SET two_factor_secret = NULL, two_factor_enabled = false 
+      WHERE id = $1
+    `,
+    GET_2FA_STATUS: `
+      SELECT two_factor_enabled 
+      FROM users 
+      WHERE id = $1
+    `,
+    UPDATE_BACKUP_CODES: `
+      UPDATE users 
+      SET backup_codes = $1 
+      WHERE id = $2
+    `,
+    GET_BACKUP_CODES: `
+      SELECT backup_codes 
+      FROM users 
+      WHERE id = $1
+    `,
+    GET_USER_SECURITY_SETTINGS: `
+      SELECT 
+        two_factor_enabled, 
+        last_password_change, 
+        failed_login_attempts, 
+        account_locked_until 
+      FROM users 
+      WHERE id = $1
+    `
+  },
+
+  /**
+   * Client Queries
+   * Contains all SQL operations related to client management
+   */
+  CLIENTS: {
+    GET_CLIENT_TYPE: `
+      SELECT client_type 
+      FROM clients 
+      WHERE id = $1
+    `,
+    CHECK_EMAIL_EXISTS: `
+      SELECT id 
+      FROM clients 
+      WHERE email = $1
+    `,
+    CHECK_EMAIL_EXISTS_EXCLUDE: `
+      SELECT id 
+      FROM clients 
+      WHERE email = $1 AND id != $2
+    `,
+    GET_ACTIVE_CASES_COUNT: `
+      SELECT COUNT(*) as count 
+      FROM cases 
+      WHERE client_id = $1 AND status IN ($2, $3)
+    `,
+    DEACTIVATE_CLIENT: `
+      UPDATE clients 
+      SET is_active = false, updated_at = NOW() 
+      WHERE id = $1
+    `,
+    GET_EMAIL_CONFLICTS: `
+      SELECT id, first_name, last_name, email 
+      FROM clients 
+      WHERE email = $1 AND is_active = true
+    `,
+    GET_PHONE_CONFLICTS: `
+      SELECT id, first_name, last_name, phone 
+      FROM clients 
+      WHERE phone = $1 AND is_active = true
+    `,
+    GET_NAME_CONFLICTS: `
+      SELECT id, first_name, last_name, email 
+      FROM clients 
+      WHERE LOWER(first_name) = LOWER($1) AND LOWER(last_name) = LOWER($2) AND is_active = true
+    `,
+    GET_TOTAL_CLIENTS: `
+      SELECT COUNT(*) as count 
+      FROM clients 
+      WHERE is_active = true
+    `
+  },
+
+  /**
+   * Document Queries
+   * Contains all SQL operations related to document management
+   */
+  DOCUMENTS: {
+    GET_TOTAL_DOCUMENTS: `
+      SELECT COUNT(*) as count 
+      FROM documents 
+      WHERE is_deleted = false
+    `,
+    SOFT_DELETE: `
+      UPDATE documents 
+      SET is_deleted = true, updated_at = NOW() 
+      WHERE id = $1
+    `,
+    GET_DOCUMENTS_BY_CATEGORY: `
+      SELECT category, COUNT(*) as count
+      FROM documents
+      WHERE is_deleted = false
+      GROUP BY category
+      ORDER BY count DESC
+    `,
+    GET_DOCUMENTS_BY_TYPE: `
+      SELECT file_type, COUNT(*) as count
+      FROM documents
+      WHERE is_deleted = false
+      GROUP BY file_type
+      ORDER BY count DESC
+    `,
+    GET_TOTAL_STORAGE: `
+      SELECT COALESCE(SUM(file_size), 0) as total_size
+      FROM documents
+      WHERE is_deleted = false
+    `,
+    GET_RECENT_UPLOADS: `
+      SELECT id, title, file_name, file_size, uploaded_by, created_at
+      FROM documents
+      WHERE is_deleted = false
+      ORDER BY created_at DESC
+      LIMIT $1
+    `
+  },
+
+  /**
+   * Case Queries
+   * Contains all SQL operations related to case management
+   */
+  CASES: {
+    GET_TOTAL_CASES: `
+      SELECT COUNT(*) as count 
+      FROM cases 
+      WHERE status != $1
+    `,
+    SOFT_DELETE: `
+      UPDATE cases 
+      SET status = $1, updated_at = NOW() 
+      WHERE id = $2
+    `,
+    GET_CASES_BY_STATUS: `
+      SELECT status, COUNT(*) as count
+      FROM cases
+      WHERE status != 'deleted'
+      GROUP BY status
+      ORDER BY count DESC
+    `,
+    GET_CASES_BY_PRIORITY: `
+      SELECT priority, COUNT(*) as count
+      FROM cases
+      WHERE status != 'deleted'
+      GROUP BY priority
+      ORDER BY count DESC
+    `,
+    GET_CASES_BY_USER: `
+      SELECT created_by, COUNT(*) as count
+      FROM cases
+      WHERE status != 'deleted'
+      GROUP BY created_by
+      ORDER BY count DESC
+    `,
+    GET_RECENT_CASES: `
+      SELECT id, case_number, title, status, priority, created_by, created_at
+      FROM cases
+      WHERE status != 'deleted'
+      ORDER BY created_at DESC
+      LIMIT $1
+    `
+  },
+
+  /**
+   * User Session Queries
+   * Contains all SQL operations related to user session management
+   */
+  USER_SESSIONS: {
+    GET_SESSION_BY_REFRESH_TOKEN: `
+      SELECT * FROM user_sessions 
+      WHERE refresh_token = $1 AND is_active = true AND expires_at > CURRENT_TIMESTAMP
+    `,
+    UPDATE_REFRESH_TOKEN: `
+      UPDATE user_sessions 
+      SET refresh_token = $1, expires_at = $2 
+      WHERE refresh_token = $3
+    `,
+    DEACTIVATE_SESSION: `
+      UPDATE user_sessions 
+      SET is_active = false 
+      WHERE refresh_token = $1
+    `
+  },
+
+  /**
+   * User Management Queries
+   * Contains additional SQL operations for user management
+   */
+  USERS_EXTENDED: {
+    DEACTIVATE_USER: `
+      UPDATE users 
+      SET is_active = false, updated_at = NOW() 
+      WHERE id = $1
+    `
   }
 };
 

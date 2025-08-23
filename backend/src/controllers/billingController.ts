@@ -174,8 +174,8 @@ export const createInvoice = async (req: Request, res: Response) => {
       subtotal = items.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
     }
 
-    // Get client information for tax calculation
-    const clientResult = await db.query('SELECT client_type FROM clients WHERE id = $1', [clientId]);
+    // Get client information for tax calculation using centralized query
+    const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [clientId]);
     const clientType = clientResult.rows[0]?.client_type || 'individual';
     
     // Calculate tax using tax service
@@ -302,8 +302,8 @@ export const updateInvoice = async (req: Request, res: Response) => {
         subtotal += item.amount;
       }
       
-      // Get client information for tax calculation
-      const clientResult = await db.query('SELECT client_type FROM clients WHERE id = $1', [currentInvoice.client_id]);
+      // Get client information for tax calculation using centralized query
+      const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [currentInvoice.client_id]);
       const clientType = clientResult.rows[0]?.client_type || 'individual';
       
       // Calculate tax using tax service

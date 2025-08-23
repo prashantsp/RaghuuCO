@@ -110,11 +110,8 @@ export const verify2FA = async (req: Request, res: Response) => {
       });
     }
 
-    // Save 2FA secret to database
-    await db.query(
-      'UPDATE users SET two_factor_secret = $1, two_factor_enabled = true WHERE id = $2',
-      [tempSecret, userId]
-    );
+    // Save 2FA secret to database using centralized query
+    await db.query(SQLQueries.SECURITY.UPDATE_2FA_SECRET, [tempSecret, userId]);
 
     // Clear temporary secret
     delete req.session.temp2FASecret;
@@ -158,11 +155,8 @@ export const disable2FA = async (req: Request, res: Response) => {
       });
     }
 
-    // Get current 2FA secret
-    const userResult = await db.query(
-      'SELECT two_factor_secret FROM users WHERE id = $1',
-      [userId]
-    );
+    // Get current 2FA secret using centralized query
+    const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_SECRET, [userId]);
     const user = userResult.rows[0];
 
     if (!user?.two_factor_secret) {
@@ -192,11 +186,8 @@ export const disable2FA = async (req: Request, res: Response) => {
       });
     }
 
-    // Disable 2FA
-    await db.query(
-      'UPDATE users SET two_factor_secret = NULL, two_factor_enabled = false WHERE id = $1',
-      [userId]
-    );
+    // Disable 2FA using centralized query
+    await db.query(SQLQueries.SECURITY.DISABLE_2FA, [userId]);
 
     logger.businessEvent('2fa_disabled', 'user', userId, userId);
 
@@ -226,10 +217,7 @@ export const get2FAStatus = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
 
-    const userResult = await db.query(
-      'SELECT two_factor_enabled FROM users WHERE id = $1',
-      [userId]
-    );
+    const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_STATUS, [userId]);
     const user = userResult.rows[0];
 
     res.json({
@@ -270,10 +258,7 @@ export const generateBackupCodes = async (req: Request, res: Response) => {
       crypto.createHash('sha256').update(code).digest('hex')
     );
 
-    await db.query(
-      'UPDATE users SET backup_codes = $1 WHERE id = $2',
-      [hashedCodes, userId]
-    );
+    await db.query(SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [hashedCodes, userId]);
 
     logger.businessEvent('backup_codes_generated', 'user', userId, userId);
 
@@ -317,11 +302,8 @@ export const verifyBackupCode = async (req: Request, res: Response) => {
       });
     }
 
-    // Get user's backup codes
-    const userResult = await db.query(
-      'SELECT backup_codes FROM users WHERE id = $1',
-      [userId]
-    );
+    // Get user's backup codes using centralized query
+    const userResult = await db.query(SQLQueries.SECURITY.GET_BACKUP_CODES, [userId]);
     const user = userResult.rows[0];
 
     if (!user?.backup_codes || user.backup_codes.length === 0) {
@@ -352,10 +334,7 @@ export const verifyBackupCode = async (req: Request, res: Response) => {
 
     // Remove used code
     const updatedCodes = user.backup_codes.filter((_, index) => index !== codeIndex);
-    await db.query(
-      'UPDATE users SET backup_codes = $1 WHERE id = $2',
-      [updatedCodes, userId]
-    );
+    await db.query(SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [updatedCodes, userId]);
 
     logger.businessEvent('backup_code_used', 'user', userId, userId);
 
@@ -385,10 +364,7 @@ export const getSecuritySettings = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
 
-    const userResult = await db.query(
-      'SELECT two_factor_enabled, last_password_change, failed_login_attempts, account_locked_until FROM users WHERE id = $1',
-      [userId]
-    );
+    const userResult = await db.query(SQLQueries.SECURITY.GET_USER_SECURITY_SETTINGS, [userId]);
     const user = userResult.rows[0];
 
     res.json({
