@@ -582,6 +582,26 @@ async function createTables(): Promise<void> {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
+    // Expenses table
+    `CREATE TABLE IF NOT EXISTS expenses (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      description VARCHAR(255) NOT NULL,
+      amount DECIMAL(10,2) NOT NULL,
+      category VARCHAR(100) NOT NULL,
+      expense_date DATE NOT NULL,
+      case_id UUID REFERENCES cases(id),
+      client_id UUID REFERENCES clients(id),
+      created_by UUID REFERENCES users(id),
+      notes TEXT,
+      receipt_url VARCHAR(500),
+      is_billable BOOLEAN DEFAULT false,
+      is_approved BOOLEAN DEFAULT false,
+      approved_by UUID REFERENCES users(id),
+      approved_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Content categories table
     `CREATE TABLE IF NOT EXISTS content_categories (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

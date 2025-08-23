@@ -1999,6 +1999,123 @@ export const SQLQueries = {
       ORDER BY created_at DESC
       LIMIT $2
     `
+  },
+
+  // Expenses Management SQL Queries
+  EXPENSES: {
+    CREATE: `
+      INSERT INTO expenses (description, amount, category, expense_date, case_id, client_id, 
+                           created_by, notes, receipt_url, is_billable)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT e.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name,
+             c.case_number, c.title as case_title,
+             cl.name as client_name,
+             a.first_name as approved_by_first_name, a.last_name as approved_by_last_name
+      FROM expenses e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN cases c ON e.case_id = c.id
+      LEFT JOIN clients cl ON e.client_id = cl.id
+      LEFT JOIN users a ON e.approved_by = a.id
+      WHERE e.id = $1
+    `,
+    GET_ALL: `
+      SELECT e.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name,
+             c.case_number, c.title as case_title,
+             cl.name as client_name
+      FROM expenses e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN cases c ON e.case_id = c.id
+      LEFT JOIN clients cl ON e.client_id = cl.id
+      WHERE ($1::uuid IS NULL OR e.case_id = $1)
+      AND ($2::uuid IS NULL OR e.client_id = $2)
+      AND ($3::text IS NULL OR e.category = $3)
+      AND ($4::boolean IS NULL OR e.is_billable = $4)
+      AND ($5::boolean IS NULL OR e.is_approved = $5)
+      ORDER BY e.expense_date DESC
+      LIMIT $6 OFFSET $7
+    `,
+    GET_BY_CASE: `
+      SELECT e.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+      FROM expenses e
+      LEFT JOIN users u ON e.created_by = u.id
+      WHERE e.case_id = $1
+      ORDER BY e.expense_date DESC
+    `,
+    GET_BY_CLIENT: `
+      SELECT e.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name,
+             c.case_number, c.title as case_title
+      FROM expenses e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN cases c ON e.case_id = c.id
+      WHERE e.client_id = $1
+      ORDER BY e.expense_date DESC
+    `,
+    UPDATE: `
+      UPDATE expenses SET description = $2, amount = $3, category = $4, expense_date = $5,
+                         case_id = $6, client_id = $7, notes = $8, receipt_url = $9,
+                         is_billable = $10, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM expenses WHERE id = $1
+    `,
+    APPROVE: `
+      UPDATE expenses SET is_approved = true, approved_by = $2, approved_at = CURRENT_TIMESTAMP,
+                         updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    GET_CATEGORIES: `
+      SELECT DISTINCT category, COUNT(*) as count
+      FROM expenses
+      GROUP BY category
+      ORDER BY count DESC
+    `,
+    GET_MONTHLY_TOTALS: `
+      SELECT 
+        DATE_TRUNC('month', expense_date) as month,
+        SUM(amount) as total_amount,
+        COUNT(*) as expense_count,
+        SUM(CASE WHEN is_billable THEN amount ELSE 0 END) as billable_amount
+      FROM expenses
+      WHERE expense_date >= $1 AND expense_date <= $2
+      GROUP BY DATE_TRUNC('month', expense_date)
+      ORDER BY month DESC
+    `,
+    GET_CASE_TOTALS: `
+      SELECT 
+        case_id,
+        SUM(amount) as total_amount,
+        COUNT(*) as expense_count,
+        SUM(CASE WHEN is_billable THEN amount ELSE 0 END) as billable_amount
+      FROM expenses
+      WHERE case_id = $1
+      GROUP BY case_id
+    `,
+    GET_CLIENT_TOTALS: `
+      SELECT 
+        client_id,
+        SUM(amount) as total_amount,
+        COUNT(*) as expense_count,
+        SUM(CASE WHEN is_billable THEN amount ELSE 0 END) as billable_amount
+      FROM expenses
+      WHERE client_id = $1
+      GROUP BY client_id
+    `,
+    SEARCH: `
+      SELECT e.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name,
+             c.case_number, c.title as case_title,
+             cl.name as client_name
+      FROM expenses e
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN cases c ON e.case_id = c.id
+      LEFT JOIN clients cl ON e.client_id = cl.id
+      WHERE e.description ILIKE $1 OR e.notes ILIKE $1 OR e.category ILIKE $1
+      ORDER BY e.expense_date DESC
+      LIMIT $2 OFFSET $3
+    `
   }
 };
 

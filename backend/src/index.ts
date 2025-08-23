@@ -48,6 +48,8 @@ import productivityAnalyticsRoutes from './routes/productivityAnalyticsRoutes';
 import customReportBuilderRoutes from './routes/customReportBuilderRoutes';
 import clientPortalRoutes from './routes/clientPortalRoutes';
 import contentManagementRoutes from './routes/contentManagementRoutes';
+import expensesRoutes from './routes/expensesRoutes';
+import globalSearchRoutes from './routes/globalSearchRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -218,3 +220,5 @@ app.use('/api/v1/productivity-analytics', productivityAnalyticsRoutes);
 app.use('/api/v1/custom-report-builder', customReportBuilderRoutes);
 app.use('/api/v1/client-portal', clientPortalRoutes);
 app.use('/api/v1/content', contentManagementRoutes);
+app.use('/api/v1/expenses', expensesRoutes);
+app.use('/api/v1/search', globalSearchRoutes);
