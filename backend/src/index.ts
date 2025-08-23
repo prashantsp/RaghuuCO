@@ -32,6 +32,10 @@ import { createSchema } from './database/migrate';
 import logger from './utils/logger';
 import authRoutes from './routes/authRoutes';
 import socialAuthRoutes from './routes/socialAuthRoutes';
+import userRoutes from './routes/userRoutes';
+import clientRoutes from './routes/clientRoutes';
+import caseRoutes from './routes/caseRoutes';
+import documentRoutes from './routes/documentRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -193,6 +197,30 @@ app.use('/api/v1/auth', authRoutes);
  * OAuth 2.0 authentication endpoints for Google, LinkedIn, and Microsoft 365
  */
 app.use('/api/v1/auth', socialAuthRoutes);
+
+/**
+ * Mount user management routes
+ * User CRUD operations and role-based access control
+ */
+app.use('/api/v1/users', userRoutes);
+
+/**
+ * Mount client management routes
+ * Client CRUD operations and conflict checking
+ */
+app.use('/api/v1/clients', clientRoutes);
+
+/**
+ * Mount case management routes
+ * Case CRUD operations and workflow management
+ */
+app.use('/api/v1/cases', caseRoutes);
+
+/**
+ * Mount document management routes
+ * Document upload, versioning, and search functionality
+ */
+app.use('/api/v1/documents', documentRoutes);
 
 /**
  * Global error handling middleware
