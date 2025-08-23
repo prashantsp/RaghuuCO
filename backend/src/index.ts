@@ -30,6 +30,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { createSchema } from './database/migrate';
 import logger from './utils/logger';
+import authRoutes from './routes/authRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -172,6 +173,12 @@ app.get('/api/v1', (req: Request, res: Response) => {
     timestamp: new Date().toISOString()
   });
 });
+
+/**
+ * Mount authentication routes
+ * All authentication-related endpoints are prefixed with /api/v1/auth
+ */
+app.use('/api/v1/auth', authRoutes);
 
 /**
  * Global error handling middleware
