@@ -49,6 +49,7 @@ import { RootState } from '@/store';
 import { toggleSidebar, selectSidebarOpen } from '@/store/slices/uiSlice';
 import { useAuth } from '@/hooks/useAuth';
 import Sidebar from './Sidebar';
+import MobileLayout from './MobileLayout';
 import { LayoutProps } from '@/types';
 
 /**
@@ -166,6 +167,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const filteredNavigationItems = navigationItems.filter((item) =>
     item.roles.includes(user?.role || '')
   );
+
+  // Use mobile layout for mobile devices
+  if (isMobile) {
+    return <MobileLayout>{children}</MobileLayout>;
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>

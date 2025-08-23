@@ -49,6 +49,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { documentsApi } from '@/services/api';
 import { Document } from '@/types';
 import { toast } from 'react-hot-toast';
+import DocumentUpload from './DocumentUpload';
+import DocumentViewer from './DocumentViewer';
 
 /**
  * Documents Management Page Component
@@ -487,8 +489,14 @@ const DocumentsPage: React.FC = () => {
           {editingDocument ? 'Edit Document' : 'Upload New Document'}
         </DialogTitle>
         <DialogContent>
-          {/* DocumentUpload component would go here */}
-          <Typography>Document upload component</Typography>
+          <DocumentUpload
+            document={editingDocument}
+            onSubmit={editingDocument ? handleUpdateDocument : handleCreateDocument}
+            onCancel={() => {
+              setOpenForm(false);
+              setEditingDocument(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
@@ -502,7 +510,15 @@ const DocumentsPage: React.FC = () => {
         <DialogTitle>Document Details</DialogTitle>
         <DialogContent>
           {selectedDocument && (
-            <Typography>Document details component</Typography>
+            <DocumentViewer
+              document={selectedDocument}
+              onClose={() => setOpenDetails(false)}
+              onEdit={() => {
+                setEditingDocument(selectedDocument);
+                setOpenDetails(false);
+                setOpenForm(true);
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -48,6 +48,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { casesApi } from '@/services/api';
 import { Case } from '@/types';
 import { toast } from 'react-hot-toast';
+import CaseForm from './CaseForm';
+import CaseDetails from './CaseDetails';
 
 /**
  * Cases Management Page Component
@@ -453,8 +455,14 @@ const CasesPage: React.FC = () => {
           {editingCase ? 'Edit Case' : 'Add New Case'}
         </DialogTitle>
         <DialogContent>
-          {/* CaseForm component would go here */}
-          <Typography>Case form component</Typography>
+          <CaseForm
+            caseData={editingCase}
+            onSubmit={editingCase ? handleUpdateCase : handleCreateCase}
+            onCancel={() => {
+              setOpenForm(false);
+              setEditingCase(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
@@ -468,7 +476,15 @@ const CasesPage: React.FC = () => {
         <DialogTitle>Case Details</DialogTitle>
         <DialogContent>
           {selectedCase && (
-            <Typography>Case details component</Typography>
+            <CaseDetails
+              caseData={selectedCase}
+              onClose={() => setOpenDetails(false)}
+              onEdit={() => {
+                setEditingCase(selectedCase);
+                setOpenDetails(false);
+                setOpenForm(true);
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>
