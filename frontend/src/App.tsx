@@ -47,6 +47,11 @@ import DocumentsPage from './pages/documents/DocumentsPage';
 import DocumentDetailPage from './pages/documents/DocumentDetailPage';
 import UploadDocumentPage from './pages/documents/UploadDocumentPage';
 
+// User Management Pages
+import UsersPage from './pages/users/UsersPage';
+import UserDetailPage from './pages/users/UserDetailPage';
+import CreateUserPage from './pages/users/CreateUserPage';
+
 // Error Pages
 import NotFoundPage from './pages/errors/NotFoundPage';
 import UnauthorizedPage from './pages/errors/UnauthorizedPage';
@@ -169,6 +174,11 @@ const App: React.FC = () => {
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="documents/upload" element={<UploadDocumentPage />} />
         <Route path="documents/:id" element={<DocumentDetailPage />} />
+
+        {/* User Management */}
+        <Route path="users" element={<UsersPage />} />
+        <Route path="users/create" element={<CreateUserPage />} />
+        <Route path="users/:id" element={<UserDetailPage />} />
 
         {/* Default redirect */}
         <Route index element={<Navigate to="/dashboard" replace />} />

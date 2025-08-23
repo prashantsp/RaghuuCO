@@ -47,7 +47,10 @@ import {
   Logout as LogoutIcon,
   Add as AddIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  Assessment as AssessmentIcon,
+  CalendarToday as CalendarTodayIcon,
+  Payment as PaymentIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -95,7 +98,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       label: 'Dashboard',
       path: '/dashboard',
       icon: <DashboardIcon />,
-      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal']
+      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal', 'client']
     },
     {
       label: 'Users',
@@ -107,19 +110,37 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       label: 'Clients',
       path: '/clients',
       icon: <BusinessIcon />,
-      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal']
+      roles: ['super_admin', 'partner', 'senior_associate']
     },
     {
       label: 'Cases',
       path: '/cases',
       icon: <AssignmentIcon />,
-      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal']
+      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal', 'client']
     },
     {
       label: 'Documents',
       path: '/documents',
       icon: <DocumentIcon />,
+      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal', 'client']
+    },
+    {
+      label: 'Time Tracking',
+      path: '/time-tracking',
+      icon: <AssessmentIcon />,
+      roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate']
+    },
+    {
+      label: 'Calendar',
+      path: '/calendar',
+      icon: <CalendarTodayIcon />,
       roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal']
+    },
+    {
+      label: 'Billing',
+      path: '/billing',
+      icon: <PaymentIcon />,
+      roles: ['super_admin', 'partner', 'senior_associate']
     }
   ];
 

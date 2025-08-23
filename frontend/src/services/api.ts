@@ -412,6 +412,88 @@ export const documentsApi = {
 };
 
 /**
+ * Users API Service
+ */
+export const usersApi = {
+  /**
+   * Get all users
+   * 
+   * @param params - Query parameters
+   * @returns Promise<ApiResponse<any>>
+   */
+  getUsers: async (params?: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/users', { params });
+    return response.data;
+  },
+
+  /**
+   * Get user by ID
+   * 
+   * @param id - User ID
+   * @returns Promise<ApiResponse<any>>
+   */
+  getUser: async (id: string): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get(`/users/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Create new user
+   * 
+   * @param userData - User data
+   * @returns Promise<ApiResponse<any>>
+   */
+  createUser: async (userData: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.post('/users', userData);
+    return response.data;
+  },
+
+  /**
+   * Update user
+   * 
+   * @param id - User ID
+   * @param userData - User data
+   * @returns Promise<ApiResponse<any>>
+   */
+  updateUser: async (id: string, userData: any): Promise<ApiResponse<any>> => {
+    const response = await apiClient.put(`/users/${id}`, userData);
+    return response.data;
+  },
+
+  /**
+   * Delete user
+   * 
+   * @param id - User ID
+   * @returns Promise<ApiResponse<void>>
+   */
+  deleteUser: async (id: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Get user activity
+   * 
+   * @param id - User ID
+   * @returns Promise<ApiResponse<any>>
+   */
+  getUserActivity: async (id: string): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get(`/users/${id}/activity`);
+    return response.data;
+  },
+
+  /**
+   * Get assignable roles
+   * 
+   * @returns Promise<ApiResponse<any>>
+   */
+  getAssignableRoles: async (): Promise<ApiResponse<any>> => {
+    const response = await apiClient.get('/users/assignable-roles');
+    return response.data;
+  },
+};
+
+/**
  * Dashboard API Service
  */
 export const dashboardApi = {
@@ -442,6 +524,7 @@ export { apiClient };
 // Export default API object
 export default {
   auth: authApi,
+  users: usersApi,
   cases: casesApi,
   clients: clientsApi,
   documents: documentsApi,

@@ -126,6 +126,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       roles: ['super_admin', 'partner', 'senior_associate', 'junior_associate', 'paralegal', 'client'],
     },
     {
+      title: 'Users',
+      path: '/users',
+      icon: <People />,
+      roles: ['super_admin', 'partner'],
+    },
+    {
       title: 'Cases',
       path: '/cases',
       icon: <Business />,
