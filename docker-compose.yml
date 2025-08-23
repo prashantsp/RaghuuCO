@@ -1,0 +1,175 @@
+# RAGHUU CO Legal Practice Management System - Docker Compose
+# 
+# @author RAGHUU CO Development Team
+# @version 1.0.0
+# @since 2025-01-15
+# 
+# @description Complete development environment with backend, frontend,
+# database, and supporting services
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: raghuuco-postgres
+    environment:
+      POSTGRES_DB: raghuuco_legal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - raghuuco-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: raghuuco-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - raghuuco-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: raghuuco-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: raghuuco_legal
+      DB_USER: postgres
+      DB_PASSWORD: password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your_super_secret_jwt_key_here_make_it_long_and_random
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - raghuuco-network
+    volumes:
+      - ./backend/logs:/app/logs
+    restart: unless-stopped
+
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: production
+    container_name: raghuuco-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - raghuuco-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: raghuuco-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - raghuuco-network
+    restart: unless-stopped
+
+  # Development Backend (for development mode)
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: raghuuco-backend-dev
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: raghuuco_legal
+      DB_USER: postgres
+      DB_PASSWORD: password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev_jwt_secret_key
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - raghuuco-network
+    profiles:
+      - dev
+
+  # Development Frontend (for development mode)
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: raghuuco-frontend-dev
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-dev
+    networks:
+      - raghuuco-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  raghuuco-network:
+    driver: bridge

@@ -31,6 +31,8 @@ import dotenv from 'dotenv';
 import { createSchema } from './database/migrate';
 import logger from './utils/logger';
 import authRoutes from './routes/authRoutes';
+import socialAuthRoutes from './routes/socialAuthRoutes';
+import passport from './config/passport';
 
 // Load environment variables
 dotenv.config();
@@ -102,6 +104,12 @@ app.use(compression());
  */
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+/**
+ * Passport.js initialization
+ * Required for social authentication strategies
+ */
+app.use(passport.initialize());
 
 /**
  * HTTP request logging middleware
@@ -179,6 +187,12 @@ app.get('/api/v1', (req: Request, res: Response) => {
  * All authentication-related endpoints are prefixed with /api/v1/auth
  */
 app.use('/api/v1/auth', authRoutes);
+
+/**
+ * Mount social authentication routes
+ * OAuth 2.0 authentication endpoints for Google, LinkedIn, and Microsoft 365
+ */
+app.use('/api/v1/auth', socialAuthRoutes);
 
 /**
  * Global error handling middleware

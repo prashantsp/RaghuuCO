@@ -1,0 +1,278 @@
+# RAGHUU CO Legal Practice Management System - CI/CD Pipeline
+# 
+# @author RAGHUU CO Development Team
+# @version 1.0.0
+# @since 2025-01-15
+# 
+# @description GitHub Actions workflow for continuous integration and deployment
+# including testing, building, and deployment to staging/production environments
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, development_branch ]
+  pull_request:
+    branches: [ main, development_branch ]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Code Quality and Testing
+  test:
+    name: Test and Quality Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Run linting
+        run: |
+          npm run lint
+          cd backend && npm run lint
+          cd ../frontend && npm run lint
+
+      - name: Run type checking
+        run: |
+          cd backend && npm run type-check
+          cd ../frontend && npm run type-check
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm run test:coverage
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test_jwt_secret
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage/lcov.info,./frontend/coverage/lcov.info
+          flags: backend,frontend
+          name: codecov-umbrella
+
+  # Build and Package
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          target: production
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.meta.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          target: production
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.meta.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Security Scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: github.ref == 'refs/heads/development_branch' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging environment
+        run: |
+          echo "Deploying to staging environment..."
+          # Add staging deployment logic here
+          # This could include:
+          # - Updating Kubernetes manifests
+          # - Deploying to cloud platform
+          # - Running database migrations
+          # - Health checks
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on staging..."
+          # Add smoke test logic here
+          # This could include:
+          # - API health checks
+          # - Frontend accessibility tests
+          # - Basic functionality tests
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production environment
+        run: |
+          echo "Deploying to production environment..."
+          # Add production deployment logic here
+          # This could include:
+          # - Blue-green deployment
+          # - Database migrations
+          # - SSL certificate updates
+          # - CDN cache invalidation
+
+      - name: Run production health checks
+        run: |
+          echo "Running production health checks..."
+          # Add health check logic here
+          # This could include:
+          # - Load balancer health checks
+          # - Database connectivity tests
+          # - API endpoint validation
+          # - Frontend accessibility tests
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Production deployment successful!"
+          # Add notification logic here
+          # This could include:
+          # - Slack notifications
+          # - Email notifications
+          # - Status page updates
+
+  # Rollback (Manual trigger)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event.inputs.rollback == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back deployment..."
+          # Add rollback logic here
+          # This could include:
+          # - Reverting to previous image version
+          # - Rolling back database changes
+          # - Updating load balancer configuration
