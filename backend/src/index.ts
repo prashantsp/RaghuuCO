@@ -40,6 +40,7 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import billingRoutes from './routes/billingRoutes';
 import calendarRoutes from './routes/calendarRoutes';
 import communicationRoutes from './routes/communicationRoutes';
+import reportingRoutes from './routes/reportingRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -249,6 +250,12 @@ app.use('/api/v1/calendar', calendarRoutes);
  * Email, chat, and notification functionality
  */
 app.use('/api/v1/communication', communicationRoutes);
+
+/**
+ * Mount reporting routes
+ * Reporting and analytics functionality
+ */
+app.use('/api/v1/reporting', reportingRoutes);
 
 /**
  * Global error handling middleware
