@@ -42,6 +42,11 @@ import calendarRoutes from './routes/calendarRoutes';
 import communicationRoutes from './routes/communicationRoutes';
 import reportingRoutes from './routes/reportingRoutes';
 import taskRoutes from './routes/taskRoutes';
+import documentSecurityRoutes from './routes/documentSecurityRoutes';
+import financialDashboardRoutes from './routes/financialDashboardRoutes';
+import productivityAnalyticsRoutes from './routes/productivityAnalyticsRoutes';
+import customReportBuilderRoutes from './routes/customReportBuilderRoutes';
+import clientPortalRoutes from './routes/clientPortalRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -193,179 +198,21 @@ app.get('/api/v1', (req: Request, res: Response) => {
 });
 
 /**
- * Mount authentication routes
- * All authentication-related endpoints are prefixed with /api/v1/auth
- */
+ * Mount API routes
 app.use('/api/v1/auth', authRoutes);
-
-/**
- * Mount social authentication routes
- * OAuth 2.0 authentication endpoints for Google, LinkedIn, and Microsoft 365
- */
 app.use('/api/v1/auth', socialAuthRoutes);
-
-/**
- * Mount user management routes
- * User CRUD operations and role-based access control
- */
 app.use('/api/v1/users', userRoutes);
-
-/**
- * Mount client management routes
- * Client CRUD operations and conflict checking
- */
 app.use('/api/v1/clients', clientRoutes);
-
-/**
- * Mount case management routes
- * Case CRUD operations and workflow management
- */
 app.use('/api/v1/cases', caseRoutes);
-
-/**
- * Mount document management routes
- * Document upload, versioning, and search functionality
- */
 app.use('/api/v1/documents', documentRoutes);
-
-/**
- * Mount dashboard routes
- * Dashboard statistics and analytics
- */
 app.use('/api/v1/dashboard', dashboardRoutes);
-
-/**
- * Mount billing routes
- * Billing and invoicing functionality
- */
 app.use('/api/v1/billing', billingRoutes);
-
-/**
- * Mount calendar routes
- * Calendar management and event scheduling
- */
 app.use('/api/v1/calendar', calendarRoutes);
-
-/**
- * Mount communication routes
- * Email, chat, and notification functionality
- */
 app.use('/api/v1/communication', communicationRoutes);
-
-/**
- * Mount reporting routes
- * Reporting and analytics functionality
- */
 app.use('/api/v1/reporting', reportingRoutes);
-
-/**
- * Mount task routes
- * Task CRUD operations and workflow management
- */
 app.use('/api/v1/tasks', taskRoutes);
-
-/**
- * Global error handling middleware
- * Catches and logs all unhandled errors
- * 
- * @param err - Error object
- * @param req - Express request object
- * @param res - Express response object
- * @param next - Express next function
- */
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  logger.error('Unhandled error', err, {
-    url: req.url,
-    method: req.method,
-    ip: req.ip
-  });
-
-  res.status(err.status || 500).json({
-    success: false,
-    error: {
-      code: err.code || 'INTERNAL_SERVER_ERROR',
-      message: process.env.NODE_ENV === 'production' 
-        ? 'Internal server error' 
-        : err.message
-    }
-  });
-});
-
-/**
- * 404 handler for undefined routes
- * Returns standardized error response for non-existent endpoints
- */
-app.use('*', (req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: 'Route not found'
-    }
-  });
-});
-
-/**
- * Graceful shutdown handlers
- * Ensures proper cleanup when the server is terminated
- */
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  process.exit(0);
-});
-
-/**
- * Unhandled promise rejection handler
- * Logs unhandled promise rejections for debugging
- */
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-/**
- * Uncaught exception handler
- * Logs uncaught exceptions and terminates the process
- */
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-/**
- * Server initialization function
- * Sets up database schema and starts the HTTP server
- * 
- * @async
- * @returns {Promise<void>}
- */
-async function startServer(): Promise<void> {
-  try {
-    // Initialize database schema in non-production environments
-    if (process.env.NODE_ENV !== 'production') {
-      logger.info('Initializing database schema...');
-      await createSchema();
-    }
-
-    // Start HTTP server
-    app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`, {
-        port: PORT,
-        environment: process.env.NODE_ENV || 'development',
-        timestamp: new Date().toISOString()
-      });
-    });
-  } catch (error) {
-    logger.error('Failed to start server', error as Error);
-    process.exit(1);
-  }
-}
-
-// Start the server
-startServer();
-
-export default app;
+app.use('/api/v1/document-security', documentSecurityRoutes);
+app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
+app.use('/api/v1/productivity-analytics', productivityAnalyticsRoutes);
+app.use('/api/v1/custom-report-builder', customReportBuilderRoutes);
+app.use('/api/v1/client-portal', clientPortalRoutes);
