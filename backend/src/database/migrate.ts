@@ -85,7 +85,12 @@ async function createEnums(): Promise<void> {
     `CREATE TYPE report_type_enum AS ENUM ('daily', 'weekly', 'monthly', 'custom')`,
     `CREATE TYPE report_execution_status_enum AS ENUM ('running', 'completed', 'failed', 'cancelled')`,
     `CREATE TYPE analytics_event_type_enum AS ENUM ('page_view', 'click', 'scroll', 'form_submit', 'custom')`,
-    `CREATE TYPE business_metric_type_enum AS ENUM ('revenue', 'expense', 'client_count', 'case_count', 'user_count')`
+    `CREATE TYPE business_metric_type_enum AS ENUM ('revenue', 'expense', 'client_count', 'case_count', 'user_count')`,
+    `CREATE TYPE task_status_enum AS ENUM ('pending', 'in_progress', 'completed', 'cancelled', 'on_hold')`,
+    `CREATE TYPE task_priority_enum AS ENUM ('low', 'medium', 'high', 'urgent')`,
+    `CREATE TYPE task_type_enum AS ENUM ('research', 'document_preparation', 'court_appearance', 'client_meeting', 'administrative', 'billing', 'other')`,
+    `CREATE TYPE client_portal_user_status_enum AS ENUM ('active', 'inactive', 'suspended')`,
+    `CREATE TYPE document_security_level_enum AS ENUM ('public', 'internal', 'confidential', 'restricted')`
   ];
 
   for (const enumQuery of enums) {
@@ -432,6 +437,144 @@ async function createTables(): Promise<void> {
       UNIQUE(metric_date, metric_type)
     )`,
 
+    // Tasks table for task tracking
+    `CREATE TABLE IF NOT EXISTS tasks (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      task_type task_type_enum NOT NULL,
+      status task_status_enum DEFAULT 'pending',
+      priority task_priority_enum DEFAULT 'medium',
+      case_id UUID REFERENCES cases(id),
+      client_id UUID REFERENCES clients(id),
+      assigned_to UUID REFERENCES users(id),
+      created_by UUID REFERENCES users(id),
+      estimated_hours DECIMAL(4,2),
+      actual_hours DECIMAL(4,2),
+      due_date DATE,
+      completed_date DATE,
+      parent_task_id UUID REFERENCES tasks(id),
+      tags TEXT[],
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Task dependencies table
+    `CREATE TABLE IF NOT EXISTS task_dependencies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      depends_on_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      dependency_type VARCHAR(50) DEFAULT 'finish_to_start',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(task_id, depends_on_task_id)
+    )`,
+
+    // Task time entries table (enhanced time tracking)
+    `CREATE TABLE IF NOT EXISTS task_time_entries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id),
+      start_time TIMESTAMP NOT NULL,
+      end_time TIMESTAMP,
+      duration_minutes INTEGER,
+      description TEXT,
+      is_billable BOOLEAN DEFAULT true,
+      billing_rate DECIMAL(8,2),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Client portal users table
+    `CREATE TABLE IF NOT EXISTS client_portal_users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id UUID NOT NULL REFERENCES clients(id),
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      first_name VARCHAR(100) NOT NULL,
+      last_name VARCHAR(100) NOT NULL,
+      phone VARCHAR(20),
+      status client_portal_user_status_enum DEFAULT 'active',
+      last_login TIMESTAMP,
+      failed_login_attempts INTEGER DEFAULT 0,
+      account_locked_until TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Client portal sessions table
+    `CREATE TABLE IF NOT EXISTS client_portal_sessions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_user_id UUID NOT NULL REFERENCES client_portal_users(id) ON DELETE CASCADE,
+      session_token VARCHAR(255) UNIQUE NOT NULL,
+      ip_address INET,
+      user_agent TEXT,
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Document security metadata table
+    `CREATE TABLE IF NOT EXISTS document_security_metadata (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+      security_level document_security_level_enum DEFAULT 'internal',
+      encrypted_at_rest BOOLEAN DEFAULT true,
+      encryption_key_id VARCHAR(255),
+      watermark_text TEXT,
+      watermark_position VARCHAR(50) DEFAULT 'bottom_right',
+      access_control_list JSONB DEFAULT '[]',
+      audit_trail_enabled BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Financial metrics table
+    `CREATE TABLE IF NOT EXISTS financial_metrics (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      metric_date DATE NOT NULL,
+      revenue DECIMAL(15,2) DEFAULT 0,
+      expenses DECIMAL(15,2) DEFAULT 0,
+      profit DECIMAL(15,2) DEFAULT 0,
+      outstanding_invoices DECIMAL(15,2) DEFAULT 0,
+      paid_invoices DECIMAL(15,2) DEFAULT 0,
+      total_cases INTEGER DEFAULT 0,
+      active_cases INTEGER DEFAULT 0,
+      billable_hours DECIMAL(8,2) DEFAULT 0,
+      non_billable_hours DECIMAL(8,2) DEFAULT 0,
+      average_case_value DECIMAL(10,2) DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(metric_date)
+    )`,
+
+    // Productivity metrics table
+    `CREATE TABLE IF NOT EXISTS productivity_metrics (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id),
+      metric_date DATE NOT NULL,
+      total_hours_worked DECIMAL(4,2) DEFAULT 0,
+      billable_hours DECIMAL(4,2) DEFAULT 0,
+      non_billable_hours DECIMAL(4,2) DEFAULT 0,
+      tasks_completed INTEGER DEFAULT 0,
+      tasks_pending INTEGER DEFAULT 0,
+      cases_handled INTEGER DEFAULT 0,
+      efficiency_score DECIMAL(3,2) DEFAULT 0,
+      utilization_rate DECIMAL(5,2) DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, metric_date)
+    )`,
+
+    // Custom report templates table
+    `CREATE TABLE IF NOT EXISTS custom_report_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      template_type VARCHAR(100) NOT NULL,
+      query_definition JSONB NOT NULL,
+      parameters JSONB DEFAULT '{}',
+      created_by UUID REFERENCES users(id),
+      is_public BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Audit logs table
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -690,7 +833,100 @@ async function createIndexes(): Promise<void> {
 
     // Business metrics indexes
     'CREATE INDEX IF NOT EXISTS idx_business_metrics_metric_date ON business_metrics(metric_date)',
-    'CREATE INDEX IF NOT EXISTS idx_business_metrics_metric_type ON business_metrics(metric_type)'
+    'CREATE INDEX IF NOT EXISTS idx_business_metrics_metric_type ON business_metrics(metric_type)',
+
+    // Tasks indexes
+    'CREATE INDEX IF NOT EXISTS idx_tasks_title ON tasks(title)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_case_id ON tasks(case_id)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_client_id ON tasks(client_id)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_created_by ON tasks(created_by)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_estimated_hours ON tasks(estimated_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_actual_hours ON tasks(actual_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_completed_date ON tasks(completed_date)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON tasks(parent_task_id)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_tags ON tasks USING GIN(tags)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at)',
+    'CREATE INDEX IF NOT EXISTS idx_tasks_updated_at ON tasks(updated_at)',
+
+    // Task dependencies indexes
+    'CREATE INDEX IF NOT EXISTS idx_task_dependencies_task_id ON task_dependencies(task_id)',
+    'CREATE INDEX IF NOT EXISTS idx_task_dependencies_depends_on_task_id ON task_dependencies(depends_on_task_id)',
+    'CREATE INDEX IF NOT EXISTS idx_task_dependencies_dependency_type ON task_dependencies(dependency_type)',
+
+    // Task time entries indexes
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_task_id ON task_time_entries(task_id)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_user_id ON task_time_entries(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_start_time ON task_time_entries(start_time)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_end_time ON task_time_entries(end_time)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_duration_minutes ON task_time_entries(duration_minutes)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_is_billable ON task_time_entries(is_billable)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_billing_rate ON task_time_entries(billing_rate)',
+    'CREATE INDEX IF NOT EXISTS idx_task_time_entries_created_at ON task_time_entries(created_at)',
+
+    // Client portal users indexes
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_client_id ON client_portal_users(client_id)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_email ON client_portal_users(email)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_status ON client_portal_users(status)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_last_login ON client_portal_users(last_login)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_failed_login_attempts ON client_portal_users(failed_login_attempts)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_account_locked_until ON client_portal_users(account_locked_until)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_created_at ON client_portal_users(created_at)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_users_updated_at ON client_portal_users(updated_at)',
+
+    // Client portal sessions indexes
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_sessions_client_user_id ON client_portal_sessions(client_user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_sessions_session_token ON client_portal_sessions(session_token)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_sessions_expires_at ON client_portal_sessions(expires_at)',
+    'CREATE INDEX IF NOT EXISTS idx_client_portal_sessions_created_at ON client_portal_sessions(created_at)',
+
+    // Document security metadata indexes
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_document_id ON document_security_metadata(document_id)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_security_level ON document_security_metadata(security_level)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_encrypted_at_rest ON document_security_metadata(encrypted_at_rest)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_encryption_key_id ON document_security_metadata(encryption_key_id)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_watermark_text ON document_security_metadata(watermark_text)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_watermark_position ON document_security_metadata(watermark_position)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_access_control_list ON document_security_metadata(access_control_list)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_audit_trail_enabled ON document_security_metadata(audit_trail_enabled)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_created_at ON document_security_metadata(created_at)',
+    'CREATE INDEX IF NOT EXISTS idx_document_security_metadata_updated_at ON document_security_metadata(updated_at)',
+
+    // Financial metrics indexes
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_metric_date ON financial_metrics(metric_date)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_revenue ON financial_metrics(revenue)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_expenses ON financial_metrics(expenses)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_profit ON financial_metrics(profit)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_outstanding_invoices ON financial_metrics(outstanding_invoices)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_paid_invoices ON financial_metrics(paid_invoices)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_total_cases ON financial_metrics(total_cases)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_active_cases ON financial_metrics(active_cases)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_billable_hours ON financial_metrics(billable_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_non_billable_hours ON financial_metrics(non_billable_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_financial_metrics_average_case_value ON financial_metrics(average_case_value)',
+
+    // Productivity metrics indexes
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_user_id ON productivity_metrics(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_metric_date ON productivity_metrics(metric_date)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_total_hours_worked ON productivity_metrics(total_hours_worked)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_billable_hours ON productivity_metrics(billable_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_non_billable_hours ON productivity_metrics(non_billable_hours)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_tasks_completed ON productivity_metrics(tasks_completed)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_tasks_pending ON productivity_metrics(tasks_pending)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_cases_handled ON productivity_metrics(cases_handled)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_efficiency_score ON productivity_metrics(efficiency_score)',
+    'CREATE INDEX IF NOT EXISTS idx_productivity_metrics_utilization_rate ON productivity_metrics(utilization_rate)',
+
+    // Custom report templates indexes
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_name ON custom_report_templates(name)',
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_template_type ON custom_report_templates(template_type)',
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_is_public ON custom_report_templates(is_public)',
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_created_by ON custom_report_templates(created_by)',
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_created_at ON custom_report_templates(created_at)',
+    'CREATE INDEX IF NOT EXISTS idx_custom_report_templates_updated_at ON custom_report_templates(updated_at)'
   ];
 
   for (const indexQuery of indexes) {

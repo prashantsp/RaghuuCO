@@ -41,6 +41,7 @@ import billingRoutes from './routes/billingRoutes';
 import calendarRoutes from './routes/calendarRoutes';
 import communicationRoutes from './routes/communicationRoutes';
 import reportingRoutes from './routes/reportingRoutes';
+import taskRoutes from './routes/taskRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -256,6 +257,12 @@ app.use('/api/v1/communication', communicationRoutes);
  * Reporting and analytics functionality
  */
 app.use('/api/v1/reporting', reportingRoutes);
+
+/**
+ * Mount task routes
+ * Task CRUD operations and workflow management
+ */
+app.use('/api/v1/tasks', taskRoutes);
 
 /**
  * Global error handling middleware

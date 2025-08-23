@@ -1405,6 +1405,302 @@ export const SQLQueries = {
       GROUP BY metric_date
       ORDER BY metric_date
     `
+  },
+
+  TASKS: {
+    CREATE: `
+      INSERT INTO tasks (title, description, task_type, status, priority, case_id, client_id, 
+                        assigned_to, created_by, estimated_hours, due_date, parent_task_id, tags)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT t.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name, 
+             c.case_number, c.title as case_title, cl.name as client_name
+      FROM tasks t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      LEFT JOIN cases c ON t.case_id = c.id
+      LEFT JOIN clients cl ON t.client_id = cl.id
+      WHERE t.id = $1
+    `,
+    GET_BY_CASE_ID: `
+      SELECT t.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name
+      FROM tasks t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      WHERE t.case_id = $1
+      ORDER BY t.priority DESC, t.due_date ASC
+    `,
+    GET_BY_USER_ID: `
+      SELECT t.*, c.case_number, c.title as case_title, cl.name as client_name
+      FROM tasks t
+      LEFT JOIN cases c ON t.case_id = c.id
+      LEFT JOIN clients cl ON t.client_id = cl.id
+      WHERE t.assigned_to = $1
+      ORDER BY t.priority DESC, t.due_date ASC
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT t.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name,
+             c.case_number, c.title as case_title
+      FROM tasks t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      LEFT JOIN cases c ON t.case_id = c.id
+      WHERE t.client_id = $1
+      ORDER BY t.priority DESC, t.due_date ASC
+    `,
+    UPDATE: `
+      UPDATE tasks SET title = $2, description = $3, task_type = $4, status = $5, priority = $6,
+                      case_id = $7, client_id = $8, assigned_to = $9, estimated_hours = $10,
+                      actual_hours = $11, due_date = $12, completed_date = $13, parent_task_id = $14,
+                      tags = $15, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM tasks WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT t.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name,
+             c.case_number, c.title as case_title, cl.name as client_name
+      FROM tasks t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      LEFT JOIN cases c ON t.case_id = c.id
+      LEFT JOIN clients cl ON t.client_id = cl.id
+      WHERE ($1::text IS NULL OR t.title ILIKE $1 OR t.description ILIKE $1)
+      AND ($2::task_status_enum IS NULL OR t.status = $2)
+      AND ($3::task_priority_enum IS NULL OR t.priority = $3)
+      AND ($4::task_type_enum IS NULL OR t.task_type = $4)
+      AND ($5::uuid IS NULL OR t.assigned_to = $5)
+      AND ($6::uuid IS NULL OR t.case_id = $6)
+      AND ($7::uuid IS NULL OR t.client_id = $7)
+      ORDER BY t.priority DESC, t.due_date ASC
+      LIMIT $8 OFFSET $9
+    `,
+    GET_DEPENDENCIES: `
+      SELECT td.*, t.title as depends_on_task_title, t.status as depends_on_task_status
+      FROM task_dependencies td
+      JOIN tasks t ON td.depends_on_task_id = t.id
+      WHERE td.task_id = $1
+    `,
+    GET_DEPENDENTS: `
+      SELECT td.*, t.title as dependent_task_title, t.status as dependent_task_status
+      FROM task_dependencies td
+      JOIN tasks t ON td.task_id = t.id
+      WHERE td.depends_on_task_id = $1
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_tasks,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_tasks,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_tasks,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_tasks,
+        COUNT(CASE WHEN status = 'on_hold' THEN 1 END) as on_hold_tasks,
+        COUNT(CASE WHEN due_date < CURRENT_DATE AND status NOT IN ('completed', 'cancelled') THEN 1 END) as overdue_tasks
+      FROM tasks
+      WHERE ($1::uuid IS NULL OR assigned_to = $1)
+      AND ($2::uuid IS NULL OR case_id = $2)
+    `
+  },
+
+  TASK_DEPENDENCIES: {
+    CREATE: `
+      INSERT INTO task_dependencies (task_id, depends_on_task_id, dependency_type)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM task_dependencies WHERE task_id = $1 AND depends_on_task_id = $2
+    `,
+    DELETE_BY_TASK_ID: `
+      DELETE FROM task_dependencies WHERE task_id = $1
+    `
+  },
+
+  TASK_TIME_ENTRIES: {
+    CREATE: `
+      INSERT INTO task_time_entries (task_id, user_id, start_time, end_time, duration_minutes, 
+                                    description, is_billable, billing_rate)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `,
+    GET_BY_TASK_ID: `
+      SELECT tte.*, u.first_name, u.last_name
+      FROM task_time_entries tte
+      JOIN users u ON tte.user_id = u.id
+      WHERE tte.task_id = $1
+      ORDER BY tte.start_time DESC
+    `,
+    GET_BY_USER_ID: `
+      SELECT tte.*, t.title as task_title, c.case_number
+      FROM task_time_entries tte
+      JOIN tasks t ON tte.task_id = t.id
+      LEFT JOIN cases c ON t.case_id = c.id
+      WHERE tte.user_id = $1
+      ORDER BY tte.start_time DESC
+    `,
+    UPDATE: `
+      UPDATE task_time_entries SET start_time = $2, end_time = $3, duration_minutes = $4,
+                                 description = $5, is_billable = $6, billing_rate = $7
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM task_time_entries WHERE id = $1
+    `,
+    GET_ACTIVE_TIMER: `
+      SELECT * FROM task_time_entries 
+      WHERE user_id = $1 AND end_time IS NULL
+      ORDER BY start_time DESC
+      LIMIT 1
+    `,
+    GET_TIME_SUMMARY: `
+      SELECT 
+        SUM(duration_minutes) as total_minutes,
+        SUM(CASE WHEN is_billable THEN duration_minutes ELSE 0 END) as billable_minutes,
+        COUNT(*) as total_entries
+      FROM task_time_entries
+      WHERE task_id = $1
+    `
+  },
+
+  CLIENT_PORTAL_USERS: {
+    CREATE: `
+      INSERT INTO client_portal_users (client_id, email, password_hash, first_name, last_name, phone)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT cpu.*, c.name as client_name, c.email as client_email
+      FROM client_portal_users cpu
+      JOIN clients c ON cpu.client_id = c.id
+      WHERE cpu.id = $1
+    `,
+    GET_BY_EMAIL: `
+      SELECT * FROM client_portal_users WHERE email = $1
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT * FROM client_portal_users WHERE client_id = $1
+    `,
+    UPDATE: `
+      UPDATE client_portal_users SET first_name = $2, last_name = $3, phone = $4, 
+                                   updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    UPDATE_PASSWORD: `
+      UPDATE client_portal_users SET password_hash = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    UPDATE_STATUS: `
+      UPDATE client_portal_users SET status = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    UPDATE_LOGIN_ATTEMPTS: `
+      UPDATE client_portal_users SET failed_login_attempts = $2, account_locked_until = $3, 
+                                   last_login = $4, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM client_portal_users WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT cpu.*, c.name as client_name
+      FROM client_portal_users cpu
+      JOIN clients c ON cpu.client_id = c.id
+      WHERE ($1::text IS NULL OR cpu.email ILIKE $1 OR cpu.first_name ILIKE $1 OR cpu.last_name ILIKE $1)
+      AND ($2::client_portal_user_status_enum IS NULL OR cpu.status = $2)
+      AND ($3::uuid IS NULL OR cpu.client_id = $3)
+      ORDER BY cpu.created_at DESC
+      LIMIT $4 OFFSET $5
+    `
+  },
+
+  CLIENT_PORTAL_SESSIONS: {
+    CREATE: `
+      INSERT INTO client_portal_sessions (client_user_id, session_token, ip_address, user_agent, expires_at)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `,
+    GET_BY_TOKEN: `
+      SELECT cps.*, cpu.email, cpu.first_name, cpu.last_name, c.name as client_name
+      FROM client_portal_sessions cps
+      JOIN client_portal_users cpu ON cps.client_user_id = cpu.id
+      JOIN clients c ON cpu.client_id = c.id
+      WHERE cps.session_token = $1 AND cps.expires_at > NOW()
+    `,
+    DELETE_BY_TOKEN: `
+      DELETE FROM client_portal_sessions WHERE session_token = $1
+    `,
+    DELETE_BY_USER_ID: `
+      DELETE FROM client_portal_sessions WHERE client_user_id = $1
+    `,
+    DELETE_EXPIRED: `
+      DELETE FROM client_portal_sessions WHERE expires_at <= NOW()
+    `
+  },
+
+  CLIENT_PORTAL_CASES: {
+    GET_BY_CLIENT_ID: `
+      SELECT c.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name,
+             (SELECT COUNT(*) FROM documents WHERE case_id = c.id) as document_count,
+             (SELECT COUNT(*) FROM time_entries WHERE case_id = c.id) as time_entry_count
+      FROM cases c
+      LEFT JOIN users u ON c.assigned_to = u.id
+      WHERE c.client_id = $1
+      ORDER BY c.created_at DESC
+    `,
+    GET_CASE_DETAILS: `
+      SELECT c.*, u.first_name as assigned_first_name, u.last_name as assigned_last_name,
+             cl.name as client_name, cl.email as client_email
+      FROM cases c
+      LEFT JOIN users u ON c.assigned_to = u.id
+      JOIN clients cl ON c.client_id = cl.id
+      WHERE c.id = $1 AND c.client_id = $2
+    `,
+    GET_CASE_DOCUMENTS: `
+      SELECT d.*, u.first_name as uploaded_by_first_name, u.last_name as uploaded_by_last_name
+      FROM documents d
+      LEFT JOIN users u ON d.uploaded_by = u.id
+      WHERE d.case_id = $1
+      ORDER BY d.created_at DESC
+    `,
+    GET_CASE_UPDATES: `
+      SELECT 'document_uploaded' as update_type, d.title as title, d.created_at as date,
+             u.first_name, u.last_name
+      FROM documents d
+      LEFT JOIN users u ON d.uploaded_by = u.id
+      WHERE d.case_id = $1
+      UNION ALL
+      SELECT 'case_status_changed' as update_type, c.title as title, c.updated_at as date,
+             u.first_name, u.last_name
+      FROM cases c
+      LEFT JOIN users u ON c.assigned_to = u.id
+      WHERE c.id = $1 AND c.updated_at > c.created_at
+      ORDER BY date DESC
+      LIMIT 20
+    `
+  },
+
+  CLIENT_PORTAL_MESSAGES: {
+    CREATE: `
+      INSERT INTO internal_messages (subject, content, sender_id, message_type, priority, 
+                                    case_id, client_id, is_client_message)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+      RETURNING *
+    `,
+    GET_CLIENT_MESSAGES: `
+      SELECT im.*, u.first_name as sender_first_name, u.last_name as sender_last_name,
+             c.case_number, c.title as case_title
+      FROM internal_messages im
+      LEFT JOIN users u ON im.sender_id = u.id
+      LEFT JOIN cases c ON im.case_id = c.id
+      WHERE im.client_id = $1 AND im.is_client_message = true
+      ORDER BY im.created_at DESC
+    `,
+    GET_CASE_MESSAGES: `
+      SELECT im.*, u.first_name as sender_first_name, u.last_name as sender_last_name
+      FROM internal_messages im
+      LEFT JOIN users u ON im.sender_id = u.id
+      WHERE im.case_id = $1 AND im.is_client_message = true
+      ORDER BY im.created_at DESC
+    `
   }
 };
 
