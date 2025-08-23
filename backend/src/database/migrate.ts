@@ -81,7 +81,11 @@ async function createEnums(): Promise<void> {
     `CREATE TYPE email_template_type_enum AS ENUM ('html', 'plain_text')`,
     `CREATE TYPE email_status_enum AS ENUM ('pending', 'sent', 'failed', 'bounced', 'opened', 'clicked', 'unsubscribed')`,
     `CREATE TYPE sms_status_enum AS ENUM ('pending', 'sent', 'failed', 'delivered', 'undelivered', 'rejected')`,
-    `CREATE TYPE notification_type_enum AS ENUM ('email', 'sms', 'push', 'in_app')`
+    `CREATE TYPE notification_type_enum AS ENUM ('email', 'sms', 'push', 'in_app')`,
+    `CREATE TYPE report_type_enum AS ENUM ('daily', 'weekly', 'monthly', 'custom')`,
+    `CREATE TYPE report_execution_status_enum AS ENUM ('running', 'completed', 'failed', 'cancelled')`,
+    `CREATE TYPE analytics_event_type_enum AS ENUM ('page_view', 'click', 'scroll', 'form_submit', 'custom')`,
+    `CREATE TYPE business_metric_type_enum AS ENUM ('revenue', 'expense', 'client_count', 'case_count', 'user_count')`
   ];
 
   for (const enumQuery of enums) {
@@ -364,6 +368,70 @@ async function createTables(): Promise<void> {
       UNIQUE(user_id, notification_type)
     )`,
 
+    // Reports table
+    `CREATE TABLE IF NOT EXISTS reports (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      report_type report_type_enum NOT NULL,
+      parameters JSONB DEFAULT '{}',
+      schedule_cron VARCHAR(100),
+      is_active BOOLEAN DEFAULT true,
+      created_by UUID REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Report executions table
+    `CREATE TABLE IF NOT EXISTS report_executions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      report_id UUID NOT NULL REFERENCES reports(id),
+      executed_by UUID REFERENCES users(id),
+      execution_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      status report_execution_status_enum DEFAULT 'running',
+      result_file_path VARCHAR(500),
+      error_message TEXT,
+      execution_time_ms INTEGER,
+      record_count INTEGER,
+      parameters JSONB DEFAULT '{}'
+    )`,
+
+    // Analytics events table
+    `CREATE TABLE IF NOT EXISTS analytics_events (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      event_type analytics_event_type_enum NOT NULL,
+      user_id UUID REFERENCES users(id),
+      session_id VARCHAR(255),
+      page_url VARCHAR(500),
+      referrer_url VARCHAR(500),
+      user_agent TEXT,
+      ip_address INET,
+      event_data JSONB DEFAULT '{}',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Performance metrics table
+    `CREATE TABLE IF NOT EXISTS performance_metrics (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      metric_name VARCHAR(255) NOT NULL,
+      metric_value DECIMAL(10,4) NOT NULL,
+      metric_unit VARCHAR(50),
+      tags JSONB DEFAULT '{}',
+      recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Business metrics table
+    `CREATE TABLE IF NOT EXISTS business_metrics (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      metric_date DATE NOT NULL,
+      metric_type business_metric_type_enum NOT NULL,
+      metric_value DECIMAL(15,2) NOT NULL,
+      metric_count INTEGER DEFAULT 0,
+      additional_data JSONB DEFAULT '{}',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(metric_date, metric_type)
+    )`,
+
     // Audit logs table
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -596,7 +664,33 @@ async function createIndexes(): Promise<void> {
 
     // Notification preferences indexes
     'CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id)',
-    'CREATE INDEX IF NOT EXISTS idx_notification_preferences_notification_type ON notification_preferences(notification_type)'
+    'CREATE INDEX IF NOT EXISTS idx_notification_preferences_notification_type ON notification_preferences(notification_type)',
+
+    // Reports indexes
+    'CREATE INDEX IF NOT EXISTS idx_reports_name ON reports(name)',
+    'CREATE INDEX IF NOT EXISTS idx_reports_report_type ON reports(report_type)',
+    'CREATE INDEX IF NOT EXISTS idx_reports_is_active ON reports(is_active)',
+    'CREATE INDEX IF NOT EXISTS idx_reports_created_by ON reports(created_by)',
+
+    // Report executions indexes
+    'CREATE INDEX IF NOT EXISTS idx_report_executions_report_id ON report_executions(report_id)',
+    'CREATE INDEX IF NOT EXISTS idx_report_executions_executed_by ON report_executions(executed_by)',
+    'CREATE INDEX IF NOT EXISTS idx_report_executions_status ON report_executions(status)',
+    'CREATE INDEX IF NOT EXISTS idx_report_executions_execution_date ON report_executions(execution_date)',
+
+    // Analytics events indexes
+    'CREATE INDEX IF NOT EXISTS idx_analytics_events_event_type ON analytics_events(event_type)',
+    'CREATE INDEX IF NOT EXISTS idx_analytics_events_user_id ON analytics_events(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_analytics_events_session_id ON analytics_events(session_id)',
+    'CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON analytics_events(created_at)',
+
+    // Performance metrics indexes
+    'CREATE INDEX IF NOT EXISTS idx_performance_metrics_metric_name ON performance_metrics(metric_name)',
+    'CREATE INDEX IF NOT EXISTS idx_performance_metrics_recorded_at ON performance_metrics(recorded_at)',
+
+    // Business metrics indexes
+    'CREATE INDEX IF NOT EXISTS idx_business_metrics_metric_date ON business_metrics(metric_date)',
+    'CREATE INDEX IF NOT EXISTS idx_business_metrics_metric_type ON business_metrics(metric_type)'
   ];
 
   for (const indexQuery of indexes) {

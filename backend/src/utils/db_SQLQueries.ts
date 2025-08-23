@@ -991,6 +991,420 @@ export const SQLQueries = {
       ORDER BY cd.scheduled_date
       LIMIT $2
     `
+  },
+
+  INTERNAL_MESSAGES: {
+    CREATE: `
+      INSERT INTO internal_messages (subject, content, sender_id, message_type, priority, is_urgent, 
+                                    requires_response, response_deadline)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT im.*, u.first_name as sender_first_name, u.last_name as sender_last_name, u.email as sender_email
+      FROM internal_messages im
+      JOIN users u ON im.sender_id = u.id
+      WHERE im.id = $1
+    `,
+    GET_BY_SENDER_ID: `
+      SELECT * FROM internal_messages WHERE sender_id = $1 ORDER BY created_at DESC
+    `,
+    UPDATE: `
+      UPDATE internal_messages SET subject = $2, content = $3, message_type = $4, priority = $5, 
+                                 is_urgent = $6, requires_response = $7, response_deadline = $8
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM internal_messages WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT im.*, u.first_name as sender_first_name, u.last_name as sender_last_name, u.email as sender_email
+      FROM internal_messages im
+      JOIN users u ON im.sender_id = u.id
+      WHERE ($1::text IS NULL OR im.subject ILIKE $1 OR im.content ILIKE $1)
+      AND ($2::internal_message_type_enum IS NULL OR im.message_type = $2)
+      AND ($3::internal_message_priority_enum IS NULL OR im.priority = $3)
+      AND ($4::uuid IS NULL OR im.sender_id = $4)
+      AND ($5::boolean IS NULL OR im.is_urgent = $5)
+      ORDER BY im.created_at DESC
+      LIMIT $6 OFFSET $7
+    `
+  },
+
+  MESSAGE_RECIPIENTS: {
+    CREATE: `
+      INSERT INTO message_recipients (message_id, recipient_id, recipient_email, recipient_name, status)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `,
+    GET_BY_MESSAGE_ID: `
+      SELECT mr.*, u.first_name as recipient_first_name, u.last_name as recipient_last_name, u.email as recipient_email
+      FROM message_recipients mr
+      LEFT JOIN users u ON mr.recipient_id = u.id
+      WHERE mr.message_id = $1
+      ORDER BY mr.created_at
+    `,
+    GET_BY_RECIPIENT_ID: `
+      SELECT mr.*, im.subject, im.content, im.message_type, im.priority, im.is_urgent, im.requires_response,
+             im.response_deadline, u.first_name as sender_first_name, u.last_name as sender_last_name
+      FROM message_recipients mr
+      JOIN internal_messages im ON mr.message_id = im.id
+      JOIN users u ON im.sender_id = u.id
+      WHERE mr.recipient_id = $1
+      ORDER BY mr.created_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+    UPDATE_STATUS: `
+      UPDATE message_recipients SET status = $2, read_at = $3, responded_at = $4, response_content = $5
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM message_recipients WHERE id = $1
+    `,
+    DELETE_BY_MESSAGE_ID: `
+      DELETE FROM message_recipients WHERE message_id = $1
+    `,
+    GET_UNREAD_COUNT: `
+      SELECT COUNT(*) as unread_count
+      FROM message_recipients
+      WHERE recipient_id = $1 AND status = 'unread'
+    `
+  },
+
+  EMAIL_TEMPLATES: {
+    CREATE: `
+      INSERT INTO email_templates (name, subject, content, template_type, variables, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT * FROM email_templates WHERE id = $1
+    `,
+    GET_BY_NAME: `
+      SELECT * FROM email_templates WHERE name = $1 AND is_active = true
+    `,
+    GET_ALL: `
+      SELECT * FROM email_templates WHERE is_active = true ORDER BY name
+    `,
+    UPDATE: `
+      UPDATE email_templates SET name = $2, subject = $3, content = $4, template_type = $5, 
+                                variables = $6, is_active = $7, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM email_templates WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT * FROM email_templates
+      WHERE ($1::text IS NULL OR name ILIKE $1 OR subject ILIKE $1)
+      AND ($2::email_template_type_enum IS NULL OR template_type = $2)
+      AND ($3::boolean IS NULL OR is_active = $3)
+      ORDER BY name
+      LIMIT $4 OFFSET $5
+    `
+  },
+
+  EMAIL_LOGS: {
+    CREATE: `
+      INSERT INTO email_logs (template_id, recipient_email, recipient_name, subject, content, 
+                             case_id, client_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT el.*, et.name as template_name
+      FROM email_logs el
+      LEFT JOIN email_templates et ON el.template_id = et.id
+      WHERE el.id = $1
+    `,
+    GET_BY_RECIPIENT: `
+      SELECT * FROM email_logs WHERE recipient_email = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_CASE_ID: `
+      SELECT * FROM email_logs WHERE case_id = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT * FROM email_logs WHERE client_id = $1 ORDER BY created_at DESC
+    `,
+    UPDATE_STATUS: `
+      UPDATE email_logs SET status = $2, sent_at = $3, error_message = $4, retry_count = $5
+      WHERE id = $1 RETURNING *
+    `,
+    SEARCH: `
+      SELECT el.*, et.name as template_name
+      FROM email_logs el
+      LEFT JOIN email_templates et ON el.template_id = et.id
+      WHERE ($1::text IS NULL OR el.recipient_email ILIKE $1 OR el.subject ILIKE $1)
+      AND ($2::email_status_enum IS NULL OR el.status = $2)
+      AND ($3::uuid IS NULL OR el.case_id = $3)
+      AND ($4::uuid IS NULL OR el.client_id = $4)
+      ORDER BY el.created_at DESC
+      LIMIT $5 OFFSET $6
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_emails,
+        COUNT(CASE WHEN status = 'sent' THEN 1 END) as sent_emails,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_emails,
+        COUNT(CASE WHEN status = 'opened' THEN 1 END) as opened_emails,
+        COUNT(CASE WHEN status = 'clicked' THEN 1 END) as clicked_emails
+      FROM email_logs
+      WHERE ($1::uuid IS NULL OR case_id = $1)
+      AND ($2::uuid IS NULL OR client_id = $2)
+      AND created_at >= $3 AND created_at <= $4
+    `
+  },
+
+  SMS_LOGS: {
+    CREATE: `
+      INSERT INTO sms_logs (recipient_phone, recipient_name, message, case_id, client_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT * FROM sms_logs WHERE id = $1
+    `,
+    GET_BY_RECIPIENT: `
+      SELECT * FROM sms_logs WHERE recipient_phone = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_CASE_ID: `
+      SELECT * FROM sms_logs WHERE case_id = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT * FROM sms_logs WHERE client_id = $1 ORDER BY created_at DESC
+    `,
+    UPDATE_STATUS: `
+      UPDATE sms_logs SET status = $2, sent_at = $3, error_message = $4, retry_count = $5
+      WHERE id = $1 RETURNING *
+    `,
+    SEARCH: `
+      SELECT * FROM sms_logs
+      WHERE ($1::text IS NULL OR recipient_phone ILIKE $1 OR message ILIKE $1)
+      AND ($2::sms_status_enum IS NULL OR status = $2)
+      AND ($3::uuid IS NULL OR case_id = $3)
+      AND ($4::uuid IS NULL OR client_id = $4)
+      ORDER BY created_at DESC
+      LIMIT $5 OFFSET $6
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_sms,
+        COUNT(CASE WHEN status = 'sent' THEN 1 END) as sent_sms,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_sms,
+        COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_sms
+      FROM sms_logs
+      WHERE ($1::uuid IS NULL OR case_id = $1)
+      AND ($2::uuid IS NULL OR client_id = $2)
+      AND created_at >= $3 AND created_at <= $4
+    `
+  },
+
+  NOTIFICATION_PREFERENCES: {
+    CREATE: `
+      INSERT INTO notification_preferences (user_id, notification_type, email_enabled, sms_enabled, 
+                                           push_enabled, in_app_enabled)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (user_id, notification_type) 
+      DO UPDATE SET email_enabled = $3, sms_enabled = $4, push_enabled = $5, in_app_enabled = $6, 
+                    updated_at = CURRENT_TIMESTAMP
+      RETURNING *
+    `,
+    GET_BY_USER_ID: `
+      SELECT * FROM notification_preferences WHERE user_id = $1
+    `,
+    GET_BY_USER_AND_TYPE: `
+      SELECT * FROM notification_preferences WHERE user_id = $1 AND notification_type = $2
+    `,
+    UPDATE: `
+      UPDATE notification_preferences SET email_enabled = $3, sms_enabled = $4, push_enabled = $5, 
+                                         in_app_enabled = $6, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = $1 AND notification_type = $2 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM notification_preferences WHERE user_id = $1 AND notification_type = $2
+    `,
+    DELETE_BY_USER_ID: `
+      DELETE FROM notification_preferences WHERE user_id = $1
+    `
+  },
+
+  REPORTS: {
+    CREATE: `
+      INSERT INTO reports (name, description, report_type, parameters, schedule_cron, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT r.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+      FROM reports r
+      JOIN users u ON r.created_by = u.id
+      WHERE r.id = $1
+    `,
+    GET_ALL: `
+      SELECT r.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+      FROM reports r
+      JOIN users u ON r.created_by = u.id
+      WHERE r.is_active = true
+      ORDER BY r.name
+    `,
+    UPDATE: `
+      UPDATE reports SET name = $2, description = $3, report_type = $4, parameters = $5, 
+                        schedule_cron = $6, is_active = $7, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM reports WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT r.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+      FROM reports r
+      JOIN users u ON r.created_by = u.id
+      WHERE ($1::text IS NULL OR r.name ILIKE $1 OR r.description ILIKE $1)
+      AND ($2::report_type_enum IS NULL OR r.report_type = $2)
+      AND ($3::boolean IS NULL OR r.is_active = $3)
+      ORDER BY r.name
+      LIMIT $4 OFFSET $5
+    `
+  },
+
+  REPORT_EXECUTIONS: {
+    CREATE: `
+      INSERT INTO report_executions (report_id, executed_by, status, parameters)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT re.*, r.name as report_name, u.first_name as executed_by_first_name, u.last_name as executed_by_last_name
+      FROM report_executions re
+      JOIN reports r ON re.report_id = r.id
+      LEFT JOIN users u ON re.executed_by = u.id
+      WHERE re.id = $1
+    `,
+    GET_BY_REPORT_ID: `
+      SELECT * FROM report_executions WHERE report_id = $1 ORDER BY execution_date DESC
+    `,
+    UPDATE_STATUS: `
+      UPDATE report_executions SET status = $2, result_file_path = $3, error_message = $4, 
+                                 execution_time_ms = $5, record_count = $6
+      WHERE id = $1 RETURNING *
+    `,
+    SEARCH: `
+      SELECT re.*, r.name as report_name, u.first_name as executed_by_first_name, u.last_name as executed_by_last_name
+      FROM report_executions re
+      JOIN reports r ON re.report_id = r.id
+      LEFT JOIN users u ON re.executed_by = u.id
+      WHERE ($1::report_execution_status_enum IS NULL OR re.status = $1)
+      AND ($2::uuid IS NULL OR re.executed_by = $2)
+      AND ($3::uuid IS NULL OR re.report_id = $3)
+      ORDER BY re.execution_date DESC
+      LIMIT $4 OFFSET $5
+    `
+  },
+
+  ANALYTICS_EVENTS: {
+    CREATE: `
+      INSERT INTO analytics_events (event_type, user_id, session_id, page_url, referrer_url, 
+                                   user_agent, ip_address, event_data)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `,
+    GET_BY_USER_ID: `
+      SELECT * FROM analytics_events WHERE user_id = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_SESSION_ID: `
+      SELECT * FROM analytics_events WHERE session_id = $1 ORDER BY created_at
+    `,
+    GET_EVENTS_BY_TYPE: `
+      SELECT * FROM analytics_events 
+      WHERE event_type = $1 
+      AND created_at >= $2 AND created_at <= $3
+      ORDER BY created_at DESC
+    `,
+    GET_PAGE_VIEWS: `
+      SELECT page_url, COUNT(*) as view_count
+      FROM analytics_events 
+      WHERE event_type = 'page_view'
+      AND created_at >= $1 AND created_at <= $2
+      GROUP BY page_url
+      ORDER BY view_count DESC
+    `,
+    GET_USER_ACTIVITY: `
+      SELECT user_id, COUNT(*) as event_count, 
+             COUNT(DISTINCT DATE(created_at)) as active_days
+      FROM analytics_events 
+      WHERE created_at >= $1 AND created_at <= $2
+      GROUP BY user_id
+      ORDER BY event_count DESC
+    `
+  },
+
+  PERFORMANCE_METRICS: {
+    CREATE: `
+      INSERT INTO performance_metrics (metric_name, metric_value, metric_unit, tags)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `,
+    GET_BY_NAME: `
+      SELECT * FROM performance_metrics 
+      WHERE metric_name = $1 
+      AND recorded_at >= $2 AND recorded_at <= $3
+      ORDER BY recorded_at
+    `,
+    GET_AVERAGE_BY_NAME: `
+      SELECT AVG(metric_value) as average_value, 
+             MIN(metric_value) as min_value, 
+             MAX(metric_value) as max_value,
+             COUNT(*) as sample_count
+      FROM performance_metrics 
+      WHERE metric_name = $1 
+      AND recorded_at >= $2 AND recorded_at <= $3
+    `,
+    GET_METRICS_SUMMARY: `
+      SELECT metric_name, 
+             AVG(metric_value) as average_value,
+             COUNT(*) as sample_count
+      FROM performance_metrics 
+      WHERE recorded_at >= $1 AND recorded_at <= $2
+      GROUP BY metric_name
+      ORDER BY metric_name
+    `
+  },
+
+  BUSINESS_METRICS: {
+    CREATE: `
+      INSERT INTO business_metrics (metric_date, metric_type, metric_value, metric_count, additional_data)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (metric_date, metric_type) 
+      DO UPDATE SET metric_value = $3, metric_count = $4, additional_data = $5, created_at = CURRENT_TIMESTAMP
+      RETURNING *
+    `,
+    GET_BY_TYPE: `
+      SELECT * FROM business_metrics 
+      WHERE metric_type = $1 
+      AND metric_date >= $2 AND metric_date <= $3
+      ORDER BY metric_date
+    `,
+    GET_SUMMARY: `
+      SELECT metric_type, 
+             SUM(metric_value) as total_value,
+             AVG(metric_value) as average_value,
+             COUNT(*) as data_points
+      FROM business_metrics 
+      WHERE metric_date >= $1 AND metric_date <= $2
+      GROUP BY metric_type
+      ORDER BY metric_type
+    `,
+    GET_DAILY_SUMMARY: `
+      SELECT metric_date, 
+             SUM(CASE WHEN metric_type = 'revenue' THEN metric_value ELSE 0 END) as daily_revenue,
+             SUM(CASE WHEN metric_type = 'expense' THEN metric_value ELSE 0 END) as daily_expense,
+             SUM(CASE WHEN metric_type = 'client_count' THEN metric_count ELSE 0 END) as daily_clients,
+             SUM(CASE WHEN metric_type = 'case_count' THEN metric_count ELSE 0 END) as daily_cases
+      FROM business_metrics 
+      WHERE metric_date >= $1 AND metric_date <= $2
+      GROUP BY metric_date
+      ORDER BY metric_date
+    `
   }
 };
 

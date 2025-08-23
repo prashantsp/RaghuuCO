@@ -39,6 +39,7 @@ import documentRoutes from './routes/documentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import billingRoutes from './routes/billingRoutes';
 import calendarRoutes from './routes/calendarRoutes';
+import communicationRoutes from './routes/communicationRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -242,6 +243,12 @@ app.use('/api/v1/billing', billingRoutes);
  * Calendar management and event scheduling
  */
 app.use('/api/v1/calendar', calendarRoutes);
+
+/**
+ * Mount communication routes
+ * Email, chat, and notification functionality
+ */
+app.use('/api/v1/communication', communicationRoutes);
 
 /**
  * Global error handling middleware
