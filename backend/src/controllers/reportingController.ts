@@ -13,6 +13,7 @@ import { Request, Response } from 'express';
 import DatabaseService from '@/services/DatabaseService';
 import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
+import { reportExecutionService } from '@/services/reportExecutionService';
 import logger from '@/utils/logger';
 
 const db = new DatabaseService();
@@ -294,27 +295,22 @@ export const executeReport = async (req: Request, res: Response) => {
 
     const execution = executionResult.rows[0];
 
-    // TODO: Implement actual report execution logic
-    // This would involve running the report query and generating results
-    // For now, we'll simulate completion
+    // Execute report using the report execution service
+    const reportResult = await reportExecutionService.executeReport(
+      id,
+      parameters || [],
+      userId
+    );
 
-    // Update execution status
-    await db.query(SQLQueries.REPORT_EXECUTIONS.UPDATE_STATUS, [
-      execution.id,
-      'completed',
-      '/reports/result.pdf', // Example file path
-      null,
-      1500, // Example execution time
-      100 // Example record count
-    ]);
+    logger.businessEvent('report_executed', 'report_execution', execution.id, userId);
 
     logger.businessEvent('report_executed', 'report_execution', execution.id, userId);
 
     res.json({
       success: true,
       data: { 
-        execution,
-        message: 'Report execution started successfully'
+        execution: reportResult,
+        message: 'Report execution completed successfully'
       }
     });
   } catch (error) {

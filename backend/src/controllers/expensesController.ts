@@ -274,15 +274,51 @@ export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_DATE_PARAMETERS',
-          message: 'Start date and end date are required'
-        }
-      });
-    }
+          if (!startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_DATE_PARAMETERS',
+            message: 'Start date and end date are required'
+          }
+        });
+      }
+
+      // Validate date format and range
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_DATE_FORMAT',
+            message: 'Invalid date format. Please use YYYY-MM-DD format'
+          }
+        });
+      }
+
+      if (start > end) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_DATE_RANGE',
+            message: 'Start date cannot be after end date'
+          }
+        });
+      }
+
+      // Limit date range to prevent performance issues
+      const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysDiff > 365) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'DATE_RANGE_TOO_LARGE',
+            message: 'Date range cannot exceed 365 days'
+          }
+        });
+      }
 
     logger.info('Getting monthly expense totals', { startDate, endDate });
 

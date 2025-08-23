@@ -385,7 +385,7 @@ const ProfilePage: React.FC = () => {
                 fullWidth
                 variant="outlined"
                 startIcon={<SecurityIcon />}
-                onClick={() => {/* TODO: Navigate to security settings */}}
+                onClick={() => navigate('/profile/security')}
               >
                 Security Settings
               </Button>

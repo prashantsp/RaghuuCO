@@ -14,6 +14,7 @@ import DatabaseService from '@/services/DatabaseService';
 import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
+import { taxService } from '@/services/taxService';
 
 const db = new DatabaseService();
 
@@ -173,8 +174,20 @@ export const createInvoice = async (req: Request, res: Response) => {
       subtotal = items.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
     }
 
-    const taxAmount = 0; // TODO: Implement tax calculation
-    const totalAmount = subtotal + taxAmount;
+    // Get client information for tax calculation
+    const clientResult = await db.query('SELECT client_type FROM clients WHERE id = $1', [clientId]);
+    const clientType = clientResult.rows[0]?.client_type || 'individual';
+    
+    // Calculate tax using tax service
+    const taxCalculation = taxService.calculateInvoiceTax({
+      subtotal,
+      isInterState: false, // Default to intra-state, can be made configurable
+      isTDSApplicable: clientType === 'company',
+      clientType: clientType as 'individual' | 'company'
+    });
+    
+    const taxAmount = taxCalculation.totalTax;
+    const totalAmount = taxCalculation.grandTotal;
 
     // Create invoice
     const invoiceResult = await db.query(SQLQueries.INVOICES.CREATE, [
@@ -289,8 +302,20 @@ export const updateInvoice = async (req: Request, res: Response) => {
         subtotal += item.amount;
       }
       
-      const taxAmount = 0; // TODO: Implement tax calculation
-      totalAmount = subtotal + taxAmount;
+      // Get client information for tax calculation
+      const clientResult = await db.query('SELECT client_type FROM clients WHERE id = $1', [currentInvoice.client_id]);
+      const clientType = clientResult.rows[0]?.client_type || 'individual';
+      
+      // Calculate tax using tax service
+      const taxCalculation = taxService.calculateInvoiceTax({
+        subtotal,
+        isInterState: false, // Default to intra-state, can be made configurable
+        isTDSApplicable: clientType === 'company',
+        clientType: clientType as 'individual' | 'company'
+      });
+      
+      const taxAmount = taxCalculation.totalTax;
+      totalAmount = taxCalculation.grandTotal;
     }
 
     // Update invoice

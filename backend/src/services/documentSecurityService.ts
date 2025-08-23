@@ -13,6 +13,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { PDFDocument, PDFPage, PDFText, rgb } from 'pdf-lib';
+import sharp from 'sharp';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
 
@@ -145,13 +146,76 @@ export class DocumentSecurityService {
    */
   async addWatermarkToImage(imageBuffer: Buffer, watermarkText: string, position: string = 'bottom_right'): Promise<Buffer> {
     try {
-      // For images, we'll create a simple text overlay
-      // In a production environment, you'd use a library like Sharp or Jimp
-      logger.info('Watermark added to image successfully', { watermarkText, position });
-      
-      // For now, return the original buffer
-      // TODO: Implement actual image watermarking
-      return imageBuffer;
+      logger.info('Adding watermark to image', { watermarkText, position });
+
+      // Create watermark text overlay
+      const watermarkSvg = `
+        <svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+            </filter>
+          </defs>
+          <text x="150" y="50" 
+                font-family="Arial, sans-serif" 
+                font-size="24" 
+                fill="rgba(255,255,255,0.8)" 
+                text-anchor="middle" 
+                filter="url(#shadow)"
+                transform="rotate(-45 150 50)">
+            ${watermarkText}
+          </text>
+        </svg>
+      `;
+
+      // Get image dimensions
+      const imageInfo = await sharp(imageBuffer).metadata();
+      const { width = 800, height = 600 } = imageInfo;
+
+      // Calculate watermark position
+      let watermarkX: number, watermarkY: number;
+      const watermarkWidth = 300;
+      const watermarkHeight = 100;
+
+      switch (position) {
+        case 'top_left':
+          watermarkX = 20;
+          watermarkY = 20;
+          break;
+        case 'top_right':
+          watermarkX = width - watermarkWidth - 20;
+          watermarkY = 20;
+          break;
+        case 'bottom_left':
+          watermarkX = 20;
+          watermarkY = height - watermarkHeight - 20;
+          break;
+        case 'bottom_right':
+        default:
+          watermarkX = width - watermarkWidth - 20;
+          watermarkY = height - watermarkHeight - 20;
+          break;
+        case 'center':
+          watermarkX = (width - watermarkWidth) / 2;
+          watermarkY = (height - watermarkHeight) / 2;
+          break;
+      }
+
+      // Create watermarked image
+      const watermarkedImage = await sharp(imageBuffer)
+        .composite([
+          {
+            input: Buffer.from(watermarkSvg),
+            top: Math.round(watermarkY),
+            left: Math.round(watermarkX)
+          }
+        ])
+        .png()
+        .toBuffer();
+
+      logger.info('Image watermark added successfully', { watermarkText, position });
+
+      return watermarkedImage;
     } catch (error) {
       logger.error('Error adding watermark to image', error as Error);
       throw new Error('Failed to add watermark to image');
