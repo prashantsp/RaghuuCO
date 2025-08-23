@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RaghuuCO - Legal Practice Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Landing Page -->
+        <div id="landing-page" class="page active">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>RAGHUU CO</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#" onclick="showPage('about-page')">About</a>
+                    <a href="#" onclick="showPage('services-page')">Services</a>
+                    <a href="#" onclick="showPage('blog-page')">Blog</a>
+                    <a href="#" onclick="showPage('contact-page')">Contact</a>
+                    <button class="btn-primary" onclick="showPage('login-page')">Login</button>
+                </div>
+            </nav>
+            
+            <div class="hero-section">
+                <h1>Excellence in Legal Practice Management</h1>
+                <p>Comprehensive legal solutions for modern law firms</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" onclick="showPage('login-page')">Get Started</button>
+                    <button class="btn-secondary" onclick="showPage('services-page')">Learn More</button>
+                </div>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>Case Management</h3>
+                    <p>Track cases and clients efficiently</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Document Control</h3>
+                    <p>Secure document storage</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Billing & Analytics</h3>
+                    <p>Performance insights and metrics</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="login-page" class="page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <i class="fas fa-balance-scale"></i>
+                        <h2>Sign In to Your Account</h2>
+                    </div>
+                    
+                    <form class="auth-form">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="Enter your password">
+                        </div>
+                        <div class="form-options">
+                            <label><input type="checkbox"> Remember me</label>
+                            <a href="#">Forgot Password?</a>
+                        </div>
+                        <button type="button" class="btn-primary btn-full" onclick="showPage('staff-dashboard')">Sign In</button>
+                    </form>
+                    
+                    <div class="social-login">
+                        <div class="divider">OR</div>
+                        <button class="btn-social btn-google" onclick="showPage('staff-dashboard')">
+                            <i class="fab fa-google"></i> Sign in with Google
+                        </button>
+                        <button class="btn-social btn-linkedin" onclick="showPage('staff-dashboard')">
+                            <i class="fab fa-linkedin"></i> Sign in with LinkedIn
+                        </button>
+                        <button class="btn-social btn-microsoft" onclick="showPage('staff-dashboard')">
+                            <i class="fab fa-microsoft"></i> Sign in with Microsoft
+                        </button>
+                    </div>
+                    
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a href="#" onclick="showPage('register-page')">Sign Up</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Dashboard -->
+        <div id="staff-dashboard" class="page">
+            <nav class="dashboard-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>RAGHUU CO</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="#" class="active" onclick="showPage('staff-dashboard')">Dashboard</a>
+                    <a href="#" onclick="showPage('case-management')">Cases</a>
+                    <a href="#" onclick="showPage('document-management')">Documents</a>
+                    <a href="#" onclick="showPage('time-tracking')">Time</a>
+                    <a href="#" onclick="showPage('billing-page')">Billing</a>
+                    <a href="#" onclick="showPage('calendar-page')">Calendar</a>
+                </div>
+                <div class="nav-user">
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-user"></i>
+                    <button onclick="showPage('landing-page')">Logout</button>
+                </div>
+            </nav>
+            
+            <div class="dashboard-content">
+                <div class="dashboard-header">
+                    <h1>Welcome back, John Smith</h1>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Active Cases</h3>
+                        <p class="stat-number">25</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Cases</h3>
+                        <p class="stat-number">8</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Clients</h3>
+                        <p class="stat-number">45</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Revenue This Month</h3>
+                        <p class="stat-number">$45,250</p>
+                    </div>
+                </div>
+                
+                <div class="dashboard-sections">
+                    <div class="section-card">
+                        <h3>Today's Schedule</h3>
+                        <div class="schedule-list">
+                            <div class="schedule-item">
+                                <span class="time">9:00 AM</span>
+                                <span class="event">Client Meeting (Case #123)</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="time">2:00 PM</span>
+                                <span class="event">Court Hearing (Case #456)</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="time">4:00 PM</span>
+                                <span class="event">Team Review</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <i class="fas fa-upload"></i>
+                                <span>Document uploaded to Case #123</span>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Invoice generated for Client ABC</span>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-edit"></i>
+                                <span>Case status updated to "Active"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Management -->
+        <div id="case-management" class="page">
+            <nav class="dashboard-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>RAGHUU CO</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="#" onclick="showPage('staff-dashboard')">Dashboard</a>
+                    <a href="#" class="active" onclick="showPage('case-management')">Cases</a>
+                    <a href="#" onclick="showPage('document-management')">Documents</a>
+                    <a href="#" onclick="showPage('time-tracking')">Time</a>
+                    <a href="#" onclick="showPage('billing-page')">Billing</a>
+                    <a href="#" onclick="showPage('calendar-page')">Calendar</a>
+                </div>
+                <div class="nav-user">
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-user"></i>
+                    <button onclick="showPage('landing-page')">Logout</button>
+                </div>
+            </nav>
+            
+            <div class="page-content">
+                <div class="page-header">
+                    <h1>Case Management</h1>
+                    <button class="btn-primary" onclick="showPage('case-detail')">Add New Case</button>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search cases...">
+                        </div>
+                        <div class="table-actions">
+                            <button class="btn-secondary">Filter</button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Case #</th>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>123</td>
+                                <td>ABC Corp</td>
+                                <td>Real Estate</td>
+                                <td><span class="status active">Active</span></td>
+                                <td>
+                                    <button class="btn-small" onclick="showPage('case-detail')">View</button>
+                                    <button class="btn-small btn-secondary">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>456</td>
+                                <td>XYZ Ltd</td>
+                                <td>Company</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td>
+                                    <button class="btn-small" onclick="showPage('case-detail')">View</button>
+                                    <button class="btn-small btn-secondary">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Detail -->
+        <div id="case-detail" class="page">
+            <nav class="dashboard-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>RAGHUU CO</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="#" onclick="showPage('staff-dashboard')">Dashboard</a>
+                    <a href="#" onclick="showPage('case-management')">Cases</a>
+                    <a href="#" onclick="showPage('document-management')">Documents</a>
+                    <a href="#" onclick="showPage('time-tracking')">Time</a>
+                    <a href="#" onclick="showPage('billing-page')">Billing</a>
+                    <a href="#" onclick="showPage('calendar-page')">Calendar</a>
+                </div>
+                <div class="nav-user">
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-user"></i>
+                    <button onclick="showPage('landing-page')">Logout</button>
+                </div>
+            </nav>
+            
+            <div class="page-content">
+                <div class="breadcrumb">
+                    <a href="#" onclick="showPage('case-management')">Cases</a> > Case #123
+                </div>
+                
+                <div class="case-header">
+                    <h1>Case #123: ABC Corp vs XYZ Ltd</h1>
+                    <div class="case-stats">
+                        <div class="stat">
+                            <label>Status</label>
+                            <span class="status active">Active</span>
+                        </div>
+                        <div class="stat">
+                            <label>Type</label>
+                            <span>Real Estate</span>
+                        </div>
+                        <div class="stat">
+                            <label>Value</label>
+                            <span>$50,000</span>
+                        </div>
+                        <div class="stat">
+                            <label>Priority</label>
+                            <span class="priority high">High</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="case-tabs">
+                    <button class="tab-btn active">Overview</button>
+                    <button class="tab-btn">Documents</button>
+                    <button class="tab-btn">Timeline</button>
+                    <button class="tab-btn">Billing</button>
+                    <button class="tab-btn">Notes</button>
+                </div>
+                
+                <div class="case-content">
+                    <div class="case-overview">
+                        <h3>Case Overview</h3>
+                        <div class="overview-grid">
+                            <div class="overview-item">
+                                <label>Client:</label>
+                                <span>ABC Corporation</span>
+                            </div>
+                            <div class="overview-item">
+                                <label>Opposing Party:</label>
+                                <span>XYZ Ltd</span>
+                            </div>
+                            <div class="overview-item">
+                                <label>Assigned Partner:</label>
+                                <span>John Smith</span>
+                            </div>
+                            <div class="overview-item">
+                                <label>Assigned Associates:</label>
+                                <span>Jane Doe, Mike Johnson</span>
+                            </div>
+                        </div>
+                        
+                        <div class="case-description">
+                            <h4>Description</h4>
+                            <p>Property dispute regarding commercial real estate lease agreement. Client alleges breach of contract and seeks damages for lost revenue.</p>
+                        </div>
+                        
+                        <div class="case-actions">
+                            <button class="btn-primary">Edit Case</button>
+                            <button class="btn-secondary">Add Milestone</button>
+                            <button class="btn-secondary">Generate Report</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional pages can be added here -->
+        
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
