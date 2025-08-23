@@ -36,6 +36,7 @@ import userRoutes from './routes/userRoutes';
 import clientRoutes from './routes/clientRoutes';
 import caseRoutes from './routes/caseRoutes';
 import documentRoutes from './routes/documentRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -221,6 +222,12 @@ app.use('/api/v1/cases', caseRoutes);
  * Document upload, versioning, and search functionality
  */
 app.use('/api/v1/documents', documentRoutes);
+
+/**
+ * Mount dashboard routes
+ * Dashboard statistics and analytics
+ */
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 /**
  * Global error handling middleware
