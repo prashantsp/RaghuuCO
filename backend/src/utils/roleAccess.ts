@@ -2,15 +2,42 @@
  * Centralized Role Access Control
  * All access control logic for the RAGHUU CO Legal Practice Management System
  * This file contains all role-based permissions and access control functions
+ * 
+ * @author RAGHUU CO Development Team
+ * @version 1.0.0
+ * @since 2025-01-15
+ * 
+ * @description This module provides comprehensive role-based access control (RBAC) for the
+ * legal practice management system. It defines user roles, permissions, and provides
+ * utility functions for checking access rights throughout the application.
+ * 
+ * @example
+ * ```typescript
+ * import { hasPermission, UserRole, Permission } from '@/utils/roleAccess';
+ * 
+ * // Check if a partner can create cases
+ * const canCreateCase = hasPermission(UserRole.PARTNER, Permission.CASE_CREATE);
+ * ```
  */
 
+/**
+ * User roles enumeration defining all possible user types in the system
+ * Each role has specific permissions and access levels
+ */
 export enum UserRole {
+  /** Super Administrator - Full system access and configuration */
   SUPER_ADMIN = 'super_admin',
-  PARTNER = 'partner',
+  /** Partner - Strategic case management and business oversight */
+  PARTNER = 'partner', 
+  /** Senior Associate - Case strategy and client consultations */
   SENIOR_ASSOCIATE = 'senior_associate',
+  /** Junior Associate - Research and document preparation */
   JUNIOR_ASSOCIATE = 'junior_associate',
+  /** Paralegal - Administrative support and case coordination */
   PARALEGAL = 'paralegal',
+  /** Client - Limited access to own cases and documents */
   CLIENT = 'client',
+  /** Guest - Very limited access for external collaborators */
   GUEST = 'guest'
 }
 

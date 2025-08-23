@@ -2,6 +2,30 @@
  * Database Service
  * Raw SQL approach for database operations in the RAGHUU CO Legal Practice Management System
  * Uses PostgreSQL with connection pooling and comprehensive error handling
+ * 
+ * @author RAGHUU CO Development Team
+ * @version 1.0.0
+ * @since 2025-01-15
+ * 
+ * @description This service provides a comprehensive interface for database operations
+ * using raw SQL queries. It implements connection pooling, transaction management,
+ * and comprehensive error handling. All queries are centralized in the db_SQLQueries module.
+ * 
+ * @example
+ * ```typescript
+ * import DatabaseService from '@/services/DatabaseService';
+ * 
+ * const db = new DatabaseService(config);
+ * 
+ * // Execute a query
+ * const users = await db.query('SELECT * FROM users WHERE role = $1', ['partner']);
+ * 
+ * // Use a transaction
+ * await db.transaction(async (client) => {
+ *   const user = await client.query('INSERT INTO users...');
+ *   await client.query('INSERT INTO audit_logs...');
+ * });
+ * ```
  */
 
 import { Pool, PoolClient, QueryResult } from 'pg';

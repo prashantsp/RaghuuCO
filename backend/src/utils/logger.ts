@@ -2,6 +2,24 @@
  * Logger Configuration
  * Centralized logging system for the RAGHUU CO Legal Practice Management System
  * Enables easy debugging during development with comprehensive logging
+ * 
+ * @author RAGHUU CO Development Team
+ * @version 1.0.0
+ * @since 2025-01-15
+ * 
+ * @description This module provides a comprehensive logging system built on Winston.
+ * It includes specialized logging methods for different types of events including
+ * database operations, API requests, authentication events, and business operations.
+ * 
+ * @example
+ * ```typescript
+ * import logger from '@/utils/logger';
+ * 
+ * // Log different types of events
+ * logger.info('User logged in successfully', { userId: '123' });
+ * logger.error('Database connection failed', error);
+ * logger.businessEvent('case_created', 'case', 'case-123', 'user-456');
+ * ```
  */
 
 import winston from 'winston';

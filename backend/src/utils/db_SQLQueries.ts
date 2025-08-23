@@ -2,10 +2,34 @@
  * Centralized Database SQL Queries
  * All SQL queries for the RAGHUU CO Legal Practice Management System
  * This file contains all database queries to ensure consistency and maintainability
+ * 
+ * @author RAGHUU CO Development Team
+ * @version 1.0.0
+ * @since 2025-01-15
+ * 
+ * @description This module centralizes all SQL queries used throughout the application.
+ * It provides a single source of truth for database operations, making it easier to
+ * maintain, optimize, and audit database interactions.
+ * 
+ * @example
+ * ```typescript
+ * import SQLQueries from '@/utils/db_SQLQueries';
+ * 
+ * // Use a query
+ * const users = await db.query(SQLQueries.USERS.GET_ALL_USERS);
+ * ```
  */
 
+/**
+ * Centralized SQL queries object containing all database operations
+ * Organized by entity type for easy maintenance and access
+ */
 export const SQLQueries = {
-  // User Management Queries
+  /**
+   * User Management Queries
+   * Contains all SQL operations related to user management including
+   * creation, retrieval, updates, and deletion of user accounts
+   */
   USERS: {
     CREATE_USER: `
       INSERT INTO users (email, password_hash, first_name, last_name, role, phone, is_active, email_verified)
