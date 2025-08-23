@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGHUU CO - Legal Practice Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #FAFAFA;
+            color: #424242;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Navigation */
+        .header {
+            background: #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1976D2;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #424242;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #1976D2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565C0;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #1976D2;
+            border: 2px solid #1976D2;
+        }
+
+        .btn-secondary:hover {
+            background: #1976D2;
+            color: white;
+        }
+
+        .btn-accent {
+            background: #FF6B35;
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background: #E55A2B;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: #FFFFFF;
+            padding: 1rem 0;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #1976D2;
+            color: #1976D2;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: #F5F5F5;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+            margin: -2rem 0 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Cards */
+        .card {
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: #1976D2;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #757575;
+            font-weight: 500;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #424242;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1976D2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            background: #FFFFFF;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .data-table th {
+            background: #F5F5F5;
+            font-weight: 500;
+            color: #424242;
+        }
+
+        .data-table tr:hover {
+            background: #F9F9F9;
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: #E8F5E8;
+            color: #4CAF50;
+        }
+
+        .badge-pending {
+            background: #FFF3E0;
+            color: #FF9800;
+        }
+
+        .badge-paid {
+            background: #E8F5E8;
+            color: #4CAF50;
+        }
+
+        .badge-overdue {
+            background: #FFEBEE;
+            color: #F44336;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: #FFFFFF;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 2rem 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0 1rem;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #424242;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #424242;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 0 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Authentication Forms */
+        .auth-container {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .auth-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1976D2;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #E0E0E0;
+        }
+
+        .divider span {
+            background: #FFFFFF;
+            padding: 0 1rem;
+            color: #757575;
+        }
+
+        .social-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            background: #F5F5F5;
+            color: #424242;
+            border: 1px solid #E0E0E0;
+        }
+
+        .social-btn:hover {
+            background: #EEEEEE;
+        }
+
+        /* Timer Widget */
+        .timer-widget {
+            background: #FFFFFF;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1976D2;
+            margin: 1rem 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Calendar Widget */
+        .calendar {
+            background: #FFFFFF;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .calendar-cell {
+            background: #FFFFFF;
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .calendar-cell:hover {
+            background: #E3F2FD;
+        }
+
+        .calendar-cell.today {
+            background: #1976D2;
+            color: white;
+        }
+
+        .calendar-header-cell {
+            background: #F5F5F5;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div style="padding: 0 1rem 2rem 1rem; border-bottom: 1px solid #E0E0E0;">
+            <div class="logo">RAGHUU CO</div>
+            <p style="font-size: 0.875rem; color: #757575; margin-top: 0.5rem;">Legal Practice Management</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" onclick="showPage('landing')" class="active">Home</a></li>
+            <li><a href="#" onclick="showPage('about')">About Us</a></li>
+            <li><a href="#" onclick="showPage('services')">Services</a></li>
+            <li><a href="#" onclick="showPage('blog')">Blog</a></li>
+            <li><a href="#" onclick="showPage('contact')">Contact</a></li>
+            <li><a href="#" onclick="showPage('login')">Login</a></li>
+            <li><a href="#" onclick="showPage('dashboard')" style="margin-top: 1rem; border-top: 1px solid #E0E0E0; padding-top: 1rem;">Staff Dashboard</a></li>
+            <li><a href="#" onclick="showPage('cases')">Cases</a></li>
+            <li><a href="#" onclick="showPage('documents')">Documents</a></li>
+            <li><a href="#" onclick="showPage('time-tracking')">Time Tracking</a></li>
+            <li><a href="#" onclick="showPage('billing')">Billing</a></li>
+            <li><a href="#" onclick="showPage('client-portal')">Client Portal</a></li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">RAGHUU CO</div>
+                <div class="nav-links">
+                    <a href="#" onclick="showPage('about')">About</a>
+                    <a href="#" onclick="showPage('services')">Services</a>
+                    <a href="#" onclick="showPage('blog')">Blog</a>
+                    <a href="#" onclick="showPage('contact')">Contact</a>
+                    <a href="#" onclick="showPage('login')" class="btn btn-primary">Login</a>
+                </div>
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Landing Page -->
+    <div id="landing-page" class="page active">
+        <div class="hero">
+            <div class="container">
+                <h1>Excellence in Legal Practice Management</h1>
+                <p>Comprehensive legal solutions for modern law firms</p>
+                <div class="hero-buttons">
+                    <a href="#" onclick="showPage('login')" class="btn btn-primary">Get Started</a>
+                    <a href="#" onclick="showPage('about')" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>Case Management</h3>
+                    <p>Track cases and clients efficiently with our comprehensive case management system. Monitor progress, deadlines, and outcomes.</p>
+                </div>
+                <div class="card">
+                    <h3>Document Control</h3>
+                    <p>Secure document storage and version control. Organize, share, and collaborate on legal documents with your team.</p>
+                </div>
+                <div class="card">
+                    <h3>Billing & Analytics</h3>
+                    <p>Generate invoices, track billable hours, and gain insights into your practice's performance with detailed analytics.</p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 3rem;">
+                <h3>Featured Articles</h3>
+                <div class="grid grid-3" style="margin-top: 1rem;">
+                    <div class="card">
+                        <h4>Understanding Constitutional Law</h4>
+                        <p style="color: #757575; margin-bottom: 1rem;">Comprehensive guide to constitutional principles...</p>
+                        <a href="#" class="btn btn-secondary">Read More</a>
+                    </div>
+                    <div class="card">
+                        <h4>Real Estate Law Updates</h4>
+                        <p style="color: #757575; margin-bottom: 1rem;">Latest changes in real estate regulations...</p>
+                        <a href="#" class="btn btn-secondary">Read More</a>
+                    </div>
+                    <div class="card">
+                        <h4>Banking Law Essentials</h4>
+                        <p style="color: #757575; margin-bottom: 1rem;">Key concepts in modern banking law...</p>
+                        <a href="#" class="btn btn-secondary">Read More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Page -->
+    <div id="about-page" class="page">
+        <div class="container">
+            <div class="main-content">
+                <div class="card">
+                    <h2>About RAGHUU CO</h2>
+                    <p style="font-size: 1.1rem; margin: 1.5rem 0;">We are a leading legal practice management solution designed to streamline operations and enhance client relationships.</p>
+                    
+                    <h3>Our Features:</h3>
+                    <ul style="margin: 1rem 0; padding-left: 2rem; line-height: 2;">
+                        <li>Case Management</li>
+                        <li>Document Control</li>
+                        <li>Time Tracking</li>
+                        <li>Client Portal</li>
+                        <li>Analytics & Reporting</li>
+                    </ul>
+
+                    <div class="grid grid-2" style="margin-top: 2rem;">
+                        <div>
+                            <h4>Our Mission</h4>
+                            <p>To provide comprehensive legal practice management solutions that empower law firms to deliver exceptional client service while maximizing operational efficiency.</p>
+                        </div>
+                        <div>
+                            <h4>Our Vision</h4>
+                            <p>To be the leading technology partner for legal professionals, revolutionizing how law firms manage their practices and serve their clients.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Page -->
+    <div id="services-page" class="page">
+        <div class="container">
+            <div class="main-content">
+                <h2 style="text-align: center; margin-bottom: 3rem; color: #1976D2;">Our Services</h2>
+                
+                <div class="grid grid-3">
+                    <div class="card">
+                        <h3>Case Management</h3>
+                        <p>Track cases and clients efficiently with comprehensive workflow management and deadline tracking.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Case tracking</li>
+                            <li>Client management</li>
+                            <li>Deadline monitoring</li>
+                            <li>Status updates</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Document Management</h3>
+                        <p>Secure document storage with version control and collaborative editing capabilities.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Cloud storage</li>
+                            <li>Version control</li>
+                            <li>Access permissions</li>
+                            <li>Document templates</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Time Tracking</h3>
+                        <p>Billable hours and expense tracking with automated invoicing and reporting features.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Time logging</li>
+                            <li>Expense tracking</li>
+                            <li>Billable rates</li>
+                            <li>Automated reports</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Billing & Invoicing</h3>
+                        <p>Generate invoices and track payments with integrated accounting and payment processing.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Invoice generation</li>
+                            <li>Payment tracking</li>
+                            <li>Financial reports</li>
+                            <li>Client statements</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Client Portal</h3>
+                        <p>Secure client access to cases, documents, and billing information with real-time updates.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Case access</li>
+                            <li>Document sharing</li>
+                            <li>Billing transparency</li>
+                            <li>Communication tools</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Analytics & Reports</h3>
+                        <p>Performance insights and metrics with customizable dashboards and reporting tools.</p>
+                        <ul style="margin-top: 1rem; color: #757575;">
+                            <li>Performance metrics</li>
+                            <li>Custom reports</li>
+                            <li>Data visualization</li>
+                            <li>Trend analysis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Page -->
+    <div id="blog-page" class="page">
+        <div class="container">
+            <div class="main-content">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #1976D2;">Legal Insights & Articles</h2>
+                
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <span class="tab active">All</span>
+                    <span class="tab">Constitutional</span>
+                    <span class="tab">Real Estate</span>
+                    <span class="tab">Banking</span>
+                    <span class="tab">Company</span>
+                </div>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3>Featured Article</h3>
+                    <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+                        <div style="width: 200px; height: 150px; background: #E3F2FD; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1976D2;">
+                            [Image Placeholder]
+                        </div>
+                        <div style="flex: 1; min-width: 300px;">
+                            <h4>Understanding Constitutional Law in Modern Practice</h4>
+                            <p style="margin: 1rem 0; color: #757575;">Comprehensive guide to constitutional principles and their application in contemporary legal practice...</p>
+                            <a href="#" class="btn btn-primary">Read More</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-3">
+                    <div class="card">
+                        <h4>Real Estate Law Updates 2024</h4>
+                        <p style="color: #757575; font-size: 0.9rem;">January 15, 2024</p>
+                        <p style="margin: 1rem 0;">Latest changes in real estate regulations and their impact on property transactions...</p>
+                        <a href="#" class="btn btn-secondary">Read Article</a>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>Banking Compliance Essentials</h4>
+                        <p style="color: #757575; font-size: 0.9rem;">January 12, 2024</p>
+                        <p style="margin: 1rem 0;">Key compliance requirements for financial institutions in the current regulatory environment...</p>
+                        <a href="#" class="btn btn-secondary">Read Article</a>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>Corporate Law Best Practices</h4>
+                        <p style="color: #757575; font-size: 0.9rem;">January 10, 2024</p>
+                        <p style="margin: 1rem 0;">Essential practices for corporate legal departments to ensure compliance and efficiency...</p>
+                        <a href="#" class="btn btn-secondary">Read Article</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Page -->
+    <div id="contact-page" class="page">
+        <div class="container">
+            <div class="main-content">
+                <h2 style="text-align: center; margin-bottom: 3rem; color: #1976D2;">Contact Us</h2>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>Get in Touch</h3>
+                        <form>
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" placeholder="Your full name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" placeholder="your.email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" placeholder="+1 (555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" rows="5" placeholder="Tell us how we can help you..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+                        </form>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Office Information</h3>
+                        <div style="line-height: 2;">
+                            <p><strong>Address:</strong><br>123 Legal Street<br>City, State 12345</p>
+                            <p><strong>Phone:</strong><br>+1 (555) 123-4567</p>
+                            <p><strong>Email:</strong><br>info@raghuuco.com</p>
+                            <p><strong>Hours:</strong><br>Monday - Friday: 9AM - 6PM<br>Saturday: 10AM - 2PM<br>Sunday: Closed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">Sign In to Your Account</h2>
+            <form>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="your.email@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" placeholder="Enter your password">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a href="#" style="color: #1976D2; text-decoration: none;">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="showPage('dashboard')">Sign In</button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button type="button" class="btn social-btn">Sign in with Google</button>
+                <button type="button" class="btn social-btn">Sign in with LinkedIn</button>
+                <button type="button" class="btn social-btn">Sign in with Microsoft</button>
+                
+                <p style="text-align: center; margin-top: 1.5rem;">
+                    Don't have an account? <a href="#" onclick="showPage('register')" style="color: #1976D2; text-decoration: none;">Sign Up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="register-page" class="page">
+        <div class="auth-container">
+            <h2 class="auth-title">Create Your Account</h2>
+            <form>
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" placeholder="Enter your first name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" placeholder="Enter your last name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="your.email@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" class="form-control" placeholder="+1 (555) 123-4567">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" placeholder="Create a strong password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" placeholder="Confirm your password">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="checkbox" style="margin-top: 0.25rem;"> 
+                        <span>I agree to the <a href="#" style="color: #1976D2;">Terms & Conditions</a></span>
+                    </label>
+                    <label style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                        <input type="checkbox" style="margin-top: 0.25rem;"> 
+                        <span>I agree to the <a href="#" style="color: #1976D2;">Privacy Policy</a></span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Create Account</button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button type="button" class="btn social-btn">Sign up with Google</button>
+                <button type="button" class="btn social-btn">Sign up with LinkedIn</button>
+                <button type="button" class="btn social-btn">Sign up with Microsoft</button>
+                
+                <p style="text-align: center; margin-top: 1.5rem;">
+                    Already have an account? <a href="#" onclick="showPage('login')" style="color: #1976D2; text-decoration: none;">Sign In</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Staff Dashboard -->
+    <div id="dashboard-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab active">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab" onclick="showPage('documents')">Documents</div>
+                    <div class="tab" onclick="showPage('time-tracking')">Time Tracking</div>
+                    <div class="tab" onclick="showPage('billing')">Billing</div>
+                    <div class="tab" onclick="showPage('calendar')">Calendar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <h2 style="margin-bottom: 2rem;">Welcome back, John Smith</h2>
+                
+                <div class="grid grid-4" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-number">25</div>
+                        <div class="stat-label">Active Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Pending Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">45</div>
+                        <div class="stat-label">Total Clients</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">$45,250</div>
+                        <div class="stat-label">Revenue This Month</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>Today's Schedule</h3>
+                        <div style="line-height: 2;">
+                            <p>9:00 AM - Client Meeting (Case #123)</p>
+                            <p>2:00 PM - Court Hearing (Case #456)</p>
+                            <p>4:00 PM - Team Review</p>
+                        </div>
+                        <a href="#" onclick="showPage('calendar')" class="btn btn-secondary" style="margin-top: 1rem;">View Full Calendar</a>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Recent Activity</h3>
+                        <div style="line-height: 1.8;">
+                            <p>• Document uploaded to Case #123</p>
+                            <p>• Invoice generated for Client ABC</p>
+                            <p>• Case status updated to "Active"</p>
+                            <p>• New client consultation scheduled</p>
+                        </div>
+                        <a href="#" class="btn btn-secondary" style="margin-top: 1rem;">View All Activity</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cases Page -->
+    <div id="cases-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab active">Cases</div>
+                    <div class="tab" onclick="showPage('documents')">Documents</div>
+                    <div class="tab" onclick="showPage('time-tracking')">Time Tracking</div>
+                    <div class="tab" onclick="showPage('billing')">Billing</div>
+                    <div class="tab" onclick="showPage('calendar')">Calendar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2>Case Management</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary">Add New Case</button>
+                        <button class="btn btn-secondary">Filter</button>
+                        <input type="text" class="form-control" placeholder="Search cases..." style="width: 250px;">
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case #</th>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Value</th>
+                                <th>Assigned To</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>123</td>
+                                <td>ABC Corp</td>
+                                <td>Real Estate</td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td>$50,000</td>
+                                <td>John Smith</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" onclick="showPage('case-detail')">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>456</td>
+                                <td>XYZ Ltd</td>
+                                <td>Company</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>$75,000</td>
+                                <td>Jane Doe</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>789</td>
+                                <td>DEF Inc</td>
+                                <td>Banking</td>
+                                <td><span class="badge badge-active">Active</span></td>
+                                <td>$125,000</td>
+                                <td>Mike Johnson</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Detail Page -->
+    <div id="case-detail-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab active">Case #123</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <h2 style="margin-bottom: 2rem;">Case #123: ABC Corp vs XYZ Ltd</h2>
+                
+                <div class="grid grid-4" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-number" style="font-size: 1.25rem;"><span class="badge badge-active">Active</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Type</div>
+                        <div class="stat-number" style="font-size: 1.25rem;">Real Estate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Value</div>
+                        <div class="stat-number" style="font-size: 1.25rem;">$50,000</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Priority</div>
+                        <div class="stat-number" style="font-size: 1.25rem; color: #FF6B35;">High</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <div class="tabs">
+                        <div class="tab active">Overview</div>
+                        <div class="tab">Documents</div>
+                        <div class="tab">Timeline</div>
+                        <div class="tab">Billing</div>
+                        <div class="tab">Notes</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Case Overview</h3>
+                    <div class="grid grid-2">
+                        <div>
+                            <p><strong>Client:</strong> ABC Corporation</p>
+                            <p><strong>Opposing Party:</strong> XYZ Ltd</p>
+                            <p><strong>Assigned Partner:</strong> John Smith</p>
+                            <p><strong>Assigned Associates:</strong> Jane Doe, Mike Johnson</p>
+                        </div>
+                        <div>
+                            <p><strong>Date Opened:</strong> January 10, 2024</p>
+                            <p><strong>Court:</strong> Superior Court of California</p>
+                            <p><strong>Judge:</strong> Hon. Sarah Wilson</p>
+                            <p><strong>Next Hearing:</strong> January 25, 2024</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <h4>Description</h4>
+                        <p>Property dispute regarding commercial real estate transaction. Client alleges breach of contract and seeks damages for lost opportunity costs and legal fees.</p>
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary">Edit Case</button>
+                        <button class="btn btn-secondary">Add Milestone</button>
+                        <button class="btn btn-secondary">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Page -->
+    <div id="documents-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab active">Documents</div>
+                    <div class="tab" onclick="showPage('time-tracking')">Time Tracking</div>
+                    <div class="tab" onclick="showPage('billing')">Billing</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2>Document Management</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary">Upload Document</button>
+                        <button class="btn btn-secondary">Filter</button>
+                        <input type="text" class="form-control" placeholder="Search documents..." style="width: 250px;">
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Case</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th>Uploaded By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Contract.pdf</td>
+                                <td>Case #123</td>
+                                <td>Contract</td>
+                                <td>2.1 MB</td>
+                                <td>2024-01-15</td>
+                                <td>John Smith</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Evidence.pdf</td>
+                                <td>Case #123</td>
+                                <td>Evidence</td>
+                                <td>5.7 MB</td>
+                                <td>2024-01-14</td>
+                                <td>Jane Doe</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Financial_Report.xlsx</td>
+                                <td>Case #456</td>
+                                <td>Financial</td>
+                                <td>1.3 MB</td>
+                                <td>2024-01-12</td>
+                                <td>Mike Johnson</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Tracking Page -->
+    <div id="time-tracking-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab" onclick="showPage('documents')">Documents</div>
+                    <div class="tab active">Time Tracking</div>
+                    <div class="tab" onclick="showPage('billing')">Billing</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <h2 style="margin-bottom: 2rem;">Time Tracking</h2>
+                
+                <div class="grid grid-2" style="margin-bottom: 2rem;">
+                    <div class="timer-widget">
+                        <h3>Current Timer</h3>
+                        <div class="form-group">
+                            <select class="form-control">
+                                <option>Case #123 - ABC Corp</option>
+                                <option>Case #456 - XYZ Ltd</option>
+                                <option>Case #789 - DEF Inc</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Task description" value="Document Review">
+                        </div>
+                        <div class="timer-display">02:15:30</div>
+                        <div class="timer-controls">
+                            <button class="btn btn-primary">Stop</button>
+                            <button class="btn btn-secondary">Pause</button>
+                            <button class="btn btn-secondary">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <button class="btn btn-primary">Start New Timer</button>
+                            <button class="btn btn-secondary">Add Time Entry</button>
+                            <button class="btn btn-secondary">Generate Report</button>
+                            <button class="btn btn-secondary">Export Timesheet</button>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h4>Today's Summary</h4>
+                            <p><strong>Total Hours:</strong> 6.5</p>
+                            <p><strong>Billable Hours:</strong> 5.5</p>
+                            <p><strong>Non-billable:</strong> 1.0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Time Entries</h3>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Case</th>
+                                    <th>Task</th>
+                                    <th>Hours</th>
+                                    <th>Rate</th>
+                                    <th>Billable</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Today</td>
+                                    <td>Case #123</td>
+                                    <td>Research</td>
+                                    <td>2.5</td>
+                                    <td>$350/hr</td>
+                                    <td><span class="badge badge-active">Yes</span></td>
+                                    <td><button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Today</td>
+                                    <td>Case #456</td>
+                                    <td>Client Meeting</td>
+                                    <td>1.0</td>
+                                    <td>$350/hr</td>
+                                    <td><span class="badge badge-active">Yes</span></td>
+                                    <td><button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Yesterday</td>
+                                    <td>Case #123</td>
+                                    <td>Document Review</td>
+                                    <td>3.0</td>
+                                    <td>$350/hr</td>
+                                    <td><span class="badge badge-active">Yes</span></td>
+                                    <td><button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edit</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing Page -->
+    <div id="billing-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab" onclick="showPage('documents')">Documents</div>
+                    <div class="tab" onclick="showPage('time-tracking')">Time Tracking</div>
+                    <div class="tab active">Billing</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <h2 style="margin-bottom: 2rem;">Billing & Invoicing</h2>
+                
+                <div class="grid grid-4" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #FF9800;">$15,250</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #4CAF50;">$30,000</div>
+                        <div class="stat-label">Paid</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #F44336;">$5,500</div>
+                        <div class="stat-label">Overdue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">$50,750</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3>Recent Invoices</h3>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary">Generate Invoice</button>
+                        <button class="btn btn-secondary">View Payments</button>
+                        <button class="btn btn-secondary">Reports</button>
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Client</th>
+                                <th>Case</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INV-001</td>
+                                <td>ABC Corp</td>
+                                <td>Case #123</td>
+                                <td>$5,250</td>
+                                <td>2024-01-15</td>
+                                <td>2024-02-14</td>
+                                <td><span class="badge badge-pending">Pending</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Send</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>INV-002</td>
+                                <td>XYZ Ltd</td>
+                                <td>Case #456</td>
+                                <td>$3,500</td>
+                                <td>2024-01-10</td>
+                                <td>2024-02-09</td>
+                                <td><span class="badge badge-paid">Paid</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Receipt</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>INV-003</td>
+                                <td>DEF Inc</td>
+                                <td>Case #789</td>
+                                <td>$2,750</td>
+                                <td>2023-12-20</td>
+                                <td>2024-01-19</td>
+                                <td><span class="badge badge-overdue">Overdue</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">View</button>
+                                    <button class="btn btn-accent" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Follow Up</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Page -->
+    <div id="calendar-page" class="page">
+        <div class="nav-tabs">
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab" onclick="showPage('dashboard')">Dashboard</div>
+                    <div class="tab" onclick="showPage('cases')">Cases</div>
+                    <div class="tab" onclick="showPage('documents')">Documents</div>
+                    <div class="tab" onclick="showPage('time-tracking')">Time Tracking</div>
+                    <div class="tab" onclick="showPage('billing')">Billing</div>
+                    <div class="tab active">Calendar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="main-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2>Calendar</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary">Add Event</button>
+                        <button class="btn btn-secondary">Today</button>
+                        <button class="btn btn-secondary">Week View</button>
+                        <button class="btn btn-secondary">Month View</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <button class="btn btn-secondary">‹</button>
+                            <h3>January 2024</h3>
+                            <button class="btn btn-secondary">›</button>
+                        </div>
