@@ -23,7 +23,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.VIEW_TASKS),
   taskController.getTasks
 );
 
@@ -34,7 +34,7 @@ router.get('/',
  */
 router.get('/stats', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.VIEW_TASKS),
   taskController.getTaskStats
 );
 
@@ -45,7 +45,7 @@ router.get('/stats',
  */
 router.get('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.VIEW_TASKS),
   taskController.getTaskById
 );
 
@@ -56,7 +56,7 @@ router.get('/:id',
  */
 router.post('/', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.CREATE_TASKS),
   taskController.createTask
 );
 
@@ -67,7 +67,7 @@ router.post('/',
  */
 router.put('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.UPDATE_TASKS),
   taskController.updateTask
 );
 
@@ -78,7 +78,7 @@ router.put('/:id',
  */
 router.delete('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.DELETE_TASKS),
   taskController.deleteTask
 );
 
@@ -89,7 +89,7 @@ router.delete('/:id',
  */
 router.post('/:id/start-timer', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.CREATE_TIME_ENTRIES), // This is correct for time tracking
   taskController.startTaskTimer
 );
 
@@ -100,7 +100,7 @@ router.post('/:id/start-timer',
  */
 router.post('/:id/stop-timer', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_TIME_ENTRIES), // Using time entries permission for now
+  authorizePermission(Permission.UPDATE_TIME_ENTRIES), // This is correct for time tracking
   taskController.stopTaskTimer
 );
 

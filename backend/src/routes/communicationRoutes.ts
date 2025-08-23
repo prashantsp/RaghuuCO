@@ -23,7 +23,7 @@ const router = Router();
  */
 router.get('/messages', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
+  authorizePermission(Permission.VIEW_COMMUNICATION),
   communicationController.getInternalMessages
 );
 
@@ -34,7 +34,7 @@ router.get('/messages',
  */
 router.get('/messages/received', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
+  authorizePermission(Permission.VIEW_COMMUNICATION),
   communicationController.getReceivedMessages
 );
 
@@ -45,7 +45,7 @@ router.get('/messages/received',
  */
 router.get('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
+  authorizePermission(Permission.VIEW_COMMUNICATION),
   communicationController.getInternalMessageById
 );
 
@@ -56,7 +56,7 @@ router.get('/messages/:id',
  */
 router.post('/messages', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), // Using events permission for now
+  authorizePermission(Permission.CREATE_COMMUNICATION),
   communicationController.createInternalMessage
 );
 
@@ -67,7 +67,7 @@ router.post('/messages',
  */
 router.put('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EVENTS), // Using events permission for now
+  authorizePermission(Permission.UPDATE_COMMUNICATION),
   communicationController.updateInternalMessage
 );
 
@@ -78,7 +78,7 @@ router.put('/messages/:id',
  */
 router.delete('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_EVENTS), // Using events permission for now
+  authorizePermission(Permission.DELETE_COMMUNICATION),
   communicationController.deleteInternalMessage
 );
 
@@ -89,7 +89,7 @@ router.delete('/messages/:id',
  */
 router.put('/messages/:id/status', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EVENTS), // Using events permission for now
+  authorizePermission(Permission.UPDATE_COMMUNICATION),
   communicationController.updateMessageStatus
 );
 
@@ -100,7 +100,7 @@ router.put('/messages/:id/status',
  */
 router.get('/email-templates', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
+  authorizePermission(Permission.VIEW_COMMUNICATION),
   communicationController.getEmailTemplates
 );
 
@@ -111,7 +111,7 @@ router.get('/email-templates',
  */
 router.post('/email-templates', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), // Using events permission for now
+  authorizePermission(Permission.CREATE_COMMUNICATION),
   communicationController.createEmailTemplate
 );
 

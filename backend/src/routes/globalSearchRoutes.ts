@@ -23,7 +23,7 @@ const router = Router();
  */
 router.get('/global', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CASES), // Using basic permission for search
+  authorizePermission(Permission.USE_GLOBAL_SEARCH),
   globalSearchController.globalSearch
 );
 
@@ -34,7 +34,7 @@ router.get('/global',
  */
 router.get('/suggestions', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CASES), // Using basic permission for search
+  authorizePermission(Permission.USE_GLOBAL_SEARCH),
   globalSearchController.getSearchSuggestions
 );
 
@@ -45,7 +45,7 @@ router.get('/suggestions',
  */
 router.get('/statistics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS), // Using reports permission for statistics
+  authorizePermission(Permission.VIEW_SEARCH_STATISTICS),
   globalSearchController.getSearchStatistics
 );
 
@@ -56,7 +56,7 @@ router.get('/statistics',
  */
 router.get('/popular', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CASES), // Using basic permission for search
+  authorizePermission(Permission.USE_GLOBAL_SEARCH),
   globalSearchController.getPopularSearchTerms
 );
 
