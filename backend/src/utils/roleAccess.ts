@@ -42,244 +42,160 @@ export enum UserRole {
 }
 
 export enum Permission {
-  // User Management
-  USER_CREATE = 'user:create',
-  USER_READ = 'user:read',
-  USER_UPDATE = 'user:update',
-  USER_DELETE = 'user:delete',
-  USER_MANAGE_ROLES = 'user:manage_roles',
+  // User management
+  VIEW_USERS = 'view_users',
+  CREATE_USERS = 'create_users',
+  UPDATE_USERS = 'update_users',
+  DELETE_USERS = 'delete_users',
+  MANAGE_USER_ROLES = 'manage_user_roles',
 
-  // Client Management
-  CLIENT_CREATE = 'client:create',
-  CLIENT_READ = 'client:read',
-  CLIENT_UPDATE = 'client:update',
-  CLIENT_DELETE = 'client:delete',
-  CLIENT_CONFLICT_CHECK = 'client:conflict_check',
+  // Client management
+  VIEW_CLIENTS = 'view_clients',
+  CREATE_CLIENTS = 'create_clients',
+  UPDATE_CLIENTS = 'update_clients',
+  DELETE_CLIENTS = 'delete_clients',
 
-  // Case Management
-  CASE_CREATE = 'case:create',
-  CASE_READ = 'case:read',
-  CASE_UPDATE = 'case:update',
-  CASE_DELETE = 'case:delete',
-  CASE_ASSIGN = 'case:assign',
-  CASE_COMPLETE = 'case:complete',
+  // Case management
+  VIEW_CASES = 'view_cases',
+  CREATE_CASES = 'create_cases',
+  UPDATE_CASES = 'update_cases',
+  DELETE_CASES = 'delete_cases',
+  ASSIGN_CASES = 'assign_cases',
 
-  // Document Management
-  DOCUMENT_CREATE = 'document:create',
-  DOCUMENT_READ = 'document:read',
-  DOCUMENT_UPDATE = 'document:update',
-  DOCUMENT_DELETE = 'document:delete',
-  DOCUMENT_DOWNLOAD = 'document:download',
+  // Document management
+  VIEW_DOCUMENTS = 'view_documents',
+  UPLOAD_DOCUMENTS = 'upload_documents',
+  UPDATE_DOCUMENTS = 'update_documents',
+  DELETE_DOCUMENTS = 'delete_documents',
+  DOWNLOAD_DOCUMENTS = 'download_documents',
 
-  // Time Tracking & Billing
-  TIME_ENTRY_CREATE = 'time_entry:create',
-  TIME_ENTRY_READ = 'time_entry:read',
-  TIME_ENTRY_UPDATE = 'time_entry:update',
-  TIME_ENTRY_DELETE = 'time_entry:delete',
-  BILLING_READ = 'billing:read',
-  BILLING_CREATE = 'billing:create',
-  BILLING_UPDATE = 'billing:update',
+  // Time tracking
+  VIEW_TIME_ENTRIES = 'view_time_entries',
+  CREATE_TIME_ENTRIES = 'create_time_entries',
+  UPDATE_TIME_ENTRIES = 'update_time_entries',
+  DELETE_TIME_ENTRIES = 'delete_time_entries',
 
-  // Calendar & Scheduling
-  CALENDAR_READ = 'calendar:read',
-  CALENDAR_CREATE = 'calendar:create',
-  CALENDAR_UPDATE = 'calendar:update',
-  CALENDAR_DELETE = 'calendar:delete',
+  // Billing management
+  VIEW_INVOICES = 'view_invoices',
+  CREATE_INVOICES = 'create_invoices',
+  UPDATE_INVOICES = 'update_invoices',
+  DELETE_INVOICES = 'delete_invoices',
+  VIEW_BILLING_RATES = 'view_billing_rates',
+  CREATE_BILLING_RATES = 'create_billing_rates',
+  UPDATE_BILLING_RATES = 'update_billing_rates',
+  DELETE_BILLING_RATES = 'delete_billing_rates',
+  VIEW_PAYMENTS = 'view_payments',
+  CREATE_PAYMENTS = 'create_payments',
+  UPDATE_PAYMENTS = 'update_payments',
+  DELETE_PAYMENTS = 'delete_payments',
 
-  // Content Management
-  CONTENT_CREATE = 'content:create',
-  CONTENT_READ = 'content:read',
-  CONTENT_UPDATE = 'content:update',
-  CONTENT_DELETE = 'content:delete',
-  CONTENT_PUBLISH = 'content:publish',
+  // Calendar management
+  VIEW_CALENDAR = 'view_calendar',
+  CREATE_EVENTS = 'create_events',
+  UPDATE_EVENTS = 'update_events',
+  DELETE_EVENTS = 'delete_events',
 
-  // Reporting & Analytics
-  REPORT_READ = 'report:read',
-  REPORT_CREATE = 'report:create',
-  REPORT_EXPORT = 'report:export',
+  // Reporting
+  VIEW_REPORTS = 'view_reports',
+  GENERATE_REPORTS = 'generate_reports',
+  EXPORT_DATA = 'export_data',
 
-  // System Administration
-  SYSTEM_CONFIG = 'system:config',
-  AUDIT_LOG_READ = 'audit_log:read',
-  BACKUP_MANAGE = 'backup:manage',
-
-  // Communication
-  MESSAGE_SEND = 'message:send',
-  MESSAGE_READ = 'message:read',
-  NOTIFICATION_SEND = 'notification:send'
+  // System administration
+  VIEW_AUDIT_LOGS = 'view_audit_logs',
+  MANAGE_SYSTEM_SETTINGS = 'manage_system_settings',
+  ACCESS_ADMIN_PANEL = 'access_admin_panel'
 }
 
 /**
  * Role-based permission mapping
- * Defines what permissions each role has
+ * Each role has specific permissions based on their responsibilities
  */
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: [
-    // Full system access
-    Permission.USER_CREATE,
-    Permission.USER_READ,
-    Permission.USER_UPDATE,
-    Permission.USER_DELETE,
-    Permission.USER_MANAGE_ROLES,
-    Permission.CLIENT_CREATE,
-    Permission.CLIENT_READ,
-    Permission.CLIENT_UPDATE,
-    Permission.CLIENT_DELETE,
-    Permission.CLIENT_CONFLICT_CHECK,
-    Permission.CASE_CREATE,
-    Permission.CASE_READ,
-    Permission.CASE_UPDATE,
-    Permission.CASE_DELETE,
-    Permission.CASE_ASSIGN,
-    Permission.CASE_COMPLETE,
-    Permission.DOCUMENT_CREATE,
-    Permission.DOCUMENT_READ,
-    Permission.DOCUMENT_UPDATE,
-    Permission.DOCUMENT_DELETE,
-    Permission.DOCUMENT_DOWNLOAD,
-    Permission.TIME_ENTRY_CREATE,
-    Permission.TIME_ENTRY_READ,
-    Permission.TIME_ENTRY_UPDATE,
-    Permission.TIME_ENTRY_DELETE,
-    Permission.BILLING_READ,
-    Permission.BILLING_CREATE,
-    Permission.BILLING_UPDATE,
-    Permission.CALENDAR_READ,
-    Permission.CALENDAR_CREATE,
-    Permission.CALENDAR_UPDATE,
-    Permission.CALENDAR_DELETE,
-    Permission.CONTENT_CREATE,
-    Permission.CONTENT_READ,
-    Permission.CONTENT_UPDATE,
-    Permission.CONTENT_DELETE,
-    Permission.CONTENT_PUBLISH,
-    Permission.REPORT_READ,
-    Permission.REPORT_CREATE,
-    Permission.REPORT_EXPORT,
-    Permission.SYSTEM_CONFIG,
-    Permission.AUDIT_LOG_READ,
-    Permission.BACKUP_MANAGE,
-    Permission.MESSAGE_SEND,
-    Permission.MESSAGE_READ,
-    Permission.NOTIFICATION_SEND
+    // All permissions
+    Permission.VIEW_USERS, Permission.CREATE_USERS, Permission.UPDATE_USERS, Permission.DELETE_USERS, Permission.MANAGE_USER_ROLES,
+    Permission.VIEW_CLIENTS, Permission.CREATE_CLIENTS, Permission.UPDATE_CLIENTS, Permission.DELETE_CLIENTS,
+    Permission.VIEW_CASES, Permission.CREATE_CASES, Permission.UPDATE_CASES, Permission.DELETE_CASES, Permission.ASSIGN_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DELETE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES, Permission.DELETE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES, Permission.CREATE_INVOICES, Permission.UPDATE_INVOICES, Permission.DELETE_INVOICES,
+    Permission.VIEW_BILLING_RATES, Permission.CREATE_BILLING_RATES, Permission.UPDATE_BILLING_RATES, Permission.DELETE_BILLING_RATES,
+    Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS, Permission.DELETE_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
+    Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS, Permission.EXPORT_DATA,
+    Permission.VIEW_AUDIT_LOGS, Permission.MANAGE_SYSTEM_SETTINGS, Permission.ACCESS_ADMIN_PANEL
   ],
 
   [UserRole.PARTNER]: [
-    // Strategic case management and business oversight
-    Permission.USER_READ,
-    Permission.CLIENT_CREATE,
-    Permission.CLIENT_READ,
-    Permission.CLIENT_UPDATE,
-    Permission.CLIENT_CONFLICT_CHECK,
-    Permission.CASE_CREATE,
-    Permission.CASE_READ,
-    Permission.CASE_UPDATE,
-    Permission.CASE_ASSIGN,
-    Permission.CASE_COMPLETE,
-    Permission.DOCUMENT_CREATE,
-    Permission.DOCUMENT_READ,
-    Permission.DOCUMENT_UPDATE,
-    Permission.DOCUMENT_DELETE,
-    Permission.DOCUMENT_DOWNLOAD,
-    Permission.TIME_ENTRY_CREATE,
-    Permission.TIME_ENTRY_READ,
-    Permission.TIME_ENTRY_UPDATE,
-    Permission.TIME_ENTRY_DELETE,
-    Permission.BILLING_READ,
-    Permission.BILLING_CREATE,
-    Permission.BILLING_UPDATE,
-    Permission.CALENDAR_READ,
-    Permission.CALENDAR_CREATE,
-    Permission.CALENDAR_UPDATE,
-    Permission.CALENDAR_DELETE,
-    Permission.CONTENT_CREATE,
-    Permission.CONTENT_READ,
-    Permission.CONTENT_UPDATE,
-    Permission.CONTENT_PUBLISH,
-    Permission.REPORT_READ,
-    Permission.REPORT_CREATE,
-    Permission.REPORT_EXPORT,
-    Permission.MESSAGE_SEND,
-    Permission.MESSAGE_READ,
-    Permission.NOTIFICATION_SEND
+    // Full access to cases, clients, documents, billing, and team management
+    Permission.VIEW_USERS, Permission.CREATE_USERS, Permission.UPDATE_USERS, Permission.MANAGE_USER_ROLES,
+    Permission.VIEW_CLIENTS, Permission.CREATE_CLIENTS, Permission.UPDATE_CLIENTS, Permission.DELETE_CLIENTS,
+    Permission.VIEW_CASES, Permission.CREATE_CASES, Permission.UPDATE_CASES, Permission.DELETE_CASES, Permission.ASSIGN_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DELETE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES, Permission.DELETE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES, Permission.CREATE_INVOICES, Permission.UPDATE_INVOICES, Permission.DELETE_INVOICES,
+    Permission.VIEW_BILLING_RATES, Permission.CREATE_BILLING_RATES, Permission.UPDATE_BILLING_RATES, Permission.DELETE_BILLING_RATES,
+    Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS, Permission.DELETE_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
+    Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS, Permission.EXPORT_DATA,
+    Permission.VIEW_AUDIT_LOGS
   ],
 
   [UserRole.SENIOR_ASSOCIATE]: [
-    // Case strategy and client consultations
-    Permission.USER_READ,
-    Permission.CLIENT_READ,
-    Permission.CLIENT_UPDATE,
-    Permission.CASE_CREATE,
-    Permission.CASE_READ,
-    Permission.CASE_UPDATE,
-    Permission.DOCUMENT_CREATE,
-    Permission.DOCUMENT_READ,
-    Permission.DOCUMENT_UPDATE,
-    Permission.DOCUMENT_DOWNLOAD,
-    Permission.TIME_ENTRY_CREATE,
-    Permission.TIME_ENTRY_READ,
-    Permission.TIME_ENTRY_UPDATE,
-    Permission.TIME_ENTRY_DELETE,
-    Permission.BILLING_READ,
-    Permission.CALENDAR_READ,
-    Permission.CALENDAR_CREATE,
-    Permission.CALENDAR_UPDATE,
-    Permission.CONTENT_CREATE,
-    Permission.CONTENT_READ,
-    Permission.CONTENT_UPDATE,
-    Permission.REPORT_READ,
-    Permission.MESSAGE_SEND,
-    Permission.MESSAGE_READ
+    // Full access to assigned cases and related resources
+    Permission.VIEW_USERS,
+    Permission.VIEW_CLIENTS, Permission.CREATE_CLIENTS, Permission.UPDATE_CLIENTS,
+    Permission.VIEW_CASES, Permission.CREATE_CASES, Permission.UPDATE_CASES, Permission.ASSIGN_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES, Permission.DELETE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES, Permission.CREATE_INVOICES, Permission.UPDATE_INVOICES,
+    Permission.VIEW_BILLING_RATES, Permission.CREATE_BILLING_RATES, Permission.UPDATE_BILLING_RATES,
+    Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS, Permission.UPDATE_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS, Permission.DELETE_EVENTS,
+    Permission.VIEW_REPORTS, Permission.GENERATE_REPORTS
   ],
 
-  [UserRole.JUNIOR_ASSOCIATE]: [
-    // Research and document preparation
-    Permission.USER_READ,
-    Permission.CLIENT_READ,
-    Permission.CASE_READ,
-    Permission.DOCUMENT_CREATE,
-    Permission.DOCUMENT_READ,
-    Permission.DOCUMENT_UPDATE,
-    Permission.DOCUMENT_DOWNLOAD,
-    Permission.TIME_ENTRY_CREATE,
-    Permission.TIME_ENTRY_READ,
-    Permission.TIME_ENTRY_UPDATE,
-    Permission.BILLING_READ,
-    Permission.CALENDAR_READ,
-    Permission.CONTENT_READ,
-    Permission.MESSAGE_READ
+  [UserRole.ASSOCIATE]: [
+    // Access to assigned cases and basic operations
+    Permission.VIEW_USERS,
+    Permission.VIEW_CLIENTS, Permission.CREATE_CLIENTS, Permission.UPDATE_CLIENTS,
+    Permission.VIEW_CASES, Permission.CREATE_CASES, Permission.UPDATE_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES, Permission.CREATE_INVOICES,
+    Permission.VIEW_BILLING_RATES,
+    Permission.VIEW_PAYMENTS, Permission.CREATE_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
+    Permission.VIEW_REPORTS
   ],
 
   [UserRole.PARALEGAL]: [
-    // Administrative support
-    Permission.USER_READ,
-    Permission.CLIENT_READ,
-    Permission.CASE_READ,
-    Permission.DOCUMENT_CREATE,
-    Permission.DOCUMENT_READ,
-    Permission.DOCUMENT_UPDATE,
-    Permission.DOCUMENT_DOWNLOAD,
-    Permission.TIME_ENTRY_CREATE,
-    Permission.TIME_ENTRY_READ,
-    Permission.CALENDAR_READ,
-    Permission.CALENDAR_CREATE,
-    Permission.MESSAGE_READ
+    // Limited access for support tasks
+    Permission.VIEW_USERS,
+    Permission.VIEW_CLIENTS, Permission.UPDATE_CLIENTS,
+    Permission.VIEW_CASES, Permission.UPDATE_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES,
+    Permission.VIEW_BILLING_RATES,
+    Permission.VIEW_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
+    Permission.VIEW_REPORTS
   ],
 
   [UserRole.CLIENT]: [
-    // Limited access to own cases
-    Permission.CASE_READ, // Only own cases
-    Permission.DOCUMENT_READ, // Only own case documents
-    Permission.DOCUMENT_DOWNLOAD, // Only own case documents
-    Permission.CALENDAR_READ, // Only own case calendar
-    Permission.MESSAGE_READ,
-    Permission.MESSAGE_SEND
+    // Client portal access
+    Permission.VIEW_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_INVOICES,
+    Permission.VIEW_PAYMENTS,
+    Permission.VIEW_CALENDAR
   ],
 
   [UserRole.GUEST]: [
-    // Very limited access
-    Permission.CONTENT_READ, // Public content only
-    Permission.MESSAGE_READ // Limited messaging
+    // Minimal access for public information
+    Permission.VIEW_CASES,
+    Permission.VIEW_DOCUMENTS
   ]
 };
 

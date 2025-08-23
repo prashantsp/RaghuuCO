@@ -37,6 +37,8 @@ import clientRoutes from './routes/clientRoutes';
 import caseRoutes from './routes/caseRoutes';
 import documentRoutes from './routes/documentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import billingRoutes from './routes/billingRoutes';
+import calendarRoutes from './routes/calendarRoutes';
 import passport from './config/passport';
 
 // Load environment variables
@@ -228,6 +230,18 @@ app.use('/api/v1/documents', documentRoutes);
  * Dashboard statistics and analytics
  */
 app.use('/api/v1/dashboard', dashboardRoutes);
+
+/**
+ * Mount billing routes
+ * Billing and invoicing functionality
+ */
+app.use('/api/v1/billing', billingRoutes);
+
+/**
+ * Mount calendar routes
+ * Calendar management and event scheduling
+ */
+app.use('/api/v1/calendar', calendarRoutes);
 
 /**
  * Global error handling middleware

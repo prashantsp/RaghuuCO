@@ -585,43 +585,411 @@ export const SQLQueries = {
 
   // User Sessions Queries
   USER_SESSIONS: {
-    CREATE_SESSION: `
+    CREATE: `
       INSERT INTO user_sessions (user_id, session_token, refresh_token, ip_address, user_agent, expires_at)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `,
-    
-    GET_SESSION_BY_TOKEN: `
-      SELECT * FROM user_sessions
-      WHERE session_token = $1 AND is_active = true AND expires_at > CURRENT_TIMESTAMP
+    GET_BY_TOKEN: `
+      SELECT * FROM user_sessions WHERE session_token = $1 AND is_active = true AND expires_at > NOW()
     `,
-    
-    GET_SESSION_BY_REFRESH_TOKEN: `
-      SELECT * FROM user_sessions
-      WHERE refresh_token = $1 AND is_active = true AND expires_at > CURRENT_TIMESTAMP
+    GET_BY_USER_ID: `
+      SELECT * FROM user_sessions WHERE user_id = $1 AND is_active = true ORDER BY created_at DESC
     `,
-    
-    GET_SESSIONS_BY_USER: `
-      SELECT * FROM user_sessions
-      WHERE user_id = $1 AND is_active = true
-      ORDER BY created_at DESC
+    UPDATE: `
+      UPDATE user_sessions SET is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *
     `,
-    
-    DEACTIVATE_SESSION: `
-      UPDATE user_sessions
-      SET is_active = false
-      WHERE session_token = $1
+    DELETE: `
+      DELETE FROM user_sessions WHERE id = $1
     `,
-    
-    DEACTIVATE_ALL_USER_SESSIONS: `
-      UPDATE user_sessions
-      SET is_active = false
-      WHERE user_id = $1
+    DELETE_EXPIRED: `
+      DELETE FROM user_sessions WHERE expires_at < NOW()
+    `
+  },
+
+  BILLING_RATES: {
+    CREATE: `
+      INSERT INTO billing_rates (user_id, case_type, hourly_rate, is_default, effective_date, end_date, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
     `,
-    
-    CLEANUP_EXPIRED_SESSIONS: `
-      DELETE FROM user_sessions
-      WHERE expires_at < CURRENT_TIMESTAMP
+    GET_BY_USER_ID: `
+      SELECT * FROM billing_rates WHERE user_id = $1 ORDER BY effective_date DESC
+    `,
+    GET_DEFAULT_RATE: `
+      SELECT * FROM billing_rates WHERE user_id = $1 AND is_default = true AND (end_date IS NULL OR end_date > NOW())
+      ORDER BY effective_date DESC LIMIT 1
+    `,
+    GET_RATE_BY_CASE_TYPE: `
+      SELECT * FROM billing_rates WHERE user_id = $1 AND case_type = $2 AND (end_date IS NULL OR end_date > NOW())
+      ORDER BY effective_date DESC LIMIT 1
+    `,
+    UPDATE: `
+      UPDATE billing_rates SET hourly_rate = $2, is_default = $3, end_date = $4, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM billing_rates WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT br.*, u.first_name, u.last_name, u.email
+      FROM billing_rates br
+      JOIN users u ON br.user_id = u.id
+      WHERE ($1::text IS NULL OR u.first_name ILIKE $1 OR u.last_name ILIKE $1 OR u.email ILIKE $1)
+      AND ($2::case_type_enum IS NULL OR br.case_type = $2)
+      ORDER BY br.effective_date DESC
+      LIMIT $3 OFFSET $4
+    `
+  },
+
+  INVOICES: {
+    CREATE: `
+      INSERT INTO invoices (invoice_number, case_id, client_id, user_id, status, subtotal, tax_amount, total_amount, 
+                           currency, due_date, issued_date, notes, terms_conditions, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT i.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as user_first_name, u.last_name as user_last_name
+      FROM invoices i
+      JOIN cases c ON i.case_id = c.id
+      JOIN clients cl ON i.client_id = cl.id
+      JOIN users u ON i.user_id = u.id
+      WHERE i.id = $1
+    `,
+    GET_BY_CASE_ID: `
+      SELECT * FROM invoices WHERE case_id = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT * FROM invoices WHERE client_id = $1 ORDER BY created_at DESC
+    `,
+    GET_BY_USER_ID: `
+      SELECT * FROM invoices WHERE user_id = $1 ORDER BY created_at DESC
+    `,
+    UPDATE: `
+      UPDATE invoices SET status = $2, subtotal = $3, tax_amount = $4, total_amount = $5, 
+                         due_date = $6, issued_date = $7, paid_date = $8, payment_method = $9,
+                         notes = $10, terms_conditions = $11, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM invoices WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT i.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as user_first_name, u.last_name as user_last_name
+      FROM invoices i
+      JOIN cases c ON i.case_id = c.id
+      JOIN clients cl ON i.client_id = cl.id
+      JOIN users u ON i.user_id = u.id
+      WHERE ($1::text IS NULL OR i.invoice_number ILIKE $1 OR c.case_number ILIKE $1)
+      AND ($2::invoice_status_enum IS NULL OR i.status = $2)
+      AND ($3::uuid IS NULL OR i.client_id = $3)
+      AND ($4::uuid IS NULL OR i.user_id = $4)
+      ORDER BY i.created_at DESC
+      LIMIT $5 OFFSET $6
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_invoices,
+        COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_invoices,
+        COUNT(CASE WHEN status = 'sent' THEN 1 END) as sent_invoices,
+        COUNT(CASE WHEN status = 'paid' THEN 1 END) as paid_invoices,
+        COUNT(CASE WHEN status = 'overdue' THEN 1 END) as overdue_invoices,
+        SUM(CASE WHEN status = 'paid' THEN total_amount ELSE 0 END) as total_paid,
+        SUM(CASE WHEN status IN ('sent', 'overdue') THEN total_amount ELSE 0 END) as total_outstanding
+      FROM invoices
+      WHERE ($1::uuid IS NULL OR user_id = $1)
+      AND ($2::uuid IS NULL OR client_id = $2)
+    `,
+    GENERATE_INVOICE_NUMBER: `
+      SELECT 'INV-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-' || 
+             LPAD(COALESCE(MAX(SUBSTRING(invoice_number FROM 16)), '0')::integer + 1, 4, '0') as next_number
+      FROM invoices 
+      WHERE invoice_number LIKE 'INV-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-%'
+    `
+  },
+
+  INVOICE_ITEMS: {
+    CREATE: `
+      INSERT INTO invoice_items (invoice_id, time_entry_id, description, quantity, unit_rate, amount, item_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `,
+    GET_BY_INVOICE_ID: `
+      SELECT * FROM invoice_items WHERE invoice_id = $1 ORDER BY created_at
+    `,
+    UPDATE: `
+      UPDATE invoice_items SET description = $2, quantity = $3, unit_rate = $4, amount = $5, item_type = $6
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM invoice_items WHERE id = $1
+    `,
+    DELETE_BY_INVOICE_ID: `
+      DELETE FROM invoice_items WHERE invoice_id = $1
+    `
+  },
+
+  PAYMENTS: {
+    CREATE: `
+      INSERT INTO payments (invoice_id, payment_number, amount, payment_date, payment_method, 
+                           transaction_id, status, gateway_response, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT p.*, i.invoice_number, i.total_amount as invoice_total
+      FROM payments p
+      JOIN invoices i ON p.invoice_id = i.id
+      WHERE p.id = $1
+    `,
+    GET_BY_INVOICE_ID: `
+      SELECT * FROM payments WHERE invoice_id = $1 ORDER BY payment_date DESC
+    `,
+    UPDATE: `
+      UPDATE payments SET amount = $2, payment_date = $3, payment_method = $4, transaction_id = $5,
+                         status = $6, gateway_response = $7, notes = $8
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM payments WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT p.*, i.invoice_number, i.total_amount as invoice_total
+      FROM payments p
+      JOIN invoices i ON p.invoice_id = i.id
+      WHERE ($1::text IS NULL OR p.payment_number ILIKE $1 OR i.invoice_number ILIKE $1)
+      AND ($2::payment_status_enum IS NULL OR p.status = $2)
+      AND ($3::payment_method_enum IS NULL OR p.payment_method = $3)
+      ORDER BY p.payment_date DESC
+      LIMIT $4 OFFSET $5
+    `,
+    GET_STATS: `
+      SELECT 
+        COUNT(*) as total_payments,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payments,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_payments,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_payments,
+        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_received,
+        SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as total_pending
+      FROM payments
+      WHERE ($1::uuid IS NULL OR created_by = $1)
+      AND payment_date >= $2 AND payment_date <= $3
+    `,
+    GENERATE_PAYMENT_NUMBER: `
+      SELECT 'PAY-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-' || 
+             LPAD(COALESCE(MAX(SUBSTRING(payment_number FROM 16)), '0')::integer + 1, 4, '0') as next_number
+      FROM payments 
+      WHERE payment_number LIKE 'PAY-' || TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || '-%'
+    `
+  },
+
+  CALENDAR_EVENTS: {
+    CREATE: `
+      INSERT INTO calendar_events (title, description, event_type, start_datetime, end_datetime, all_day, 
+                                  location, case_id, client_id, assigned_to, created_by, status, priority, 
+                                  reminder_minutes, external_calendar_id, external_calendar_provider)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT ce.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as assigned_first_name, u.last_name as assigned_last_name
+      FROM calendar_events ce
+      LEFT JOIN cases c ON ce.case_id = c.id
+      LEFT JOIN clients cl ON ce.client_id = cl.id
+      LEFT JOIN users u ON ce.assigned_to = u.id
+      WHERE ce.id = $1
+    `,
+    GET_BY_USER_ID: `
+      SELECT * FROM calendar_events WHERE assigned_to = $1 ORDER BY start_datetime
+    `,
+    GET_BY_CASE_ID: `
+      SELECT * FROM calendar_events WHERE case_id = $1 ORDER BY start_datetime
+    `,
+    GET_BY_CLIENT_ID: `
+      SELECT * FROM calendar_events WHERE client_id = $1 ORDER BY start_datetime
+    `,
+    GET_BY_DATE_RANGE: `
+      SELECT ce.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as assigned_first_name, u.last_name as assigned_last_name
+      FROM calendar_events ce
+      LEFT JOIN cases c ON ce.case_id = c.id
+      LEFT JOIN clients cl ON ce.client_id = cl.id
+      LEFT JOIN users u ON ce.assigned_to = u.id
+      WHERE ce.start_datetime >= $1 AND ce.start_datetime <= $2
+      AND ($3::uuid IS NULL OR ce.assigned_to = $3)
+      ORDER BY ce.start_datetime
+    `,
+    UPDATE: `
+      UPDATE calendar_events SET title = $2, description = $3, event_type = $4, start_datetime = $5, 
+                                end_datetime = $6, all_day = $7, location = $8, case_id = $9, client_id = $10,
+                                assigned_to = $11, status = $12, priority = $13, reminder_minutes = $14,
+                                external_calendar_id = $15, external_calendar_provider = $16, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM calendar_events WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT ce.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as assigned_first_name, u.last_name as assigned_last_name
+      FROM calendar_events ce
+      LEFT JOIN cases c ON ce.case_id = c.id
+      LEFT JOIN clients cl ON ce.client_id = cl.id
+      LEFT JOIN users u ON ce.assigned_to = u.id
+      WHERE ($1::text IS NULL OR ce.title ILIKE $1 OR ce.description ILIKE $1)
+      AND ($2::calendar_event_type_enum IS NULL OR ce.event_type = $2)
+      AND ($3::calendar_event_status_enum IS NULL OR ce.status = $3)
+      AND ($4::uuid IS NULL OR ce.assigned_to = $4)
+      AND ($5::uuid IS NULL OR ce.case_id = $5)
+      AND ($6::uuid IS NULL OR ce.client_id = $6)
+      ORDER BY ce.start_datetime DESC
+      LIMIT $7 OFFSET $8
+    `,
+    GET_CONFLICTS: `
+      SELECT * FROM calendar_events 
+      WHERE assigned_to = $1 
+      AND status = 'scheduled'
+      AND (
+        (start_datetime <= $2 AND end_datetime > $2) OR
+        (start_datetime < $3 AND end_datetime >= $3) OR
+        (start_datetime >= $2 AND end_datetime <= $3)
+      )
+      AND id != $4
+    `,
+    GET_UPCOMING: `
+      SELECT ce.*, c.case_number, c.title as case_title, cl.first_name as client_first_name, 
+             cl.last_name as client_last_name, u.first_name as assigned_first_name, u.last_name as assigned_last_name
+      FROM calendar_events ce
+      LEFT JOIN cases c ON ce.case_id = c.id
+      LEFT JOIN clients cl ON ce.client_id = cl.id
+      LEFT JOIN users u ON ce.assigned_to = u.id
+      WHERE ce.start_datetime >= NOW() 
+      AND ce.status = 'scheduled'
+      AND ($1::uuid IS NULL OR ce.assigned_to = $1)
+      ORDER BY ce.start_datetime
+      LIMIT $2
+    `
+  },
+
+  CALENDAR_EVENT_ATTENDEES: {
+    CREATE: `
+      INSERT INTO calendar_event_attendees (event_id, user_id, client_id, email, name, response_status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_EVENT_ID: `
+      SELECT cea.*, u.first_name as user_first_name, u.last_name as user_last_name, u.email as user_email,
+             cl.first_name as client_first_name, cl.last_name as client_last_name, cl.email as client_email
+      FROM calendar_event_attendees cea
+      LEFT JOIN users u ON cea.user_id = u.id
+      LEFT JOIN clients cl ON cea.client_id = cl.id
+      WHERE cea.event_id = $1
+      ORDER BY cea.created_at
+    `,
+    UPDATE_RESPONSE: `
+      UPDATE calendar_event_attendees SET response_status = $2, response_date = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM calendar_event_attendees WHERE id = $1
+    `,
+    DELETE_BY_EVENT_ID: `
+      DELETE FROM calendar_event_attendees WHERE event_id = $1
+    `
+  },
+
+  CALENDAR_EVENT_REMINDERS: {
+    CREATE: `
+      INSERT INTO calendar_event_reminders (event_id, reminder_type, reminder_time, recipient_email, 
+                                           recipient_phone, message)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `,
+    GET_BY_EVENT_ID: `
+      SELECT * FROM calendar_event_reminders WHERE event_id = $1 ORDER BY reminder_time
+    `,
+    GET_PENDING: `
+      SELECT cer.*, ce.title as event_title, ce.start_datetime, ce.end_datetime
+      FROM calendar_event_reminders cer
+      JOIN calendar_events ce ON cer.event_id = ce.id
+      WHERE cer.status = 'pending' AND cer.reminder_time <= NOW()
+      ORDER BY cer.reminder_time
+    `,
+    UPDATE_STATUS: `
+      UPDATE calendar_event_reminders SET status = $2, sent_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM calendar_event_reminders WHERE id = $1
+    `,
+    DELETE_BY_EVENT_ID: `
+      DELETE FROM calendar_event_reminders WHERE event_id = $1
+    `
+  },
+
+  COURT_DATES: {
+    CREATE: `
+      INSERT INTO court_dates (case_id, court_name, court_address, case_number, hearing_type, 
+                              scheduled_date, duration_minutes, judge_name, opposing_counsel, notes, 
+                              assigned_to, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *
+    `,
+    GET_BY_ID: `
+      SELECT cd.*, c.case_number, c.title as case_title, u.first_name as assigned_first_name, 
+             u.last_name as assigned_last_name
+      FROM court_dates cd
+      JOIN cases c ON cd.case_id = c.id
+      LEFT JOIN users u ON cd.assigned_to = u.id
+      WHERE cd.id = $1
+    `,
+    GET_BY_CASE_ID: `
+      SELECT * FROM court_dates WHERE case_id = $1 ORDER BY scheduled_date
+    `,
+    GET_BY_USER_ID: `
+      SELECT cd.*, c.case_number, c.title as case_title
+      FROM court_dates cd
+      JOIN cases c ON cd.case_id = c.id
+      WHERE cd.assigned_to = $1 ORDER BY cd.scheduled_date
+    `,
+    UPDATE: `
+      UPDATE court_dates SET court_name = $2, court_address = $3, case_number = $4, hearing_type = $5,
+                            scheduled_date = $6, duration_minutes = $7, judge_name = $8, opposing_counsel = $9,
+                            notes = $10, status = $11, assigned_to = $12, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 RETURNING *
+    `,
+    DELETE: `
+      DELETE FROM court_dates WHERE id = $1
+    `,
+    SEARCH: `
+      SELECT cd.*, c.case_number, c.title as case_title, u.first_name as assigned_first_name, 
+             u.last_name as assigned_last_name
+      FROM court_dates cd
+      JOIN cases c ON cd.case_id = c.id
+      LEFT JOIN users u ON cd.assigned_to = u.id
+      WHERE ($1::text IS NULL OR cd.court_name ILIKE $1 OR cd.case_number ILIKE $1)
+      AND ($2::court_hearing_type_enum IS NULL OR cd.hearing_type = $2)
+      AND ($3::court_date_status_enum IS NULL OR cd.status = $3)
+      AND ($4::uuid IS NULL OR cd.assigned_to = $4)
+      AND ($5::uuid IS NULL OR cd.case_id = $5)
+      ORDER BY cd.scheduled_date DESC
+      LIMIT $6 OFFSET $7
+    `,
+    GET_UPCOMING: `
+      SELECT cd.*, c.case_number, c.title as case_title, u.first_name as assigned_first_name, 
+             u.last_name as assigned_last_name
+      FROM court_dates cd
+      JOIN cases c ON cd.case_id = c.id
+      LEFT JOIN users u ON cd.assigned_to = u.id
+      WHERE cd.scheduled_date >= NOW() 
+      AND cd.status = 'scheduled'
+      AND ($1::uuid IS NULL OR cd.assigned_to = $1)
+      ORDER BY cd.scheduled_date
+      LIMIT $2
     `
   }
 };
