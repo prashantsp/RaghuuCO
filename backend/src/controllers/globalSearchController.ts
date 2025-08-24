@@ -44,10 +44,10 @@ export const globalSearch = async (req: Request, res: Response) => {
       parseInt(offset as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error performing global search', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'GLOBAL_SEARCH_ERROR',
@@ -84,10 +84,10 @@ export const getSearchSuggestions = async (req: Request, res: Response) => {
       parseInt(limit as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting search suggestions', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'SEARCH_SUGGESTIONS_ERROR',

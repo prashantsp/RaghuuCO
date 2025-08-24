@@ -226,11 +226,11 @@ const getMonthlyExpenseTotals = async (req, res) => {
         }
         logger_1.default.info('Getting monthly expense totals', { startDate, endDate });
         const result = await expensesService_1.expensesService.getMonthlyExpenseTotals(startDate || '', endDate || '');
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error getting monthly expense totals', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'MONTHLY_EXPENSE_TOTALS_ERROR',
@@ -245,11 +245,11 @@ const getCaseExpenseTotals = async (req, res) => {
         const { caseId } = req.params;
         logger_1.default.info('Getting case expense totals', { caseId });
         const result = await expensesService_1.expensesService.getCaseExpenseTotals(caseId);
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error getting case expense totals', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CASE_EXPENSE_TOTALS_ERROR',
@@ -264,11 +264,11 @@ const getClientExpenseTotals = async (req, res) => {
         const { clientId } = req.params;
         logger_1.default.info('Getting client expense totals', { clientId });
         const result = await expensesService_1.expensesService.getClientExpenseTotals(clientId);
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error getting client expense totals', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CLIENT_EXPENSE_TOTALS_ERROR',
@@ -292,11 +292,11 @@ const searchExpenses = async (req, res) => {
         }
         logger_1.default.info('Searching expenses', { query: q, limit, offset });
         const result = await expensesService_1.expensesService.searchExpenses(q, parseInt(limit), parseInt(offset));
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error searching expenses', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'EXPENSE_SEARCH_ERROR',

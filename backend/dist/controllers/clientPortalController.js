@@ -36,7 +36,7 @@ const registerClientUser = async (req, res) => {
         ]);
         const clientUser = result[0];
         logger_1.default.businessEvent('client_portal_user_registered', 'client_portal_user', clientUser.id, null);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: {
                 user: {
@@ -50,7 +50,7 @@ const registerClientUser = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error registering client portal user', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CLIENT_REGISTRATION_ERROR',
@@ -118,7 +118,7 @@ const loginClientUser = async (req, res) => {
             expiresAt
         ]);
         logger_1.default.businessEvent('client_portal_user_logged_in', 'client_portal_user', user.id, null);
-        res.json({
+        return res.json({
             success: true,
             data: {
                 user: {
@@ -135,7 +135,7 @@ const loginClientUser = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error logging in client portal user', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CLIENT_LOGIN_ERROR',
@@ -214,7 +214,7 @@ const getClientCaseDetails = async (req, res) => {
         const updatesResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_UPDATES, [id]);
         const updates = updatesResult;
         logger_1.default.info('Client case details fetched successfully', { clientId, caseId: id });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 case: caseDetails,
@@ -225,7 +225,7 @@ const getClientCaseDetails = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching client case details', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CLIENT_CASE_DETAILS_ERROR',

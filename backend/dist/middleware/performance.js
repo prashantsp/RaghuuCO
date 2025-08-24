@@ -94,7 +94,7 @@ const requestSizeLimit = (limit = '10mb') => {
                 }
             });
         }
-        next();
+        return next();
     };
 };
 exports.requestSizeLimit = requestSizeLimit;
@@ -138,7 +138,7 @@ const queryOptimization = (req, res, next) => {
             });
         }
     }
-    next();
+    return next();
 };
 exports.queryOptimization = queryOptimization;
 const responseOptimization = (req, res, next) => {

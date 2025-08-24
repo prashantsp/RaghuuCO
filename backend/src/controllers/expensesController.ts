@@ -325,10 +325,10 @@ export const getMonthlyExpenseTotals = async (req: AuthenticatedRequest, res: Re
 
     const result = await expensesService.getMonthlyExpenseTotals(startDate as string || '', endDate as string || '');
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting monthly expense totals', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'MONTHLY_EXPENSE_TOTALS_ERROR',
@@ -352,10 +352,10 @@ export const getCaseExpenseTotals = async (req: AuthenticatedRequest, res: Respo
 
     const result = await expensesService.getCaseExpenseTotals(caseId);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting case expense totals', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CASE_EXPENSE_TOTALS_ERROR',
@@ -379,10 +379,10 @@ export const getClientExpenseTotals = async (req: AuthenticatedRequest, res: Res
 
     const result = await expensesService.getClientExpenseTotals(clientId);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting client expense totals', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_EXPENSE_TOTALS_ERROR',
@@ -420,10 +420,10 @@ export const searchExpenses = async (req: AuthenticatedRequest, res: Response) =
       parseInt(offset as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error searching expenses', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'EXPENSE_SEARCH_ERROR',

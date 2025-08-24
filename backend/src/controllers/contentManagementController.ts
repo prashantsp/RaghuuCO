@@ -235,10 +235,10 @@ export const searchArticles = async (req: Request, res: Response) => {
       parseInt(offset as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error searching articles', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'ARTICLE_SEARCH_ERROR',

@@ -67,7 +67,7 @@ export const registerClientUser = async (req: Request, res: Response) => {
 
     logger.businessEvent('client_portal_user_registered', 'client_portal_user', clientUser.id, null);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { 
         user: {
@@ -80,7 +80,7 @@ export const registerClientUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error registering client portal user', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_REGISTRATION_ERROR',
@@ -173,7 +173,7 @@ export const loginClientUser = async (req: Request, res: Response) => {
 
     logger.businessEvent('client_portal_user_logged_in', 'client_portal_user', user.id, null);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -189,7 +189,7 @@ export const loginClientUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error logging in client portal user', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_LOGIN_ERROR',
@@ -300,7 +300,7 @@ export const getClientCaseDetails = async (req: Request, res: Response) => {
 
     logger.info('Client case details fetched successfully', { clientId, caseId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         case: caseDetails,
@@ -310,7 +310,7 @@ export const getClientCaseDetails = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching client case details', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_CASE_DETAILS_ERROR',

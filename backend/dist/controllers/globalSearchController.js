@@ -21,11 +21,11 @@ const globalSearch = async (req, res) => {
         const entityTypesArray = entityTypes ? entityTypes.split(',') : [];
         logger_1.default.info('Performing global search', { query: q, entityTypes: entityTypesArray });
         const result = await globalSearchService_1.globalSearchService.globalSearch(q, entityTypesArray, parseInt(limit), parseInt(offset));
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error performing global search', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'GLOBAL_SEARCH_ERROR',
@@ -49,11 +49,11 @@ const getSearchSuggestions = async (req, res) => {
         }
         logger_1.default.info('Getting search suggestions', { query: q, limit });
         const result = await globalSearchService_1.globalSearchService.getSearchSuggestions(q, parseInt(limit));
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error getting search suggestions', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'SEARCH_SUGGESTIONS_ERROR',

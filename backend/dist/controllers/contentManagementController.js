@@ -156,11 +156,11 @@ const searchArticles = async (req, res) => {
         }
         logger_1.default.info('Searching articles', { query: q, limit, offset });
         const result = await contentManagementService_1.contentManagementService.searchArticles(q, parseInt(limit), parseInt(offset));
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error searching articles', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'ARTICLE_SEARCH_ERROR',
