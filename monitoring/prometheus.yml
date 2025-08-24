@@ -1,0 +1,459 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'raghuuco-legal-system'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Backend API
+  - job_name: 'backend-api'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Frontend Application
+  - job_name: 'frontend-app'
+    static_configs:
+      - targets: ['frontend:80']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/nginx_status'
+    scrape_interval: 15s
+
+  # Elasticsearch
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: '/_prometheus/metrics'
+    scrape_interval: 30s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # Docker Metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['docker-exporter:9323']
+    scrape_interval: 15s
+
+  # Application Health Checks
+  - job_name: 'health-checks'
+    static_configs:
+      - targets: 
+        - 'backend:3001'
+        - 'frontend:80'
+        - 'nginx:80'
+        - 'postgres:5432'
+        - 'redis:6379'
+    metrics_path: '/health'
+    scrape_interval: 30s
+
+  # Custom Application Metrics
+  - job_name: 'application-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/metrics'
+    scrape_interval: 15s
+    params:
+      format: ['prometheus']
+
+  # Business Metrics
+  - job_name: 'business-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/analytics/metrics'
+    scrape_interval: 60s
+
+  # Security Metrics
+  - job_name: 'security-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/security/metrics'
+    scrape_interval: 30s
+
+  # Performance Metrics
+  - job_name: 'performance-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/performance/metrics'
+    scrape_interval: 15s
+
+  # User Activity Metrics
+  - job_name: 'user-activity'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/analytics/user-activity'
+    scrape_interval: 60s
+
+  # Database Performance
+  - job_name: 'database-performance'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics/database'
+    scrape_interval: 30s
+
+  # Cache Performance
+  - job_name: 'cache-performance'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics/cache'
+    scrape_interval: 15s
+
+  # API Endpoint Metrics
+  - job_name: 'api-endpoints'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/metrics/endpoints'
+    scrape_interval: 30s
+
+  # Error Rate Monitoring
+  - job_name: 'error-rates'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/metrics/errors'
+    scrape_interval: 15s
+
+  # Response Time Monitoring
+  - job_name: 'response-times'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/metrics/response-times'
+    scrape_interval: 15s
+
+  # Authentication Metrics
+  - job_name: 'auth-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/auth/metrics'
+    scrape_interval: 30s
+
+  # Document Management Metrics
+  - job_name: 'document-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/documents/metrics'
+    scrape_interval: 60s
+
+  # Case Management Metrics
+  - job_name: 'case-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/cases/metrics'
+    scrape_interval: 60s
+
+  # Billing Metrics
+  - job_name: 'billing-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/billing/metrics'
+    scrape_interval: 60s
+
+  # Time Tracking Metrics
+  - job_name: 'time-tracking-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/time-tracking/metrics'
+    scrape_interval: 60s
+
+  # Client Portal Metrics
+  - job_name: 'client-portal-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/client-portal/metrics'
+    scrape_interval: 60s
+
+  # Machine Learning Metrics
+  - job_name: 'ml-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/ml/metrics'
+    scrape_interval: 120s
+
+  # Search Analytics
+  - job_name: 'search-analytics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/search/metrics'
+    scrape_interval: 60s
+
+  # User Experience Metrics
+  - job_name: 'ux-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/ux/metrics'
+    scrape_interval: 60s
+
+  # Offline Sync Metrics
+  - job_name: 'offline-sync-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/api/offline/metrics'
+    scrape_interval: 120s
+
+  # Backup Metrics
+  - job_name: 'backup-metrics'
+    static_configs:
+      - targets: ['backup:5432']
+    metrics_path: '/metrics/backup'
+    scrape_interval: 300s
+
+  # SSL Certificate Metrics
+  - job_name: 'ssl-metrics'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/metrics/ssl'
+    scrape_interval: 3600s
+
+  # Rate Limiting Metrics
+  - job_name: 'rate-limit-metrics'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/metrics/rate-limit'
+    scrape_interval: 30s
+
+  # Security Scanner Metrics
+  - job_name: 'security-scanner'
+    static_configs:
+      - targets: ['security-scanner:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 3600s
+
+  # Performance Testing Metrics
+  - job_name: 'k6-performance'
+    static_configs:
+      - targets: ['k6:6565']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+# Recording Rules
+recording_rules:
+  - name: 'raghuuco_application_uptime'
+    expr: 'up{job=~"backend-api|frontend-app"}'
+    labels:
+      service: 'application'
+
+  - name: 'raghuuco_database_uptime'
+    expr: 'up{job="postgres"}'
+    labels:
+      service: 'database'
+
+  - name: 'raghuuco_cache_uptime'
+    expr: 'up{job="redis"}'
+    labels:
+      service: 'cache'
+
+  - name: 'raghuuco_api_response_time_avg'
+    expr: 'avg(http_request_duration_seconds{job="backend-api"})'
+    labels:
+      service: 'api'
+
+  - name: 'raghuuco_api_error_rate'
+    expr: 'rate(http_requests_total{job="backend-api",status=~"5.."}[5m]) / rate(http_requests_total{job="backend-api"}[5m])'
+    labels:
+      service: 'api'
+
+  - name: 'raghuuco_database_connections'
+    expr: 'pg_stat_database_numbackends{job="postgres"}'
+    labels:
+      service: 'database'
+
+  - name: 'raghuuco_cache_hit_rate'
+    expr: 'redis_keyspace_hits{job="redis"} / (redis_keyspace_hits{job="redis"} + redis_keyspace_misses{job="redis"})'
+    labels:
+      service: 'cache'
+
+  - name: 'raghuuco_active_users'
+    expr: 'sum(active_users_total{job="application-metrics"})'
+    labels:
+      service: 'application'
+
+  - name: 'raghuuco_total_cases'
+    expr: 'sum(cases_total{job="case-metrics"})'
+    labels:
+      service: 'application'
+
+  - name: 'raghuuco_total_clients'
+    expr: 'sum(clients_total{job="application-metrics"})'
+    labels:
+      service: 'application'
+
+  - name: 'raghuuco_monthly_revenue'
+    expr: 'sum(revenue_total{job="billing-metrics"})'
+    labels:
+      service: 'application'
+
+# Alerting Rules
+alerting_rules:
+  - name: 'HighErrorRate'
+    expr: 'rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05'
+    for: 2m
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'High error rate detected'
+      description: 'Error rate is {{ $value }}%'
+
+  - name: 'HighResponseTime'
+    expr: 'histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'High response time detected'
+      description: '95th percentile response time is {{ $value }}s'
+
+  - name: 'DatabaseDown'
+    expr: 'up{job="postgres"} == 0'
+    for: 1m
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'Database is down'
+      description: 'PostgreSQL database is not responding'
+
+  - name: 'CacheDown'
+    expr: 'up{job="redis"} == 0'
+    for: 1m
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'Cache is down'
+      description: 'Redis cache is not responding'
+
+  - name: 'HighDatabaseConnections'
+    expr: 'pg_stat_database_numbackends > 80'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'High database connections'
+      description: 'Database has {{ $value }} active connections'
+
+  - name: 'LowCacheHitRate'
+    expr: 'redis_keyspace_hits / (redis_keyspace_hits + redis_keyspace_misses) < 0.8'
+    for: 10m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'Low cache hit rate'
+      description: 'Cache hit rate is {{ $value }}%'
+
+  - name: 'HighMemoryUsage'
+    expr: '(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'High memory usage'
+      description: 'Memory usage is {{ $value }}%'
+
+  - name: 'HighDiskUsage'
+    expr: '(node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes > 0.9'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'High disk usage'
+      description: 'Disk usage is {{ $value }}%'
+
+  - name: 'SSLExpiringSoon'
+    expr: 'ssl_certificate_expiry_seconds < 86400 * 30'
+    for: 1h
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'SSL certificate expiring soon'
+      description: 'SSL certificate expires in {{ $value }} seconds'
+
+  - name: 'BackupFailed'
+    expr: 'backup_last_success_timestamp < time() - 86400'
+    for: 1h
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'Backup failed'
+      description: 'No successful backup in the last 24 hours'
+
+  - name: 'SecurityVulnerabilityDetected'
+    expr: 'security_vulnerabilities_total > 0'
+    for: 1m
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'Security vulnerability detected'
+      description: '{{ $value }} security vulnerabilities found'
+
+  - name: 'RateLimitExceeded'
+    expr: 'rate_limit_exceeded_total > 10'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'Rate limit exceeded'
+      description: 'Rate limit exceeded {{ $value }} times in 5 minutes'
+
+  - name: 'ApplicationDown'
+    expr: 'up{job=~"backend-api|frontend-app"} == 0'
+    for: 2m
+    labels:
+      severity: 'critical'
+    annotations:
+      summary: 'Application is down'
+      description: 'Application services are not responding'
+
+  - name: 'HighCPUUsage'
+    expr: '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'High CPU usage'
+      description: 'CPU usage is {{ $value }}%'
+
+  - name: 'NetworkErrors'
+    expr: 'rate(node_network_receive_errs_total[5m]) + rate(node_network_transmit_errs_total[5m]) > 10'
+    for: 5m
+    labels:
+      severity: 'warning'
+    annotations:
+      summary: 'Network errors detected'
+      description: 'Network error rate is {{ $value }} errors/second'
