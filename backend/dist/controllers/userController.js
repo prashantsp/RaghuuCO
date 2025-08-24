@@ -136,6 +136,16 @@ async function getUserById(req, res) {
             });
             return;
         }
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_USER_ID',
+                    message: 'User ID is required'
+                }
+            });
+            return;
+        }
         const user = await db.getUserById(id);
         if (!user) {
             res.status(404).json({
@@ -188,6 +198,16 @@ async function createUser(req, res) {
             });
             return;
         }
+        if (!email) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 'EMAIL_REQUIRED',
+                    message: 'Email is required'
+                }
+            });
+            return;
+        }
         const existingUser = await db.getUserByEmail(email);
         if (existingUser) {
             res.status(400).json({
@@ -234,6 +254,16 @@ async function updateUser(req, res) {
     try {
         const { id } = req.params;
         const { firstName, lastName, phone, role, isActive } = req.body;
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_USER_ID',
+                    message: 'User ID is required'
+                }
+            });
+            return;
+        }
         if (req.user?.id !== id && !(0, roleAccess_1.hasPermission)(req.user?.role, 'user:update')) {
             res.status(403).json({
                 success: false,
@@ -301,6 +331,16 @@ async function updateUser(req, res) {
 async function deleteUser(req, res) {
     try {
         const { id } = req.params;
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_USER_ID',
+                    message: 'User ID is required'
+                }
+            });
+            return;
+        }
         if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'user:delete')) {
             res.status(403).json({
                 success: false,
@@ -367,6 +407,16 @@ async function getUserActivity(req, res) {
     try {
         const { id } = req.params;
         const { days = 30 } = req.query;
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_USER_ID',
+                    message: 'User ID is required'
+                }
+            });
+            return;
+        }
         if (req.user?.id !== id && !(0, roleAccess_1.hasPermission)(req.user?.role, 'user:read')) {
             res.status(403).json({
                 success: false,
@@ -429,8 +479,19 @@ async function getUserActivity(req, res) {
 }
 async function getAssignableRoles(req, res) {
     try {
+        const userRole = req.user?.role;
+        if (!userRole) {
+            res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User role is required'
+                }
+            });
+            return;
+        }
         const { getAssignableRoles } = await Promise.resolve().then(() => __importStar(require('@/utils/roleAccess')));
-        const assignableRoles = getAssignableRoles(req.user?.role);
+        const assignableRoles = getAssignableRoles(userRole);
         res.json({
             success: true,
             data: { roles: assignableRoles }

@@ -138,6 +138,17 @@ export async function getUserById(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+
     const user = await db.getUserById(id);
     
     if (!user) {
@@ -206,6 +217,17 @@ export async function createUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'EMAIL_REQUIRED',
+          message: 'Email is required'
+        }
+      });
+      return;
+    }
+
     // Check if email already exists
     const existingUser = await db.getUserByEmail(email);
     if (existingUser) {
@@ -268,6 +290,17 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const { firstName, lastName, phone, role, isActive } = req.body;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+
     // Check permissions - users can update their own profile or if they have user:update permission
     if ((req.user as any)?.id !== id && !hasPermission((req.user as any)?.role as UserRole, 'user:update')) {
       res.status(403).json({
@@ -348,6 +381,17 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
 export async function deleteUser(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
     
     // Check permissions
     if (!hasPermission((req.user as any)?.role as UserRole, 'user:delete')) {
@@ -433,6 +477,17 @@ export async function getUserActivity(req: Request, res: Response): Promise<void
     const { id } = req.params;
     const { days = 30 } = req.query;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
     if ((req.user as any)?.id !== id && !hasPermission((req.user as any)?.role as UserRole, 'user:read')) {
       res.status(403).json({
@@ -510,8 +565,20 @@ export async function getUserActivity(req: Request, res: Response): Promise<void
  */
 export async function getAssignableRoles(req: Request, res: Response): Promise<void> {
   try {
+    const userRole = (req.user as any)?.role as UserRole;
+    if (!userRole) {
+      res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User role is required'
+        }
+      });
+      return;
+    }
+
     const { getAssignableRoles } = await import('@/utils/roleAccess');
-          const assignableRoles = getAssignableRoles((req.user as any)?.role as UserRole);
+    const assignableRoles = getAssignableRoles(userRole);
 
     res.json({
       success: true,
