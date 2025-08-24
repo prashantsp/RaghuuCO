@@ -623,6 +623,6 @@ For questions or clarifications about this guide, please contact the Change Mana
 **Document Control:**
 - **Version:** 1.0.0
 - **Last Updated:** August 24, 2025
-- **Next Review:** November 24, 2025
+- **Next Review**: October 15, 2025
 - **Approved By:** CTO
 - **Distribution:** Development Team, Operations Team, Stakeholders

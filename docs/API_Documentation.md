@@ -1553,7 +1553,7 @@ curl -X POST https://api.raghuuco.com/v1/billing/invoices/invoice_123/send \
 
 **Document Version**: 1.0  
 **Last Updated**: August 24, 2025  
-**Next Review**: February 15, 2025
+**Next Review**: October 15, 2025
 
 **API Version**: v1  
 **Base URL**: https://api.raghuuco.com/v1  

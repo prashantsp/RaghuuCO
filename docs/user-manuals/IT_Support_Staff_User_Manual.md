@@ -675,6 +675,6 @@ For additional support or questions, please contact the support team or refer to
 **Document Control:**
 - **Version:** 1.0.0
 - **Last Updated:** August 24, 2025
-- **Next Review:** November 24, 2025
+- **Next Review**: October 15, 2025
 - **Approved By:** IT Management Team
 - **Distribution:** IT Support Staff, Technical Team
