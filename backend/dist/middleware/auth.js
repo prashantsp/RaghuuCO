@@ -17,9 +17,9 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const roleAccess_1 = require("@/utils/roleAccess");
 const logger_1 = __importDefault(require("@/utils/logger"));
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '3600';
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '604800';
+const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
+const JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN'] || '3600';
+const REFRESH_TOKEN_EXPIRES_IN = process.env['REFRESH_TOKEN_EXPIRES_IN'] || '604800';
 async function generateAccessToken(userId, email, role) {
     try {
         const payload = {

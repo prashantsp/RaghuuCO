@@ -57,19 +57,19 @@ interface JWTPayload {
 /**
  * JWT secret key from environment variables
  */
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
 
 /**
  * JWT token expiration time in seconds
  * @default 3600 (1 hour)
  */
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '3600';
+const JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN'] || '3600';
 
 /**
  * Refresh token expiration time in seconds
  * @default 604800 (7 days)
  */
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '604800';
+const REFRESH_TOKEN_EXPIRES_IN = process.env['REFRESH_TOKEN_EXPIRES_IN'] || '604800';
 
 /**
  * Generates a JWT access token for a user
