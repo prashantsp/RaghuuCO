@@ -1,0 +1,30 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const roleAccess_1 = require("@/utils/roleAccess");
+const contentManagementController_1 = __importDefault(require("@/controllers/contentManagementController"));
+const router = (0, express_1.Router)();
+router.post('/categories', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.CREATE_CONTENT), contentManagementController_1.default.createCategory);
+router.get('/categories', contentManagementController_1.default.getCategories);
+router.get('/categories/hierarchical', contentManagementController_1.default.getHierarchicalCategories);
+router.post('/articles', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.CREATE_CONTENT), contentManagementController_1.default.createArticle);
+router.get('/articles', contentManagementController_1.default.getPublishedArticles);
+router.get('/articles/search', contentManagementController_1.default.searchArticles);
+router.get('/articles/featured', contentManagementController_1.default.getFeaturedArticles);
+router.get('/articles/:id', contentManagementController_1.default.getArticleById);
+router.get('/articles/slug/:slug', contentManagementController_1.default.getArticleBySlug);
+router.get('/articles/:id/comments', contentManagementController_1.default.getArticleComments);
+router.post('/articles/:id/comments', contentManagementController_1.default.createComment);
+router.post('/newsletters', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.CREATE_CONTENT), contentManagementController_1.default.createNewsletter);
+router.get('/newsletters', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.VIEW_CONTENT), contentManagementController_1.default.getNewsletters);
+router.post('/newsletters/subscribe', contentManagementController_1.default.subscribeToNewsletter);
+router.post('/newsletters/unsubscribe', contentManagementController_1.default.unsubscribeFromNewsletter);
+router.get('/newsletters/stats', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.VIEW_CONTENT), contentManagementController_1.default.getNewsletterStats);
+router.post('/analytics', contentManagementController_1.default.trackContentAnalytics);
+router.get('/analytics/:contentType/:contentId', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.VIEW_CONTENT), contentManagementController_1.default.getContentStats);
+exports.default = router;
+//# sourceMappingURL=contentManagementRoutes.js.map

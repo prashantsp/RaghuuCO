@@ -1,0 +1,31 @@
+import { Request, Response } from 'express';
+export declare const createExpense: (req: Request, res: Response) => Promise<void>;
+export declare const getExpenseById: (req: Request, res: Response) => Promise<void>;
+export declare const getExpenses: (req: Request, res: Response) => Promise<void>;
+export declare const getExpensesByCase: (req: Request, res: Response) => Promise<void>;
+export declare const getExpensesByClient: (req: Request, res: Response) => Promise<void>;
+export declare const updateExpense: (req: Request, res: Response) => Promise<void>;
+export declare const deleteExpense: (req: Request, res: Response) => Promise<void>;
+export declare const approveExpense: (req: Request, res: Response) => Promise<void>;
+export declare const getExpenseCategories: (req: Request, res: Response) => Promise<void>;
+export declare const getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<any>;
+export declare const getCaseExpenseTotals: (req: Request, res: Response) => Promise<void>;
+export declare const getClientExpenseTotals: (req: Request, res: Response) => Promise<void>;
+export declare const searchExpenses: (req: Request, res: Response) => Promise<any>;
+declare const _default: {
+    createExpense: (req: Request, res: Response) => Promise<void>;
+    getExpenseById: (req: Request, res: Response) => Promise<void>;
+    getExpenses: (req: Request, res: Response) => Promise<void>;
+    getExpensesByCase: (req: Request, res: Response) => Promise<void>;
+    getExpensesByClient: (req: Request, res: Response) => Promise<void>;
+    updateExpense: (req: Request, res: Response) => Promise<void>;
+    deleteExpense: (req: Request, res: Response) => Promise<void>;
+    approveExpense: (req: Request, res: Response) => Promise<void>;
+    getExpenseCategories: (req: Request, res: Response) => Promise<void>;
+    getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<any>;
+    getCaseExpenseTotals: (req: Request, res: Response) => Promise<void>;
+    getClientExpenseTotals: (req: Request, res: Response) => Promise<void>;
+    searchExpenses: (req: Request, res: Response) => Promise<any>;
+};
+export default _default;
+//# sourceMappingURL=expensesController.d.ts.map

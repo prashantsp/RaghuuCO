@@ -1,0 +1,31 @@
+import { Request, Response } from 'express';
+export declare const getReports: (req: Request, res: Response) => Promise<void>;
+export declare const getReportById: (req: Request, res: Response) => Promise<any>;
+export declare const createReport: (req: Request, res: Response) => Promise<void>;
+export declare const updateReport: (req: Request, res: Response) => Promise<void>;
+export declare const deleteReport: (req: Request, res: Response) => Promise<any>;
+export declare const executeReport: (req: Request, res: Response) => Promise<any>;
+export declare const getReportExecutions: (req: Request, res: Response) => Promise<void>;
+export declare const trackAnalyticsEvent: (req: Request, res: Response) => Promise<void>;
+export declare const getAnalyticsSummary: (req: Request, res: Response) => Promise<void>;
+export declare const recordPerformanceMetric: (req: Request, res: Response) => Promise<void>;
+export declare const getPerformanceMetrics: (req: Request, res: Response) => Promise<void>;
+export declare const recordBusinessMetric: (req: Request, res: Response) => Promise<void>;
+export declare const getBusinessMetrics: (req: Request, res: Response) => Promise<void>;
+declare const _default: {
+    getReports: (req: Request, res: Response) => Promise<void>;
+    getReportById: (req: Request, res: Response) => Promise<any>;
+    createReport: (req: Request, res: Response) => Promise<void>;
+    updateReport: (req: Request, res: Response) => Promise<void>;
+    deleteReport: (req: Request, res: Response) => Promise<any>;
+    executeReport: (req: Request, res: Response) => Promise<any>;
+    getReportExecutions: (req: Request, res: Response) => Promise<void>;
+    trackAnalyticsEvent: (req: Request, res: Response) => Promise<void>;
+    getAnalyticsSummary: (req: Request, res: Response) => Promise<void>;
+    recordPerformanceMetric: (req: Request, res: Response) => Promise<void>;
+    getPerformanceMetrics: (req: Request, res: Response) => Promise<void>;
+    recordBusinessMetric: (req: Request, res: Response) => Promise<void>;
+    getBusinessMetrics: (req: Request, res: Response) => Promise<void>;
+};
+export default _default;
+//# sourceMappingURL=reportingController.d.ts.map

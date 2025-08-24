@@ -11,7 +11,7 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -104,7 +104,6 @@ export class PaymentService {
     } catch (error) {
       logger.error('Error verifying Razorpay payment', error as Error);
       throw new Error('Failed to verify payment');
-    }
     }
   }
 
