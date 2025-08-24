@@ -2789,6 +2789,521 @@ export const SQLQueries = {
       GROUP BY u.id, u.first_name, u.last_name
       ORDER BY total_hours DESC
     `
+  },
+
+  /**
+   * Support Ticket Queries
+   * Contains all SQL operations related to support ticket management
+   */
+  SUPPORT: {
+    CREATE_TICKET: `
+      INSERT INTO support_tickets (
+        id, user_id, subject, description, priority, status, category,
+        assigned_to, created_at, updated_at, attachments, tags, internal_notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `,
+
+    GET_TICKET_BY_ID: `
+      SELECT * FROM support_tickets WHERE id = $1
+    `,
+
+    GET_USER_TICKETS: `
+      SELECT * FROM support_tickets WHERE user_id = $1
+    `,
+
+    GET_ALL_TICKETS: `
+      SELECT * FROM support_tickets
+    `,
+
+    UPDATE_TICKET_STATUS: `
+      UPDATE support_tickets
+      SET status = $2, updated_at = $3, resolved_at = $4
+      WHERE id = $1
+      RETURNING *
+    `,
+
+    ASSIGN_TICKET: `
+      UPDATE support_tickets
+      SET assigned_to = $2, updated_at = $3
+      WHERE id = $1
+      RETURNING *
+    `,
+
+    ADD_COMMENT: `
+      INSERT INTO ticket_comments (
+        id, ticket_id, user_id, comment, is_internal, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `,
+
+    GET_TICKET_COMMENTS: `
+      SELECT * FROM ticket_comments 
+      WHERE ticket_id = $1 
+      ORDER BY created_at ASC
+    `,
+
+    RESOLVE_TICKET: `
+      UPDATE support_tickets
+      SET status = $2, resolution = $3, resolved_at = $4, updated_at = $5
+      WHERE id = $1
+      RETURNING *
+    `,
+
+    RATE_TICKET_SATISFACTION: `
+      UPDATE support_tickets
+      SET user_satisfaction = $2, updated_at = $3
+      WHERE id = $1
+      RETURNING *
+    `,
+
+    GET_TICKET_STATISTICS: `
+      SELECT 
+        COUNT(*) as total_tickets,
+        COUNT(CASE WHEN status IN ('open', 'in-progress') THEN 1 END) as open_tickets,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_tickets,
+        AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_time,
+        AVG(user_satisfaction) as avg_satisfaction,
+        json_object_agg(priority, priority_count) as tickets_by_priority,
+        json_object_agg(category, category_count) as tickets_by_category,
+        json_object_agg(status, status_count) as tickets_by_status
+      FROM (
+        SELECT 
+          priority,
+          category,
+          status,
+          COUNT(*) OVER (PARTITION BY priority) as priority_count,
+          COUNT(*) OVER (PARTITION BY category) as category_count,
+          COUNT(*) OVER (PARTITION BY status) as status_count
+        FROM support_tickets
+        WHERE created_at BETWEEN $1 AND $2
+        AND ($3 IS NULL OR category = $3)
+      ) stats
+    `,
+
+    GET_TICKETS_BY_ASSIGNEE: `
+      SELECT * FROM support_tickets 
+      WHERE assigned_to = $1
+      ORDER BY created_at DESC
+    `,
+
+    GET_ESCALATED_TICKETS: `
+      SELECT * FROM support_tickets 
+      WHERE status = 'escalated'
+      ORDER BY created_at ASC
+    `,
+
+    GET_TICKETS_BY_PRIORITY: `
+      SELECT * FROM support_tickets 
+      WHERE priority = $1
+      ORDER BY created_at DESC
+    `,
+
+    GET_TICKETS_BY_CATEGORY: `
+      SELECT * FROM support_tickets 
+      WHERE category = $1
+      ORDER BY created_at DESC
+    `,
+
+    SEARCH_TICKETS: `
+      SELECT * FROM support_tickets 
+      WHERE 
+        subject ILIKE $1 OR 
+        description ILIKE $1 OR 
+        id ILIKE $1
+      ORDER BY created_at DESC
+    `,
+
+    GET_TICKET_HISTORY: `
+      SELECT 
+        'status_change' as change_type,
+        status as new_value,
+        updated_at as change_date,
+        assigned_to as changed_by
+      FROM support_tickets
+      WHERE id = $1
+      UNION ALL
+      SELECT 
+        'comment' as change_type,
+        comment as new_value,
+        created_at as change_date,
+        user_id as changed_by
+      FROM ticket_comments
+      WHERE ticket_id = $1
+      ORDER BY change_date ASC
+    `,
+
+    GET_SUPPORT_METRICS: `
+      SELECT 
+        COUNT(*) as total_tickets,
+        COUNT(CASE WHEN status = 'open' THEN 1 END) as open_tickets,
+        COUNT(CASE WHEN status = 'in-progress' THEN 1 END) as in_progress_tickets,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_tickets,
+        COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_tickets,
+        AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_hours,
+        AVG(user_satisfaction) as avg_satisfaction_score,
+        COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_tickets,
+        COUNT(CASE WHEN priority = 'high' THEN 1 END) as high_priority_tickets
+      FROM support_tickets
+      WHERE created_at >= $1
+    `,
+
+    GET_ASSIGNEE_WORKLOAD: `
+      SELECT 
+        assigned_to,
+        COUNT(*) as total_assigned,
+        COUNT(CASE WHEN status IN ('open', 'in-progress') THEN 1 END) as active_tickets,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_tickets,
+        AVG(user_satisfaction) as avg_satisfaction
+      FROM support_tickets
+      WHERE assigned_to IS NOT NULL
+      GROUP BY assigned_to
+      ORDER BY active_tickets DESC
+    `,
+
+    GET_CATEGORY_PERFORMANCE: `
+      SELECT 
+        category,
+        COUNT(*) as total_tickets,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_tickets,
+        AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_hours,
+        AVG(user_satisfaction) as avg_satisfaction
+      FROM support_tickets
+      WHERE created_at >= $1
+      GROUP BY category
+      ORDER BY total_tickets DESC
+    `,
+
+    GET_PRIORITY_PERFORMANCE: `
+      SELECT 
+        priority,
+        COUNT(*) as total_tickets,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_tickets,
+        AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_hours,
+        AVG(user_satisfaction) as avg_satisfaction
+      FROM support_tickets
+      WHERE created_at >= $1
+      GROUP BY priority
+      ORDER BY 
+        CASE priority 
+          WHEN 'critical' THEN 1 
+          WHEN 'high' THEN 2 
+          WHEN 'medium' THEN 3 
+          WHEN 'low' THEN 4 
+        END
+    `,
+
+    GET_TICKET_TRENDS: `
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as tickets_created,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as tickets_resolved,
+        AVG(user_satisfaction) as avg_satisfaction
+      FROM support_tickets
+      WHERE created_at >= $1
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+    `,
+
+    GET_SLOW_RESOLUTION_TICKETS: `
+      SELECT * FROM support_tickets
+      WHERE status IN ('open', 'in-progress')
+      AND created_at < NOW() - INTERVAL '24 hours'
+      ORDER BY created_at ASC
+    `,
+
+    GET_UNASSIGNED_TICKETS: `
+      SELECT * FROM support_tickets
+      WHERE assigned_to IS NULL
+      AND status IN ('open', 'in-progress')
+      ORDER BY 
+        CASE priority 
+          WHEN 'critical' THEN 1 
+          WHEN 'high' THEN 2 
+          WHEN 'medium' THEN 3 
+          WHEN 'low' THEN 4 
+        END,
+        created_at ASC
+    `,
+
+    GET_USER_TICKET_HISTORY: `
+      SELECT 
+        id,
+        subject,
+        status,
+        priority,
+        category,
+        created_at,
+        resolved_at,
+        user_satisfaction
+      FROM support_tickets
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+
+    GET_TICKET_ANALYTICS: `
+      SELECT 
+        EXTRACT(DOW FROM created_at) as day_of_week,
+        EXTRACT(HOUR FROM created_at) as hour_of_day,
+        COUNT(*) as ticket_count,
+        AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_time
+      FROM support_tickets
+      WHERE created_at >= $1
+      GROUP BY EXTRACT(DOW FROM created_at), EXTRACT(HOUR FROM created_at)
+      ORDER BY day_of_week, hour_of_day
+    `
+  },
+
+  /**
+   * User Feedback Queries
+   * Contains all SQL operations related to user feedback collection and analysis
+   */
+  FEEDBACK: {
+    SUBMIT_FEEDBACK: `
+      INSERT INTO user_feedback (
+        id, user_id, feature, rating, comment, category, status, timestamp,
+        priority, tags, attachments, user_agent, browser, device, location, session_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *
+    `,
+
+    GET_FEEDBACK_BY_ID: `
+      SELECT * FROM user_feedback WHERE id = $1
+    `,
+
+    GET_USER_FEEDBACK: `
+      SELECT * FROM user_feedback WHERE user_id = $1
+    `,
+
+    GET_ALL_FEEDBACK: `
+      SELECT * FROM user_feedback
+    `,
+
+    UPDATE_FEEDBACK_STATUS: `
+      UPDATE user_feedback
+      SET status = $2, reviewed_by = $3, reviewed_at = $4, response = $5
+      WHERE id = $1
+      RETURNING *
+    `,
+
+    GET_FEEDBACK_STATISTICS: `
+      SELECT 
+        COUNT(*) as total_feedback,
+        AVG(rating) as avg_rating,
+        json_object_agg(category, category_count) as feedback_by_category,
+        json_object_agg(status, status_count) as feedback_by_status,
+        json_object_agg(priority, priority_count) as feedback_by_priority,
+        COUNT(CASE WHEN timestamp >= NOW() - INTERVAL '7 days' THEN 1 END) as recent_feedback,
+        AVG(rating) - LAG(AVG(rating)) OVER (ORDER BY DATE(timestamp)) as satisfaction_trend,
+        json_agg(
+          json_build_object(
+            'feature', feature,
+            'rating', AVG(rating),
+            'count', COUNT(*)
+          ) ORDER BY COUNT(*) DESC LIMIT 10
+        ) as top_features,
+        json_agg(
+          json_build_object(
+            'category', category,
+            'count', COUNT(*),
+            'avgRating', AVG(rating)
+          ) ORDER BY COUNT(*) DESC LIMIT 10
+        ) as top_issues
+      FROM (
+        SELECT 
+          category,
+          status,
+          priority,
+          feature,
+          rating,
+          timestamp,
+          COUNT(*) OVER (PARTITION BY category) as category_count,
+          COUNT(*) OVER (PARTITION BY status) as status_count,
+          COUNT(*) OVER (PARTITION BY priority) as priority_count
+        FROM user_feedback
+        WHERE timestamp BETWEEN $1 AND $2
+        AND ($3 IS NULL OR category = $3)
+      ) stats
+    `,
+
+    SEARCH_FEEDBACK: `
+      SELECT * FROM user_feedback 
+      WHERE 
+        feature ILIKE $1 OR 
+        comment ILIKE $1 OR 
+        id ILIKE $1
+      ORDER BY timestamp DESC
+    `,
+
+    GET_FEEDBACK_TRENDS: `
+      SELECT 
+        DATE(timestamp) as date,
+        COUNT(*) as feedback_count,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN category = 'bug' THEN 1 END) as bug_count,
+        COUNT(CASE WHEN category = 'feature' THEN 1 END) as feature_count,
+        COUNT(CASE WHEN category = 'improvement' THEN 1 END) as improvement_count
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY DATE(timestamp)
+      ORDER BY date DESC
+    `,
+
+    GET_FEATURE_FEEDBACK: `
+      SELECT * FROM user_feedback 
+      WHERE feature = $1
+      ORDER BY timestamp DESC
+    `,
+
+    GET_FEEDBACK_ANALYTICS: `
+      SELECT 
+        EXTRACT(DOW FROM timestamp) as day_of_week,
+        EXTRACT(HOUR FROM timestamp) as hour_of_day,
+        COUNT(*) as feedback_count,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN priority = 'high' THEN 1 END) as high_priority_count,
+        COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_count
+      FROM user_feedback
+      WHERE timestamp BETWEEN $1 AND $2
+      AND ($3 IS NULL OR category = $3)
+      GROUP BY EXTRACT(DOW FROM timestamp), EXTRACT(HOUR FROM timestamp)
+      ORDER BY day_of_week, hour_of_day
+    `,
+
+    GET_FEEDBACK_BY_CATEGORY: `
+      SELECT * FROM user_feedback 
+      WHERE category = $1
+      ORDER BY timestamp DESC
+    `,
+
+    GET_FEEDBACK_BY_STATUS: `
+      SELECT * FROM user_feedback 
+      WHERE status = $1
+      ORDER BY timestamp DESC
+    `,
+
+    GET_FEEDBACK_BY_PRIORITY: `
+      SELECT * FROM user_feedback 
+      WHERE priority = $1
+      ORDER BY timestamp DESC
+    `,
+
+    GET_HIGH_PRIORITY_FEEDBACK: `
+      SELECT * FROM user_feedback 
+      WHERE priority IN ('high', 'critical')
+      ORDER BY timestamp DESC
+    `,
+
+    GET_UNREVIEWED_FEEDBACK: `
+      SELECT * FROM user_feedback 
+      WHERE status = 'new'
+      ORDER BY timestamp ASC
+    `,
+
+    GET_FEEDBACK_SUMMARY: `
+      SELECT 
+        category,
+        COUNT(*) as total_count,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN status = 'implemented' THEN 1 END) as implemented_count,
+        COUNT(CASE WHEN status = 'declined' THEN 1 END) as declined_count
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY category
+      ORDER BY total_count DESC
+    `,
+
+    GET_USER_FEEDBACK_HISTORY: `
+      SELECT 
+        id,
+        feature,
+        rating,
+        category,
+        status,
+        timestamp,
+        response
+      FROM user_feedback
+      WHERE user_id = $1
+      ORDER BY timestamp DESC
+      LIMIT $2 OFFSET $3
+    `,
+
+    GET_FEEDBACK_PERFORMANCE: `
+      SELECT 
+        DATE(timestamp) as date,
+        COUNT(*) as total_feedback,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN status = 'implemented' THEN 1 END) as implemented_count,
+        COUNT(CASE WHEN status = 'declined' THEN 1 END) as declined_count,
+        AVG(EXTRACT(EPOCH FROM (reviewed_at - timestamp))/3600) as avg_response_time
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY DATE(timestamp)
+      ORDER BY date DESC
+    `,
+
+    GET_FEEDBACK_INSIGHTS: `
+      SELECT 
+        feature,
+        COUNT(*) as feedback_count,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN category = 'bug' THEN 1 END) as bug_count,
+        COUNT(CASE WHEN category = 'feature' THEN 1 END) as feature_count,
+        COUNT(CASE WHEN category = 'improvement' THEN 1 END) as improvement_count,
+        COUNT(CASE WHEN priority = 'high' THEN 1 END) as high_priority_count,
+        COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_count
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY feature
+      ORDER BY feedback_count DESC
+      LIMIT 20
+    `,
+
+    GET_FEEDBACK_SENTIMENT: `
+      SELECT 
+        CASE 
+          WHEN rating >= 4 THEN 'positive'
+          WHEN rating >= 3 THEN 'neutral'
+          ELSE 'negative'
+        END as sentiment,
+        COUNT(*) as count,
+        AVG(rating) as avg_rating
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY 
+        CASE 
+          WHEN rating >= 4 THEN 'positive'
+          WHEN rating >= 3 THEN 'neutral'
+          ELSE 'negative'
+        END
+      ORDER BY count DESC
+    `,
+
+    GET_FEEDBACK_RESPONSE_TIME: `
+      SELECT 
+        AVG(EXTRACT(EPOCH FROM (reviewed_at - timestamp))/3600) as avg_response_hours,
+        MIN(EXTRACT(EPOCH FROM (reviewed_at - timestamp))/3600) as min_response_hours,
+        MAX(EXTRACT(EPOCH FROM (reviewed_at - timestamp))/3600) as max_response_hours,
+        COUNT(*) as total_reviewed
+      FROM user_feedback
+      WHERE reviewed_at IS NOT NULL
+      AND timestamp >= $1
+    `,
+
+    GET_FEEDBACK_IMPACT: `
+      SELECT 
+        category,
+        COUNT(*) as total_feedback,
+        COUNT(CASE WHEN status = 'implemented' THEN 1 END) as implemented_count,
+        ROUND(
+          COUNT(CASE WHEN status = 'implemented' THEN 1 END) * 100.0 / COUNT(*), 2
+        ) as implementation_rate
+      FROM user_feedback
+      WHERE timestamp >= $1
+      GROUP BY category
+      ORDER BY implementation_rate DESC
+    `
   }
 };
 
