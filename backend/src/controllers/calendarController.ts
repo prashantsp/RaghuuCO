@@ -152,7 +152,7 @@ export const getCalendarEventById = async (req: Request, res: Response) => {
 
     logger.info('Calendar event fetched successfully', { userId, eventId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         event: {
@@ -276,7 +276,7 @@ export const createCalendarEvent = async (req: Request, res: Response) => {
 
     logger.businessEvent('calendar_event_created', 'calendar_event', event.id, userId);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { event }
     });
@@ -417,7 +417,7 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
 
     logger.businessEvent('calendar_event_updated', 'calendar_event', id || '', userId || '');
 
-    res.json({
+    return res.json({
       success: true,
       data: { event: updatedEvent }
     });
@@ -465,7 +465,7 @@ export const deleteCalendarEvent = async (req: Request, res: Response) => {
 
     logger.businessEvent('calendar_event_deleted', 'calendar_event', id || '', userId || '');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Calendar event deleted successfully'
     });
@@ -503,7 +503,7 @@ export const getUpcomingEvents = async (req: Request, res: Response) => {
 
     logger.info('Upcoming events fetched successfully', { userId, count: events.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: { events }
     });
@@ -553,7 +553,7 @@ export const checkSchedulingConflicts = async (req: Request, res: Response) => {
 
     logger.info('Scheduling conflicts checked', { userId, conflictsCount: conflicts.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: { 
         conflicts,

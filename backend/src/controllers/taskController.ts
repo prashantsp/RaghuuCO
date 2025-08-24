@@ -77,7 +77,7 @@ export const getTasks = async (req: Request, res: Response) => {
 
     logger.info('Tasks fetched successfully', { userId, count: tasks.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         tasks,
@@ -91,7 +91,7 @@ export const getTasks = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching tasks', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASKS_FETCH_ERROR',
@@ -137,7 +137,7 @@ export const getTaskById = async (req: Request, res: Response) => {
 
     logger.info('Task fetched successfully', { userId, taskId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         task: {
@@ -149,7 +149,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_FETCH_ERROR',
@@ -218,13 +218,13 @@ export const createTask = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_created', 'task', task.id, userId);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { task }
     });
   } catch (error) {
     logger.error('Error creating task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_CREATE_ERROR',
@@ -300,13 +300,13 @@ export const updateTask = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_updated', 'task', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { task: updatedTask }
     });
   } catch (error) {
     logger.error('Error updating task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_UPDATE_ERROR',
@@ -351,13 +351,13 @@ export const deleteTask = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_deleted', 'task', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Task deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_DELETE_ERROR',
@@ -389,13 +389,13 @@ export const getTaskStats = async (req: Request, res: Response) => {
 
     logger.info('Task statistics fetched successfully', { userId });
 
-    res.json({
+    return res.json({
       success: true,
       data: { stats }
     });
   } catch (error) {
     logger.error('Error fetching task statistics', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_STATS_ERROR',
@@ -449,13 +449,13 @@ export const startTaskTimer = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_timer_started', 'task_time_entry', timeEntry.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { timeEntry }
     });
   } catch (error) {
     logger.error('Error starting task timer', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_TIMER_START_ERROR',
@@ -510,13 +510,13 @@ export const stopTaskTimer = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_timer_stopped', 'task_time_entry', timeEntry.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { timeEntry }
     });
   } catch (error) {
     logger.error('Error stopping task timer', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_TIMER_STOP_ERROR',

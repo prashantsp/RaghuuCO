@@ -61,7 +61,7 @@ export const getInvoices = async (req: AuthenticatedRequest, res: Response) => {
 
     logger.info('Invoices fetched successfully', { userId, count: invoices.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         invoices,
@@ -121,7 +121,7 @@ export const getInvoiceById = async (req: AuthenticatedRequest, res: Response) =
 
     logger.info('Invoice fetched successfully', { userId, invoiceId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         invoice: {
@@ -226,7 +226,7 @@ export const createInvoice = async (req: AuthenticatedRequest, res: Response) =>
 
     logger.businessEvent('invoice_created', 'invoice', invoice.id || '', userId || '');
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { invoice }
     });
@@ -336,7 +336,7 @@ export const updateInvoice = async (req: AuthenticatedRequest, res: Response) =>
 
     logger.businessEvent('invoice_updated', 'invoice', id || '', userId || '');
 
-    res.json({
+    return res.json({
       success: true,
       data: { invoice: updatedInvoice }
     });
@@ -395,7 +395,7 @@ export const deleteInvoice = async (req: AuthenticatedRequest, res: Response) =>
 
     logger.businessEvent('invoice_deleted', 'invoice', id || '', userId || '');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Invoice deleted successfully'
     });
@@ -429,7 +429,7 @@ export const getInvoiceStats = async (req: AuthenticatedRequest, res: Response) 
 
     logger.info('Invoice statistics fetched successfully', { userId, stats });
 
-    res.json({
+    return res.json({
       success: true,
       data: { stats }
     });
@@ -470,7 +470,7 @@ export const getBillingRates = async (req: AuthenticatedRequest, res: Response) 
 
     logger.info('Billing rates fetched successfully', { userId, count: rates.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: { rates }
     });
@@ -520,7 +520,7 @@ export const createBillingRate = async (req: AuthenticatedRequest, res: Response
 
     logger.businessEvent('billing_rate_created', 'billing_rate', rate.id, userId);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { rate }
     });

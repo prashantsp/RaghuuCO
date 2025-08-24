@@ -102,7 +102,7 @@ const getCalendarEventById = async (req, res) => {
         const remindersResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_REMINDERS.GET_BY_EVENT_ID, [id]);
         const reminders = remindersResult;
         logger_1.default.info('Calendar event fetched successfully', { userId, eventId: id });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 event: {
@@ -192,7 +192,7 @@ const createCalendarEvent = async (req, res) => {
             }
         }
         logger_1.default.businessEvent('calendar_event_created', 'calendar_event', event.id, userId);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: { event }
         });
@@ -290,7 +290,7 @@ const updateCalendarEvent = async (req, res) => {
             }
         }
         logger_1.default.businessEvent('calendar_event_updated', 'calendar_event', id || '', userId || '');
-        res.json({
+        return res.json({
             success: true,
             data: { event: updatedEvent }
         });
@@ -325,7 +325,7 @@ const deleteCalendarEvent = async (req, res) => {
         }
         await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.DELETE, [id]);
         logger_1.default.businessEvent('calendar_event_deleted', 'calendar_event', id || '', userId || '');
-        res.json({
+        return res.json({
             success: true,
             message: 'Calendar event deleted successfully'
         });
@@ -353,7 +353,7 @@ const getUpcomingEvents = async (req, res) => {
         ]);
         const events = result;
         logger_1.default.info('Upcoming events fetched successfully', { userId, count: events.length });
-        res.json({
+        return res.json({
             success: true,
             data: { events }
         });
@@ -392,7 +392,7 @@ const checkSchedulingConflicts = async (req, res) => {
         ]);
         const conflicts = result;
         logger_1.default.info('Scheduling conflicts checked', { userId, conflictsCount: conflicts.length });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 conflicts,

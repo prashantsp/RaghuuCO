@@ -38,7 +38,7 @@ const getInvoices = async (req, res) => {
         const total = parseInt(countResult[0]?.total || '0');
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Invoices fetched successfully', { userId, count: invoices.length });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 invoices,
@@ -84,7 +84,7 @@ const getInvoiceById = async (req, res) => {
         const paymentsResult = await db.query(db_SQLQueries_1.SQLQueries.PAYMENTS.GET_BY_INVOICE_ID, [id]);
         const payments = paymentsResult;
         logger_1.default.info('Invoice fetched successfully', { userId, invoiceId: id });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 invoice: {
@@ -159,7 +159,7 @@ const createInvoice = async (req, res) => {
             }
         }
         logger_1.default.businessEvent('invoice_created', 'invoice', invoice.id || '', userId || '');
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: { invoice }
         });
@@ -235,7 +235,7 @@ const updateInvoice = async (req, res) => {
         ]);
         const updatedInvoice = result[0];
         logger_1.default.businessEvent('invoice_updated', 'invoice', id || '', userId || '');
-        res.json({
+        return res.json({
             success: true,
             data: { invoice: updatedInvoice }
         });
@@ -279,7 +279,7 @@ const deleteInvoice = async (req, res) => {
         }
         await db.query(db_SQLQueries_1.SQLQueries.INVOICES.DELETE, [id]);
         logger_1.default.businessEvent('invoice_deleted', 'invoice', id || '', userId || '');
-        res.json({
+        return res.json({
             success: true,
             message: 'Invoice deleted successfully'
         });
@@ -304,7 +304,7 @@ const getInvoiceStats = async (req, res) => {
         const result = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GET_STATS, [userId, clientId || null]);
         const stats = result[0];
         logger_1.default.info('Invoice statistics fetched successfully', { userId, stats });
-        res.json({
+        return res.json({
             success: true,
             data: { stats }
         });
@@ -335,7 +335,7 @@ const getBillingRates = async (req, res) => {
         ]);
         const rates = result;
         logger_1.default.info('Billing rates fetched successfully', { userId, count: rates.length });
-        res.json({
+        return res.json({
             success: true,
             data: { rates }
         });
@@ -368,7 +368,7 @@ const createBillingRate = async (req, res) => {
         ]);
         const rate = result[0];
         logger_1.default.businessEvent('billing_rate_created', 'billing_rate', rate.id, userId);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: { rate }
         });
