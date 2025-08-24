@@ -34,7 +34,7 @@ const getInternalMessages = async (req, res) => {
       AND ($4::uuid IS NULL OR im.sender_id = $4)
       AND ($5::boolean IS NULL OR im.is_urgent = $5)
     `, [search || null, messageType || null, priority || null, senderId || null, isUrgent || null]);
-        const total = parseInt(countResult.rows[0]?.total || '0');
+        const total = parseInt(countResult[0]?.total || '0');
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Internal messages fetched successfully', { userId, count: messages.length });
         res.json({
@@ -68,7 +68,7 @@ const getInternalMessageById = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Fetching internal message by ID', { userId, messageId: id });
         const result = await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-        const message = result.rows[0];
+        const message = result[0];
         if (!message) {
             return res.status(404).json({
                 success: false,
@@ -118,7 +118,7 @@ const createInternalMessage = async (req, res) => {
             requiresResponse || false,
             responseDeadline || null
         ]);
-        const message = messageResult.rows[0];
+        const message = messageResult[0];
         if (recipients && Array.isArray(recipients)) {
             for (const recipient of recipients) {
                 await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.CREATE, [
@@ -155,7 +155,7 @@ const updateInternalMessage = async (req, res) => {
         const { subject, content, messageType, priority, isUrgent, requiresResponse, responseDeadline } = req.body;
         logger_1.default.info('Updating internal message', { userId, messageId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-        const currentMessage = currentResult.rows[0];
+        const currentMessage = currentResult[0];
         if (!currentMessage) {
             return res.status(404).json({
                 success: false,
@@ -175,7 +175,7 @@ const updateInternalMessage = async (req, res) => {
             requiresResponse !== undefined ? requiresResponse : currentMessage.requires_response,
             responseDeadline || currentMessage.response_deadline
         ]);
-        const updatedMessage = result.rows[0];
+        const updatedMessage = result[0];
         logger_1.default.businessEvent('internal_message_updated', 'internal_message', id, userId);
         res.json({
             success: true,
@@ -200,7 +200,7 @@ const deleteInternalMessage = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Deleting internal message', { userId, messageId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-        const message = currentResult.rows[0];
+        const message = currentResult[0];
         if (!message) {
             return res.status(404).json({
                 success: false,
@@ -242,7 +242,7 @@ const getReceivedMessages = async (req, res) => {
         ]);
         const messages = result.rows;
         const unreadResult = await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.GET_UNREAD_COUNT, [userId]);
-        const unreadCount = parseInt(unreadResult.rows[0]?.unread_count || '0');
+        const unreadCount = parseInt(unreadResult[0]?.unread_count || '0');
         logger_1.default.info('Received messages fetched successfully', { userId, count: messages.length, unreadCount });
         res.json({
             success: true,
@@ -283,7 +283,7 @@ const updateMessageStatus = async (req, res) => {
             respondedAt,
             responseContent || null
         ]);
-        const updatedRecipient = result.rows[0];
+        const updatedRecipient = result[0];
         logger_1.default.businessEvent('message_status_updated', 'message_recipient', id, userId);
         res.json({
             success: true,
@@ -347,7 +347,7 @@ const createEmailTemplate = async (req, res) => {
             variables || {},
             userId
         ]);
-        const template = result.rows[0];
+        const template = result[0];
         logger_1.default.businessEvent('email_template_created', 'email_template', template.id, userId);
         res.status(201).json({
             success: true,
@@ -381,7 +381,7 @@ const updateEmailTemplate = async (req, res) => {
             variables || {},
             isActive !== undefined ? isActive : true
         ]);
-        const template = result.rows[0];
+        const template = result[0];
         logger_1.default.businessEvent('email_template_updated', 'email_template', id, userId);
         res.json({
             success: true,

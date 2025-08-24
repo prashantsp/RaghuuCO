@@ -47,7 +47,7 @@ const getReportById = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Fetching report by ID', { userId, reportId: id });
         const result = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
-        const report = result.rows[0];
+        const report = result[0];
         if (!report) {
             return res.status(404).json({
                 success: false,
@@ -88,7 +88,7 @@ const createReport = async (req, res) => {
             scheduleCron || null,
             userId
         ]);
-        const report = result.rows[0];
+        const report = result[0];
         logger_1.default.businessEvent('report_created', 'report', report.id, userId);
         res.status(201).json({
             success: true,
@@ -122,7 +122,7 @@ const updateReport = async (req, res) => {
             scheduleCron || null,
             isActive !== undefined ? isActive : true
         ]);
-        const report = result.rows[0];
+        const report = result[0];
         logger_1.default.businessEvent('report_updated', 'report', id, userId);
         res.json({
             success: true,
@@ -147,7 +147,7 @@ const deleteReport = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Deleting report', { userId, reportId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
-        const report = currentResult.rows[0];
+        const report = currentResult[0];
         if (!report) {
             return res.status(404).json({
                 success: false,
@@ -183,7 +183,7 @@ const executeReport = async (req, res) => {
         const { parameters } = req.body;
         logger_1.default.info('Executing report', { userId, reportId: id });
         const reportResult = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
-        const report = reportResult.rows[0];
+        const report = reportResult[0];
         if (!report) {
             return res.status(404).json({
                 success: false,
@@ -199,7 +199,7 @@ const executeReport = async (req, res) => {
             'running',
             parameters || {}
         ]);
-        const execution = executionResult.rows[0];
+        const execution = executionResult[0];
         const reportResult = await reportExecutionService_1.reportExecutionService.executeReport(id, parameters || [], userId);
         logger_1.default.businessEvent('report_executed', 'report_execution', execution.id, userId);
         logger_1.default.businessEvent('report_executed', 'report_execution', execution.id, userId);
@@ -271,7 +271,7 @@ const trackAnalyticsEvent = async (req, res) => {
             ipAddress,
             eventData || {}
         ]);
-        const event = result.rows[0];
+        const event = result[0];
         res.status(201).json({
             success: true,
             data: { event }
@@ -374,7 +374,7 @@ const getPerformanceMetrics = async (req, res) => {
                 endDate || new Date()
             ]);
         }
-        const metrics = result.rows;
+        const metrics = result;
         logger_1.default.info('Performance metrics fetched successfully', { userId, count: metrics.length });
         res.json({
             success: true,
@@ -405,7 +405,7 @@ const recordBusinessMetric = async (req, res) => {
             metricCount || 0,
             additionalData || {}
         ]);
-        const metric = result.rows[0];
+        const metric = result[0];
         res.status(201).json({
             success: true,
             data: { metric }
@@ -442,7 +442,7 @@ const getBusinessMetrics = async (req, res) => {
                 endDate || new Date()
             ]);
         }
-        const metrics = result.rows;
+        const metrics = result;
         logger_1.default.info('Business metrics fetched successfully', { userId, count: metrics.length });
         res.json({
             success: true,

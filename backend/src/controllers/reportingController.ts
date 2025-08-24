@@ -81,7 +81,7 @@ export const getReportById = async (req: Request, res: Response) => {
     logger.info('Fetching report by ID', { userId, reportId: id });
 
     const result = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = result.rows[0];
+    const report = result[0];
 
     if (!report) {
       return res.status(404).json({
@@ -139,7 +139,7 @@ export const createReport = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const report = result.rows[0];
+    const report = result[0];
 
     logger.businessEvent('report_created', 'report', report.id, userId);
 
@@ -190,7 +190,7 @@ export const updateReport = async (req: Request, res: Response) => {
       isActive !== undefined ? isActive : true
     ]);
 
-    const report = result.rows[0];
+    const report = result[0];
 
     logger.businessEvent('report_updated', 'report', id, userId);
 
@@ -225,7 +225,7 @@ export const deleteReport = async (req: Request, res: Response) => {
 
     // Check if report exists
     const currentResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = currentResult.rows[0];
+    const report = currentResult[0];
 
     if (!report) {
       return res.status(404).json({
@@ -274,7 +274,7 @@ export const executeReport = async (req: Request, res: Response) => {
 
     // Check if report exists
     const reportResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = reportResult.rows[0];
+    const report = reportResult[0];
 
     if (!report) {
       return res.status(404).json({
@@ -294,7 +294,7 @@ export const executeReport = async (req: Request, res: Response) => {
       parameters || {}
     ]);
 
-    const execution = executionResult.rows[0];
+    const execution = executionResult[0];
 
     // Execute report using the report execution service
     const reportResult = await reportExecutionService.executeReport(
@@ -401,7 +401,7 @@ export const trackAnalyticsEvent = async (req: Request, res: Response) => {
       eventData || {}
     ]);
 
-    const event = result.rows[0];
+    const event = result[0];
 
     res.status(201).json({
       success: true,
@@ -539,7 +539,7 @@ export const getPerformanceMetrics = async (req: Request, res: Response) => {
       ]);
     }
 
-    const metrics = result.rows;
+    const metrics = result;
 
     logger.info('Performance metrics fetched successfully', { userId, count: metrics.length });
 
@@ -586,7 +586,7 @@ export const recordBusinessMetric = async (req: Request, res: Response) => {
       additionalData || {}
     ]);
 
-    const metric = result.rows[0];
+    const metric = result[0];
 
     res.status(201).json({
       success: true,
@@ -631,7 +631,7 @@ export const getBusinessMetrics = async (req: Request, res: Response) => {
       ]);
     }
 
-    const metrics = result.rows;
+    const metrics = result;
 
     logger.info('Business metrics fetched successfully', { userId, count: metrics.length });
 

@@ -39,7 +39,7 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
 
     // Get user's 2FA secret from database
     const userResult = await db.query('SELECT two_factor_secret FROM users WHERE id = $1', [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user?.two_factor_secret) {
       return res.status(400).json({

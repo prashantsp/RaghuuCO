@@ -222,7 +222,7 @@ class DocumentSecurityService {
             const metadataResult = await db.query(`
         SELECT * FROM document_security_metadata WHERE document_id = $1
       `, [documentId]);
-            const metadata = metadataResult.rows[0];
+            const metadata = metadataResult[0];
             if (!metadata) {
                 throw new Error('Document security metadata not found');
             }
@@ -250,14 +250,14 @@ class DocumentSecurityService {
         LEFT JOIN users u ON d.uploaded_by = u.id
         WHERE d.id = $1
       `, [documentId]);
-            const document = documentResult.rows[0];
+            const document = documentResult[0];
             if (!document) {
                 return false;
             }
             const metadataResult = await db.query(`
         SELECT * FROM document_security_metadata WHERE document_id = $1
       `, [documentId]);
-            const metadata = metadataResult.rows[0];
+            const metadata = metadataResult[0];
             if (!metadata) {
                 return true;
             }

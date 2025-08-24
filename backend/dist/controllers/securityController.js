@@ -111,7 +111,7 @@ const disable2FA = async (req, res) => {
             });
         }
         const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_2FA_SECRET, [userId]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         if (!user?.two_factor_secret) {
             return res.status(400).json({
                 success: false,
@@ -158,7 +158,7 @@ const get2FAStatus = async (req, res) => {
     try {
         const userId = req.user?.id;
         const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_2FA_STATUS, [userId]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         res.json({
             success: true,
             data: {
@@ -219,7 +219,7 @@ const verifyBackupCode = async (req, res) => {
             });
         }
         const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_BACKUP_CODES, [userId]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         if (!user?.backup_codes || user.backup_codes.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -265,7 +265,7 @@ const getSecuritySettings = async (req, res) => {
     try {
         const userId = req.user?.id;
         const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_USER_SECURITY_SETTINGS, [userId]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         res.json({
             success: true,
             data: {

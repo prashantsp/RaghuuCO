@@ -13,7 +13,7 @@ const getDashboardStats = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Fetching dashboard statistics', { userId });
         const statsResult = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
-        const userStats = statsResult.rows[0];
+        const userStats = statsResult[0];
         const stats = {
             cases: {
                 count: parseInt(userStats.cases_count || '0'),
@@ -98,7 +98,7 @@ const getDashboardSummary = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Fetching dashboard summary', { userId });
         const trendsResult = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
-        const trends = trendsResult.rows[0];
+        const trends = trendsResult[0];
         const summary = {
             activeCases: parseInt(trends.active_cases || '0'),
             pendingTasks: parseInt(trends.upcoming_events || '0'),

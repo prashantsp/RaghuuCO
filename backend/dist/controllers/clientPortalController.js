@@ -15,7 +15,7 @@ const registerClientUser = async (req, res) => {
         const { clientId, email, password, firstName, lastName, phone } = req.body;
         logger_1.default.info('Client portal user registration', { email, clientId });
         const existingUser = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
-        if (existingUser.rows[0]) {
+        if (existingUser[0]) {
             return res.status(400).json({
                 success: false,
                 error: {
@@ -34,7 +34,7 @@ const registerClientUser = async (req, res) => {
             lastName,
             phone || null
         ]);
-        const clientUser = result.rows[0];
+        const clientUser = result[0];
         logger_1.default.businessEvent('client_portal_user_registered', 'client_portal_user', clientUser.id, null);
         res.status(201).json({
             success: true,
@@ -65,7 +65,7 @@ const loginClientUser = async (req, res) => {
         const { email, password } = req.body;
         logger_1.default.info('Client portal user login attempt', { email });
         const userResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -199,7 +199,7 @@ const getClientCaseDetails = async (req, res) => {
         const clientId = req.clientUser?.client_id;
         logger_1.default.info('Fetching client case details', { clientId, caseId: id });
         const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DETAILS, [id, clientId]);
-        const caseDetails = result.rows[0];
+        const caseDetails = result[0];
         if (!caseDetails) {
             return res.status(404).json({
                 success: false,
@@ -210,9 +210,9 @@ const getClientCaseDetails = async (req, res) => {
             });
         }
         const documentsResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DOCUMENTS, [id]);
-        const documents = documentsResult.rows;
+        const documents = documentsResult;
         const updatesResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_UPDATES, [id]);
-        const updates = updatesResult.rows;
+        const updates = updatesResult;
         logger_1.default.info('Client case details fetched successfully', { clientId, caseId: id });
         res.json({
             success: true,
@@ -240,7 +240,7 @@ const getClientMessages = async (req, res) => {
         const clientId = req.clientUser?.client_id;
         logger_1.default.info('Fetching client messages', { clientId });
         const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_MESSAGES.GET_CLIENT_MESSAGES, [clientId]);
-        const messages = result.rows;
+        const messages = result;
         logger_1.default.info('Client messages fetched successfully', { clientId, count: messages.length });
         res.json({
             success: true,
@@ -274,7 +274,7 @@ const sendClientMessage = async (req, res) => {
             caseId || null,
             clientId
         ]);
-        const message = result.rows[0];
+        const message = result[0];
         logger_1.default.businessEvent('client_message_sent', 'internal_message', message.id, clientUserId);
         res.status(201).json({
             success: true,
@@ -304,7 +304,7 @@ const updateClientProfile = async (req, res) => {
             lastName,
             phone
         ]);
-        const updatedUser = result.rows[0];
+        const updatedUser = result[0];
         logger_1.default.businessEvent('client_profile_updated', 'client_portal_user', clientUserId, clientUserId);
         res.json({
             success: true,

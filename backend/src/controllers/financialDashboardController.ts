@@ -88,11 +88,11 @@ export const getFinancialOverview = async (req: Request, res: Response) => {
     `);
 
     const overview = {
-      currentMonth: currentMonthResult.rows[0],
-      previousMonth: previousMonthResult.rows[0],
-      yearly: yearlyResult.rows[0],
-      topClients: topClientsResult.rows,
-      recentInvoices: recentInvoicesResult.rows
+      currentMonth: currentMonthResult[0],
+      previousMonth: previousMonthResult[0],
+      yearly: yearlyResult[0],
+              topClients: topClientsResult,
+        recentInvoices: recentInvoicesResult
     };
 
     logger.info('Financial dashboard overview fetched successfully', { userId });
@@ -324,7 +324,7 @@ export const getProfitLossStatement = async (req: Request, res: Response) => {
       WHERE EXTRACT(YEAR FROM created_at) = $1
     `, [year]);
 
-    const totals = yearlyTotalsResult.rows[0];
+    const totals = yearlyTotalsResult[0];
     const totalProfit = totals.total_revenue - totals.total_expenses;
     const profitMargin = totals.total_revenue > 0 ? (totalProfit / totals.total_revenue) * 100 : 0;
 
@@ -403,9 +403,9 @@ export const getCashFlowAnalysis = async (req: Request, res: Response) => {
 
     // Get cash flow summary
     const cashFlowSummary = {
-      cashInflows: cashInflowsResult.rows,
-      cashOutflows: cashOutflowsResult.rows,
-      outstandingReceivables: outstandingReceivablesResult.rows[0]
+              cashInflows: cashInflowsResult,
+        cashOutflows: cashOutflowsResult,
+      outstandingReceivables: outstandingReceivablesResult[0]
     };
 
     logger.info('Cash flow analysis fetched successfully', { userId });

@@ -296,7 +296,7 @@ async function getDatabaseMetrics() {
         (SELECT COUNT(*) FROM audit_logs WHERE created_at > NOW() - INTERVAL '24 hours') as audit_logs_24h,
         (SELECT pg_database_size(current_database())) as database_size_bytes
     `);
-        return metrics.rows[0];
+        return metrics[0];
     }
     catch (error) {
         logger_1.logger.error('Error getting database metrics:', error);

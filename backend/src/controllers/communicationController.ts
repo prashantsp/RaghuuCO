@@ -64,7 +64,7 @@ export const getInternalMessages = async (req: Request, res: Response) => {
       AND ($5::boolean IS NULL OR im.is_urgent = $5)
     `, [search || null, messageType || null, priority || null, senderId || null, isUrgent || null]);
 
-    const total = parseInt(countResult.rows[0]?.total || '0');
+    const total = parseInt(countResult[0]?.total || '0');
     const totalPages = Math.ceil(total / parseInt(limit as string));
 
     logger.info('Internal messages fetched successfully', { userId, count: messages.length });
@@ -107,7 +107,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
     logger.info('Fetching internal message by ID', { userId, messageId: id });
 
     const result = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const message = result.rows[0];
+    const message = result[0];
 
     if (!message) {
       return res.status(404).json({
@@ -180,7 +180,7 @@ export const createInternalMessage = async (req: Request, res: Response) => {
       responseDeadline || null
     ]);
 
-    const message = messageResult.rows[0];
+    const message = messageResult[0];
 
     // Create recipients
     if (recipients && Array.isArray(recipients)) {
@@ -237,7 +237,7 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
 
     // Get current message
     const currentResult = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const currentMessage = currentResult.rows[0];
+    const currentMessage = currentResult[0];
 
     if (!currentMessage) {
       return res.status(404).json({
@@ -261,7 +261,7 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
       responseDeadline || currentMessage.response_deadline
     ]);
 
-    const updatedMessage = result.rows[0];
+    const updatedMessage = result[0];
 
     logger.businessEvent('internal_message_updated', 'internal_message', id, userId);
 
@@ -296,7 +296,7 @@ export const deleteInternalMessage = async (req: Request, res: Response) => {
 
     // Check if message exists
     const currentResult = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const message = currentResult.rows[0];
+    const message = currentResult[0];
 
     if (!message) {
       return res.status(404).json({
@@ -353,7 +353,7 @@ export const getReceivedMessages = async (req: Request, res: Response) => {
 
     // Get unread count
     const unreadResult = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_UNREAD_COUNT, [userId]);
-    const unreadCount = parseInt(unreadResult.rows[0]?.unread_count || '0');
+    const unreadCount = parseInt(unreadResult[0]?.unread_count || '0');
 
     logger.info('Received messages fetched successfully', { userId, count: messages.length, unreadCount });
 
@@ -405,7 +405,7 @@ export const updateMessageStatus = async (req: Request, res: Response) => {
       responseContent || null
     ]);
 
-    const updatedRecipient = result.rows[0];
+    const updatedRecipient = result[0];
 
     logger.businessEvent('message_status_updated', 'message_recipient', id, userId);
 
@@ -495,7 +495,7 @@ export const createEmailTemplate = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const template = result.rows[0];
+    const template = result[0];
 
     logger.businessEvent('email_template_created', 'email_template', template.id, userId);
 
@@ -546,7 +546,7 @@ export const updateEmailTemplate = async (req: Request, res: Response) => {
       isActive !== undefined ? isActive : true
     ]);
 
-    const template = result.rows[0];
+    const template = result[0];
 
     logger.businessEvent('email_template_updated', 'email_template', id, userId);
 

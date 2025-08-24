@@ -232,7 +232,7 @@ class CustomReportBuilderService {
                 userId,
                 isPublic || false
             ]);
-            const savedTemplate = result.rows[0];
+            const savedTemplate = result[0];
             logger_1.default.businessEvent('custom_report_template_created', 'custom_report_template', savedTemplate.id, userId);
             return {
                 success: true,
@@ -278,7 +278,7 @@ class CustomReportBuilderService {
         LEFT JOIN users u ON crt.created_by = u.id
         WHERE crt.id = $1 AND (crt.is_public = true OR crt.created_by = $2)
       `, [templateId, userId]);
-            const template = result.rows[0];
+            const template = result[0];
             if (!template) {
                 throw new Error('Report template not found or access denied');
             }
@@ -299,7 +299,7 @@ class CustomReportBuilderService {
             const ownershipResult = await db.query(`
         SELECT created_by FROM custom_report_templates WHERE id = $1
       `, [templateId]);
-            const template = ownershipResult.rows[0];
+            const template = ownershipResult[0];
             if (!template || template.created_by !== userId) {
                 throw new Error('Access denied to update this template');
             }
@@ -319,7 +319,7 @@ class CustomReportBuilderService {
                 JSON.stringify(parameters || {}),
                 isPublic
             ]);
-            const updatedTemplate = result.rows[0];
+            const updatedTemplate = result[0];
             logger_1.default.businessEvent('custom_report_template_updated', 'custom_report_template', templateId, userId);
             return {
                 success: true,
@@ -337,7 +337,7 @@ class CustomReportBuilderService {
             const ownershipResult = await db.query(`
         SELECT created_by FROM custom_report_templates WHERE id = $1
       `, [templateId]);
-            const template = ownershipResult.rows[0];
+            const template = ownershipResult[0];
             if (!template || template.created_by !== userId) {
                 throw new Error('Access denied to delete this template');
             }

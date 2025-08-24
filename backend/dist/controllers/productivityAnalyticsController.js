@@ -57,10 +57,10 @@ const getProductivityOverview = async (req, res) => {
       LIMIT 5
     `);
         const overview = {
-            currentMonth: currentMonthResult.rows[0],
-            taskCompletion: taskCompletionResult.rows[0],
-            caseProductivity: caseProductivityResult.rows[0],
-            topPerformers: topPerformersResult.rows
+            currentMonth: currentMonthResult[0],
+            taskCompletion: taskCompletionResult[0],
+            caseProductivity: caseProductivityResult[0],
+            topPerformers: topPerformersResult
         };
         logger_1.default.info('Productivity overview fetched successfully', { userId });
         res.json({
@@ -146,10 +146,10 @@ const getUserProductivityAnalytics = async (req, res) => {
       WHERE u.id = $1
     `, [userId]);
         const analytics = {
-            timeTracking: timeTrackingResult.rows,
-            taskCompletion: taskCompletionResult.rows,
-            caseProductivity: caseProductivityResult.rows,
-            summary: productivitySummaryResult.rows[0]
+            timeTracking: timeTrackingResult,
+            taskCompletion: taskCompletionResult,
+            caseProductivity: caseProductivityResult,
+            summary: productivitySummaryResult[0]
         };
         logger_1.default.info('User productivity analytics fetched successfully', { userId });
         res.json({

@@ -285,7 +285,7 @@ export class CustomReportBuilderService {
         isPublic || false
       ]);
 
-      const savedTemplate = result.rows[0];
+      const savedTemplate = result[0];
 
       logger.businessEvent('custom_report_template_created', 'custom_report_template', savedTemplate.id, userId);
 
@@ -345,7 +345,7 @@ export class CustomReportBuilderService {
         WHERE crt.id = $1 AND (crt.is_public = true OR crt.created_by = $2)
       `, [templateId, userId]);
 
-      const template = result.rows[0];
+      const template = result[0];
 
       if (!template) {
         throw new Error('Report template not found or access denied');
@@ -375,7 +375,7 @@ export class CustomReportBuilderService {
         SELECT created_by FROM custom_report_templates WHERE id = $1
       `, [templateId]);
 
-      const template = ownershipResult.rows[0];
+      const template = ownershipResult[0];
       if (!template || template.created_by !== userId) {
         throw new Error('Access denied to update this template');
       }
@@ -398,7 +398,7 @@ export class CustomReportBuilderService {
         isPublic
       ]);
 
-      const updatedTemplate = result.rows[0];
+      const updatedTemplate = result[0];
 
       logger.businessEvent('custom_report_template_updated', 'custom_report_template', templateId, userId);
 
@@ -424,7 +424,7 @@ export class CustomReportBuilderService {
         SELECT created_by FROM custom_report_templates WHERE id = $1
       `, [templateId]);
 
-      const template = ownershipResult.rows[0];
+      const template = ownershipResult[0];
       if (!template || template.created_by !== userId) {
         throw new Error('Access denied to delete this template');
       }

@@ -81,10 +81,10 @@ export const getProductivityOverview = async (req: Request, res: Response) => {
     `);
 
     const overview = {
-      currentMonth: currentMonthResult.rows[0],
-      taskCompletion: taskCompletionResult.rows[0],
-      caseProductivity: caseProductivityResult.rows[0],
-      topPerformers: topPerformersResult.rows
+      currentMonth: currentMonthResult[0],
+      taskCompletion: taskCompletionResult[0],
+      caseProductivity: caseProductivityResult[0],
+              topPerformers: topPerformersResult
     };
 
     logger.info('Productivity overview fetched successfully', { userId });
@@ -187,10 +187,10 @@ export const getUserProductivityAnalytics = async (req: Request, res: Response) 
     `, [userId]);
 
     const analytics = {
-      timeTracking: timeTrackingResult.rows,
-      taskCompletion: taskCompletionResult.rows,
-      caseProductivity: caseProductivityResult.rows,
-      summary: productivitySummaryResult.rows[0]
+              timeTracking: timeTrackingResult,
+        taskCompletion: taskCompletionResult,
+        caseProductivity: caseProductivityResult,
+              summary: productivitySummaryResult[0]
     };
 
     logger.info('User productivity analytics fetched successfully', { userId });

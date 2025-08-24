@@ -305,7 +305,7 @@ export class DocumentSecurityService {
         SELECT * FROM document_security_metadata WHERE document_id = $1
       `, [documentId]);
 
-      const metadata = metadataResult.rows[0];
+      const metadata = metadataResult[0];
       if (!metadata) {
         throw new Error('Document security metadata not found');
       }
@@ -353,7 +353,7 @@ export class DocumentSecurityService {
         WHERE d.id = $1
       `, [documentId]);
 
-      const document = documentResult.rows[0];
+      const document = documentResult[0];
       if (!document) {
         return false;
       }
@@ -363,7 +363,7 @@ export class DocumentSecurityService {
         SELECT * FROM document_security_metadata WHERE document_id = $1
       `, [documentId]);
 
-      const metadata = metadataResult.rows[0];
+      const metadata = metadataResult[0];
       if (!metadata) {
         return true; // No security restrictions
       }

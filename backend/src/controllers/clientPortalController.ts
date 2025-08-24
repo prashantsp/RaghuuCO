@@ -39,7 +39,7 @@ export const registerClientUser = async (req: Request, res: Response) => {
 
     // Check if email already exists
     const existingUser = await db.query(SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
-    if (existingUser.rows[0]) {
+    if (existingUser[0]) {
       return res.status(400).json({
         success: false,
         error: {
@@ -63,7 +63,7 @@ export const registerClientUser = async (req: Request, res: Response) => {
       phone || null
     ]);
 
-    const clientUser = result.rows[0];
+    const clientUser = result[0];
 
     logger.businessEvent('client_portal_user_registered', 'client_portal_user', clientUser.id, null);
 
@@ -104,7 +104,7 @@ export const loginClientUser = async (req: Request, res: Response) => {
 
     // Get user by email
     const userResult = await db.query(SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user) {
       return res.status(401).json({
@@ -278,7 +278,7 @@ export const getClientCaseDetails = async (req: Request, res: Response) => {
     logger.info('Fetching client case details', { clientId, caseId: id });
 
     const result = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DETAILS, [id, clientId]);
-    const caseDetails = result.rows[0];
+    const caseDetails = result[0];
 
     if (!caseDetails) {
       return res.status(404).json({
@@ -292,11 +292,11 @@ export const getClientCaseDetails = async (req: Request, res: Response) => {
 
     // Get case documents
     const documentsResult = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DOCUMENTS, [id]);
-    const documents = documentsResult.rows;
+    const documents = documentsResult;
 
     // Get case updates
     const updatesResult = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_UPDATES, [id]);
-    const updates = updatesResult.rows;
+    const updates = updatesResult;
 
     logger.info('Client case details fetched successfully', { clientId, caseId: id });
 
@@ -333,7 +333,7 @@ export const getClientMessages = async (req: Request, res: Response) => {
     logger.info('Fetching client messages', { clientId });
 
     const result = await db.query(SQLQueries.CLIENT_PORTAL_MESSAGES.GET_CLIENT_MESSAGES, [clientId]);
-    const messages = result.rows;
+    const messages = result;
 
     logger.info('Client messages fetched successfully', { clientId, count: messages.length });
 
@@ -381,7 +381,7 @@ export const sendClientMessage = async (req: Request, res: Response) => {
       clientId
     ]);
 
-    const message = result.rows[0];
+    const message = result[0];
 
     logger.businessEvent('client_message_sent', 'internal_message', message.id, clientUserId);
 
@@ -425,7 +425,7 @@ export const updateClientProfile = async (req: Request, res: Response) => {
       phone
     ]);
 
-    const updatedUser = result.rows[0];
+    const updatedUser = result[0];
 
     logger.businessEvent('client_profile_updated', 'client_portal_user', clientUserId, clientUserId);
 

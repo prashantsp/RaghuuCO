@@ -72,7 +72,7 @@ export const getTasks = async (req: Request, res: Response) => {
       AND ($7::uuid IS NULL OR t.client_id = $7)
     `, [search || null, status || null, priority || null, taskType || null, assignedTo || null, caseId || null, clientId || null]);
 
-    const total = parseInt(countResult.rows[0]?.total || '0');
+    const total = parseInt(countResult[0]?.total || '0');
     const totalPages = Math.ceil(total / parseInt(limit as string));
 
     logger.info('Tasks fetched successfully', { userId, count: tasks.length });
@@ -115,7 +115,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     logger.info('Fetching task by ID', { userId, taskId: id });
 
     const result = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const task = result.rows[0];
+    const task = result[0];
 
     if (!task) {
       return res.status(404).json({
@@ -129,11 +129,11 @@ export const getTaskById = async (req: Request, res: Response) => {
 
     // Get task dependencies
     const dependenciesResult = await db.query(SQLQueries.TASKS.GET_DEPENDENCIES, [id]);
-    const dependencies = dependenciesResult.rows;
+    const dependencies = dependenciesResult;
 
     // Get task time entries
     const timeEntriesResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_BY_TASK_ID, [id]);
-    const timeEntries = timeEntriesResult.rows;
+    const timeEntries = timeEntriesResult;
 
     logger.info('Task fetched successfully', { userId, taskId: id });
 
@@ -203,7 +203,7 @@ export const createTask = async (req: Request, res: Response) => {
       tags || []
     ]);
 
-    const task = result.rows[0];
+    const task = result[0];
 
     // Create dependencies if provided
     if (dependencies && Array.isArray(dependencies)) {
@@ -265,7 +265,7 @@ export const updateTask = async (req: Request, res: Response) => {
 
     // Check if task exists
     const currentResult = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const currentTask = currentResult.rows[0];
+    const currentTask = currentResult[0];
 
     if (!currentTask) {
       return res.status(404).json({
@@ -296,7 +296,7 @@ export const updateTask = async (req: Request, res: Response) => {
       tags || currentTask.tags
     ]);
 
-    const updatedTask = result.rows[0];
+    const updatedTask = result[0];
 
     logger.businessEvent('task_updated', 'task', id, userId);
 
@@ -331,7 +331,7 @@ export const deleteTask = async (req: Request, res: Response) => {
 
     // Check if task exists
     const currentResult = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const task = currentResult.rows[0];
+    const task = currentResult[0];
 
     if (!task) {
       return res.status(404).json({
@@ -385,7 +385,7 @@ export const getTaskStats = async (req: Request, res: Response) => {
       caseId || null
     ]);
 
-    const stats = result.rows[0];
+    const stats = result[0];
 
     logger.info('Task statistics fetched successfully', { userId });
 
@@ -421,7 +421,7 @@ export const startTaskTimer = async (req: Request, res: Response) => {
 
     // Check if user has active timer
     const activeTimerResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-    const activeTimer = activeTimerResult.rows[0];
+    const activeTimer = activeTimerResult[0];
 
     if (activeTimer) {
       return res.status(400).json({
@@ -445,7 +445,7 @@ export const startTaskTimer = async (req: Request, res: Response) => {
       null
     ]);
 
-    const timeEntry = result.rows[0];
+    const timeEntry = result[0];
 
     logger.businessEvent('task_timer_started', 'task_time_entry', timeEntry.id, userId);
 
@@ -480,7 +480,7 @@ export const stopTaskTimer = async (req: Request, res: Response) => {
 
     // Get active timer
     const activeTimerResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-    const activeTimer = activeTimerResult.rows[0];
+    const activeTimer = activeTimerResult[0];
 
     if (!activeTimer) {
       return res.status(400).json({
@@ -506,7 +506,7 @@ export const stopTaskTimer = async (req: Request, res: Response) => {
       activeTimer.billing_rate
     ]);
 
-    const timeEntry = result.rows[0];
+    const timeEntry = result[0];
 
     logger.businessEvent('task_timer_stopped', 'task_time_entry', timeEntry.id, userId);
 

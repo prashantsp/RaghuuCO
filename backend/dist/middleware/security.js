@@ -24,7 +24,7 @@ const require2FA = async (req, res, next) => {
             });
         }
         const userResult = await db.query('SELECT two_factor_secret FROM users WHERE id = $1', [userId]);
-        const user = userResult.rows[0];
+        const user = userResult[0];
         if (!user?.two_factor_secret) {
             return res.status(400).json({
                 success: false,

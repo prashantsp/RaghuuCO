@@ -62,11 +62,11 @@ const getFinancialOverview = async (req, res) => {
       LIMIT 10
     `);
         const overview = {
-            currentMonth: currentMonthResult.rows[0],
-            previousMonth: previousMonthResult.rows[0],
-            yearly: yearlyResult.rows[0],
-            topClients: topClientsResult.rows,
-            recentInvoices: recentInvoicesResult.rows
+            currentMonth: currentMonthResult[0],
+            previousMonth: previousMonthResult[0],
+            yearly: yearlyResult[0],
+            topClients: topClientsResult,
+            recentInvoices: recentInvoicesResult
         };
         logger_1.default.info('Financial dashboard overview fetched successfully', { userId });
         res.json({
@@ -250,7 +250,7 @@ const getProfitLossStatement = async (req, res) => {
       FROM invoices 
       WHERE EXTRACT(YEAR FROM created_at) = $1
     `, [year]);
-        const totals = yearlyTotalsResult.rows[0];
+        const totals = yearlyTotalsResult[0];
         const totalProfit = totals.total_revenue - totals.total_expenses;
         const profitMargin = totals.total_revenue > 0 ? (totalProfit / totals.total_revenue) * 100 : 0;
         const pnl = {
@@ -312,9 +312,9 @@ const getCashFlowAnalysis = async (req, res) => {
       WHERE status IN ('pending', 'overdue')
     `);
         const cashFlowSummary = {
-            cashInflows: cashInflowsResult.rows,
-            cashOutflows: cashOutflowsResult.rows,
-            outstandingReceivables: outstandingReceivablesResult.rows[0]
+            cashInflows: cashInflowsResult,
+            cashOutflows: cashOutflowsResult,
+            outstandingReceivables: outstandingReceivablesResult[0]
         };
         logger_1.default.info('Cash flow analysis fetched successfully', { userId });
         res.json({

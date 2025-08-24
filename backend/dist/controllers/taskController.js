@@ -40,7 +40,7 @@ const getTasks = async (req, res) => {
       AND ($6::uuid IS NULL OR t.case_id = $6)
       AND ($7::uuid IS NULL OR t.client_id = $7)
     `, [search || null, status || null, priority || null, taskType || null, assignedTo || null, caseId || null, clientId || null]);
-        const total = parseInt(countResult.rows[0]?.total || '0');
+        const total = parseInt(countResult[0]?.total || '0');
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Tasks fetched successfully', { userId, count: tasks.length });
         res.json({
@@ -74,7 +74,7 @@ const getTaskById = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Fetching task by ID', { userId, taskId: id });
         const result = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_BY_ID, [id]);
-        const task = result.rows[0];
+        const task = result[0];
         if (!task) {
             return res.status(404).json({
                 success: false,
@@ -85,9 +85,9 @@ const getTaskById = async (req, res) => {
             });
         }
         const dependenciesResult = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_DEPENDENCIES, [id]);
-        const dependencies = dependenciesResult.rows;
+        const dependencies = dependenciesResult;
         const timeEntriesResult = await db.query(db_SQLQueries_1.SQLQueries.TASK_TIME_ENTRIES.GET_BY_TASK_ID, [id]);
-        const timeEntries = timeEntriesResult.rows;
+        const timeEntries = timeEntriesResult;
         logger_1.default.info('Task fetched successfully', { userId, taskId: id });
         res.json({
             success: true,
@@ -132,7 +132,7 @@ const createTask = async (req, res) => {
             parentTaskId || null,
             tags || []
         ]);
-        const task = result.rows[0];
+        const task = result[0];
         if (dependencies && Array.isArray(dependencies)) {
             for (const dependency of dependencies) {
                 await db.query(db_SQLQueries_1.SQLQueries.TASK_DEPENDENCIES.CREATE, [
@@ -167,7 +167,7 @@ const updateTask = async (req, res) => {
         const { title, description, taskType, status, priority, caseId, clientId, assignedTo, estimatedHours, actualHours, dueDate, completedDate, parentTaskId, tags } = req.body;
         logger_1.default.info('Updating task', { userId, taskId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_BY_ID, [id]);
-        const currentTask = currentResult.rows[0];
+        const currentTask = currentResult[0];
         if (!currentTask) {
             return res.status(404).json({
                 success: false,
@@ -194,7 +194,7 @@ const updateTask = async (req, res) => {
             parentTaskId || currentTask.parent_task_id,
             tags || currentTask.tags
         ]);
-        const updatedTask = result.rows[0];
+        const updatedTask = result[0];
         logger_1.default.businessEvent('task_updated', 'task', id, userId);
         res.json({
             success: true,
@@ -219,7 +219,7 @@ const deleteTask = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Deleting task', { userId, taskId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_BY_ID, [id]);
-        const task = currentResult.rows[0];
+        const task = currentResult[0];
         if (!task) {
             return res.status(404).json({
                 success: false,
@@ -258,7 +258,7 @@ const getTaskStats = async (req, res) => {
             assignedTo || null,
             caseId || null
         ]);
-        const stats = result.rows[0];
+        const stats = result[0];
         logger_1.default.info('Task statistics fetched successfully', { userId });
         res.json({
             success: true,
@@ -284,7 +284,7 @@ const startTaskTimer = async (req, res) => {
         const { description } = req.body;
         logger_1.default.info('Starting task timer', { userId, taskId: id });
         const activeTimerResult = await db.query(db_SQLQueries_1.SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-        const activeTimer = activeTimerResult.rows[0];
+        const activeTimer = activeTimerResult[0];
         if (activeTimer) {
             return res.status(400).json({
                 success: false,
@@ -304,7 +304,7 @@ const startTaskTimer = async (req, res) => {
             true,
             null
         ]);
-        const timeEntry = result.rows[0];
+        const timeEntry = result[0];
         logger_1.default.businessEvent('task_timer_started', 'task_time_entry', timeEntry.id, userId);
         res.json({
             success: true,
@@ -329,7 +329,7 @@ const stopTaskTimer = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Stopping task timer', { userId, taskId: id });
         const activeTimerResult = await db.query(db_SQLQueries_1.SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-        const activeTimer = activeTimerResult.rows[0];
+        const activeTimer = activeTimerResult[0];
         if (!activeTimer) {
             return res.status(400).json({
                 success: false,
@@ -350,7 +350,7 @@ const stopTaskTimer = async (req, res) => {
             activeTimer.is_billable,
             activeTimer.billing_rate
         ]);
-        const timeEntry = result.rows[0];
+        const timeEntry = result[0];
         logger_1.default.businessEvent('task_timer_stopped', 'task_time_entry', timeEntry.id, userId);
         res.json({
             success: true,

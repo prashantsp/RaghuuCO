@@ -33,7 +33,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     // Get counts for different entities
     // Get user statistics using centralized query
     const statsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
-    const userStats = statsResult.rows[0];
+    const userStats = statsResult[0];
 
     // Calculate trends (simplified - in production, you'd compare with previous period)
     const stats = {
@@ -142,7 +142,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     // Get summary data using centralized query
     const trendsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
-    const trends = trendsResult.rows[0];
+    const trends = trendsResult[0];
 
     const summary = {
       activeCases: parseInt(trends.active_cases || '0'),
