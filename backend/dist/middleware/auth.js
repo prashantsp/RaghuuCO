@@ -31,7 +31,7 @@ async function generateAccessToken(userId, email, role) {
             exp: Math.floor(Date.now() / 1000) + parseInt(JWT_EXPIRES_IN)
         };
         const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-        logger_1.default.authEvent('token_generated', userId, true, undefined);
+        logger_1.default.authEvent('token_generated', userId, true);
         return token;
     }
     catch (error) {
@@ -48,7 +48,7 @@ async function generateRefreshToken(userId) {
             exp: Math.floor(Date.now() / 1000) + parseInt(REFRESH_TOKEN_EXPIRES_IN)
         };
         const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
-        logger_1.default.authEvent('refresh_token_generated', userId, true, undefined);
+        logger_1.default.authEvent('refresh_token_generated', userId, true);
         return token;
     }
     catch (error) {

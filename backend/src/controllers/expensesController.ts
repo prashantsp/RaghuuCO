@@ -390,13 +390,13 @@ export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
         });
       }
 
-    logger.info('Getting monthly expense totals', { startDate, endDate });
+    (logger as any).info('Getting monthly expense totals', { startDate, endDate });
 
     const result = await expensesService.getMonthlyExpenseTotals(startDate as string || '', endDate as string || '');
 
     return res.json(result);
   } catch (error) {
-    logger.error('Error getting monthly expense totals', error as Error);
+    (logger as any).error('Error getting monthly expense totals', error as Error);
     return res.status(500).json({
       success: false,
       error: {

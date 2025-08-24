@@ -54,7 +54,7 @@ export class EmailService {
           }
         });
 
-        logger.info('Gmail transporter initialized successfully');
+        (logger as any).info('Gmail transporter initialized successfully');
       }
 
       // Initialize Outlook transporter
@@ -69,10 +69,10 @@ export class EmailService {
           }
         });
 
-        logger.info('Outlook transporter initialized successfully');
+        (logger as any).info('Outlook transporter initialized successfully');
       }
     } catch (error) {
-      logger.error('Error initializing email transporters', error as Error);
+      (logger as any).error('Error initializing email transporters', error as Error);
     }
   }
 
@@ -95,7 +95,7 @@ export class EmailService {
         throw new Error('Gmail transporter not initialized');
       }
 
-      logger.info('Sending Gmail email', { 
+      (logger as any).info('Sending Gmail email', { 
         to: emailData.to, 
         subject: emailData.subject 
       });
@@ -111,7 +111,7 @@ export class EmailService {
 
       const result = await this.gmailTransporter.sendMail(mailOptions);
 
-      logger.info('Gmail email sent successfully', { 
+      (logger as any).info('Gmail email sent successfully', { 
         messageId: result.messageId,
         to: emailData.to 
       });
@@ -125,7 +125,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error sending Gmail email', error as Error);
+      (logger as any).error('Error sending Gmail email', error as Error);
       throw new Error('Failed to send Gmail email');
     }
   }
@@ -149,7 +149,7 @@ export class EmailService {
         throw new Error('Outlook transporter not initialized');
       }
 
-      logger.info('Sending Outlook email', { 
+      (logger as any).info('Sending Outlook email', { 
         to: emailData.to, 
         subject: emailData.subject 
       });
@@ -165,7 +165,7 @@ export class EmailService {
 
       const result = await this.outlookTransporter.sendMail(mailOptions);
 
-      logger.info('Outlook email sent successfully', { 
+      (logger as any).info('Outlook email sent successfully', { 
         messageId: result.messageId,
         to: emailData.to 
       });
@@ -179,7 +179,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error sending Outlook email', error as Error);
+      (logger as any).error('Error sending Outlook email', error as Error);
       throw new Error('Failed to send Outlook email');
     }
   }
@@ -210,7 +210,7 @@ export class EmailService {
         throw new Error('Invalid email provider');
       }
     } catch (error) {
-      logger.error('Error sending email', error as Error);
+      (logger as any).error('Error sending email', error as Error);
       throw new Error('Failed to send email');
     }
   }
@@ -226,7 +226,7 @@ export class EmailService {
     provider?: 'gmail' | 'outlook';
   }): Promise<any> {
     try {
-      logger.info('Sending template email', { 
+      (logger as any).info('Sending template email', { 
         to: templateData.to, 
         template: templateData.template 
       });
@@ -252,7 +252,7 @@ export class EmailService {
         provider: templateData.provider || undefined
       });
     } catch (error) {
-      logger.error('Error sending template email', error as Error);
+      (logger as any).error('Error sending template email', error as Error);
       throw new Error('Failed to send template email');
     }
   }
@@ -335,7 +335,7 @@ export class EmailService {
 
       return template;
     } catch (error) {
-      logger.error('Error loading email template', error as Error);
+      (logger as any).error('Error loading email template', error as Error);
       throw new Error('Failed to load email template');
     }
   }
@@ -345,7 +345,7 @@ export class EmailService {
    */
   async verifyConfiguration(provider: 'gmail' | 'outlook'): Promise<any> {
     try {
-      logger.info('Verifying email configuration', { provider });
+      (logger as any).info('Verifying email configuration', { provider });
 
       if (provider === 'gmail') {
         if (!this.gmailTransporter) {
@@ -359,7 +359,7 @@ export class EmailService {
         await this.outlookTransporter.verify();
       }
 
-      logger.info('Email configuration verified successfully', { provider });
+      (logger as any).info('Email configuration verified successfully', { provider });
 
       return {
         success: true,
@@ -369,7 +369,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error verifying email configuration', error as Error);
+      (logger as any).error('Error verifying email configuration', error as Error);
       throw new Error('Failed to verify email configuration');
     }
   }
@@ -379,7 +379,7 @@ export class EmailService {
    */
   async getEmailStatistics(): Promise<any> {
     try {
-      logger.info('Getting email statistics');
+      (logger as any).info('Getting email statistics');
 
       // This would typically query a database for email statistics
       // For now, we'll return mock data
@@ -398,7 +398,7 @@ export class EmailService {
         data: { stats }
       };
     } catch (error) {
-      logger.error('Error getting email statistics', error as Error);
+      (logger as any).error('Error getting email statistics', error as Error);
       throw new Error('Failed to get email statistics');
     }
   }

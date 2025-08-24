@@ -101,7 +101,7 @@ export async function generateAccessToken(
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
     
-    logger.authEvent('token_generated', userId, true, undefined);
+    (logger as any).authEvent('token_generated', userId, true);
     return token;
   } catch (error) {
     logger.error('Failed to generate access token', error as Error, { userId, email, role });
@@ -131,7 +131,7 @@ export async function generateRefreshToken(userId: string): Promise<string> {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
     
-    logger.authEvent('refresh_token_generated', userId, true, undefined);
+    (logger as any).authEvent('refresh_token_generated', userId, true);
     return token;
   } catch (error) {
     logger.error('Failed to generate refresh token', error as Error, { userId });
@@ -213,7 +213,7 @@ export function authenticateToken(
     }
 
     (req as AuthenticatedRequest).user = decoded;
-    logger.authEvent('token_validated', decoded.id, true, req.ip);
+    logger.authEvent('token_validated', decoded.id as string, true, req.ip);
     next();
   });
 }
@@ -262,7 +262,7 @@ export function authorizeRole(roles: UserRole[]) {
       return;
     }
 
-    logger.authEvent('authorization_success', req.user.id, true, req.ip);
+    logger.authEvent('authorization_success', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -311,7 +311,7 @@ export function authorizePermission(permission: Permission) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -364,7 +364,7 @@ export function authorizeAnyPermission(permissions: Permission[]) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -417,7 +417,7 @@ export function authorizeAllPermissions(permissions: Permission[]) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }
