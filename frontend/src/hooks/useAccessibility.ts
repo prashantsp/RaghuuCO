@@ -35,25 +35,45 @@ export interface AccessibilityPreferences {
  * Accessibility features interface
  */
 export interface AccessibilityFeatures {
-  announceToScreenReader: (message: string) => void;
-  setFocus: (elementId: string) => void;
-  getFocusableElements: () => HTMLElement[];
-  handleKeyboardNavigation: (event: KeyboardEvent) => void;
-  toggleHighContrast: () => void;
-  toggleLargeText: () => void;
-  toggleDyslexiaFriendly: () => void;
-  toggleReducedMotion: () => void;
-  setColorBlindness: (type: AccessibilityPreferences['colorBlindness']) => void;
-  setFontSize: (size: AccessibilityPreferences['fontSize']) => void;
-  setLineSpacing: (spacing: AccessibilityPreferences['lineSpacing']) => void;
-  setLetterSpacing: (spacing: AccessibilityPreferences['letterSpacing']) => void;
+  preferences: AccessibilityPreferences;
+  isHighContrast: boolean;
+  isLargeText: boolean;
+  isDyslexiaFriendly: boolean;
+  isReducedMotion: boolean;
+  isScreenReaderActive: boolean;
+  isKeyboardNavigation: boolean;
+  hasFocusIndicators: boolean;
+  colorBlindnessType: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia';
+  currentFontSize: 'small' | 'medium' | 'large' | 'extra-large';
+  currentLineSpacing: 'tight' | 'normal' | 'loose';
+  currentLetterSpacing: 'tight' | 'normal' | 'loose';
+}
+
+/**
+ * Screen reader announcement interface
+ */
+export interface ScreenReaderAnnouncement {
+  message: string;
+  priority: 'polite' | 'assertive';
+  timeout?: number;
+}
+
+/**
+ * Keyboard navigation interface
+ */
+export interface KeyboardNavigation {
+  isEnabled: boolean;
+  currentFocus: string | null;
+  focusableElements: string[];
+  navigationMode: 'tab' | 'arrow' | 'voice';
 }
 
 /**
  * Accessibility Hook
  */
 export const useAccessibility = () => {
-  const [preferences, setPreferences] = useState<AccessibilityPreferences>({
+  // Default preferences
+  const defaultPreferences: AccessibilityPreferences = {
     highContrast: false,
     largeText: false,
     dyslexiaFriendly: false,
@@ -65,34 +85,26 @@ export const useAccessibility = () => {
     fontSize: 'medium',
     lineSpacing: 'normal',
     letterSpacing: 'normal'
-  });
+  };
 
-  const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
-  const [currentFocusIndex, setCurrentFocusIndex] = useState(0);
-  const [focusableElements, setFocusableElements] = useState<HTMLElement[]>([]);
+  // State
+  const [preferences, setPreferences] = useState<AccessibilityPreferences>(defaultPreferences);
+  const [isScreenReaderActive, setIsScreenReaderActive] = useState(false);
+  const [keyboardNavigation, setKeyboardNavigation] = useState<KeyboardNavigation>({
+    isEnabled: true,
+    currentFocus: null,
+    focusableElements: [],
+    navigationMode: 'tab'
+  });
+  const [announcements, setAnnouncements] = useState<ScreenReaderAnnouncement[]>([]);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
-    loadPreferences();
-    detectSystemPreferences();
-    setupKeyboardNavigation();
-    setupFocusManagement();
-  }, []);
-
-  // Apply preferences to document
-  useEffect(() => {
-    applyPreferences();
-  }, [preferences]);
-
-  /**
-   * Load accessibility preferences from localStorage
-   */
-  const loadPreferences = useCallback(() => {
     try {
-      const stored = localStorage.getItem('accessibility-preferences');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setPreferences(prev => ({ ...prev, ...parsed }));
+      const savedPreferences = localStorage.getItem('accessibility-preferences');
+      if (savedPreferences) {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences({ ...defaultPreferences, ...parsed });
         logger.info('Accessibility preferences loaded from localStorage');
       }
     } catch (error) {
@@ -100,432 +112,371 @@ export const useAccessibility = () => {
     }
   }, []);
 
-  /**
-   * Save accessibility preferences to localStorage
-   */
-  const savePreferences = useCallback((newPreferences: Partial<AccessibilityPreferences>) => {
+  // Save preferences to localStorage when they change
+  useEffect(() => {
     try {
-      const updated = { ...preferences, ...newPreferences };
-      setPreferences(updated);
-      localStorage.setItem('accessibility-preferences', JSON.stringify(updated));
+      localStorage.setItem('accessibility-preferences', JSON.stringify(preferences));
       logger.info('Accessibility preferences saved to localStorage');
     } catch (error) {
       logger.error('Error saving accessibility preferences:', error as Error);
     }
   }, [preferences]);
 
-  /**
-   * Detect system accessibility preferences
-   */
-  const detectSystemPreferences = useCallback(() => {
-    try {
-      // Detect reduced motion preference
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      
-      // Detect high contrast preference
-      const prefersHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
-      
-      // Detect large text preference
-      const prefersLargeText = window.matchMedia('(min-resolution: 2dppx)').matches;
-      
-      if (prefersReducedMotion || prefersHighContrast || prefersLargeText) {
-        setPreferences(prev => ({
-          ...prev,
-          reducedMotion: prefersReducedMotion,
-          highContrast: prefersHighContrast,
-          largeText: prefersLargeText
-        }));
-        logger.info('System accessibility preferences detected and applied');
-      }
-    } catch (error) {
-      logger.error('Error detecting system accessibility preferences:', error as Error);
+  // Apply accessibility styles to document
+  useEffect(() => {
+    const root = document.documentElement;
+    
+    // Apply high contrast
+    if (preferences.highContrast) {
+      root.style.setProperty('--high-contrast', 'true');
+      root.classList.add('high-contrast');
+    } else {
+      root.style.removeProperty('--high-contrast');
+      root.classList.remove('high-contrast');
     }
-  }, []);
 
-  /**
-   * Apply accessibility preferences to document
-   */
-  const applyPreferences = useCallback(() => {
-    try {
-      const root = document.documentElement;
-      
-      // Apply high contrast
-      if (preferences.highContrast) {
-        root.classList.add('high-contrast');
-      } else {
-        root.classList.remove('high-contrast');
-      }
-      
-      // Apply large text
-      if (preferences.largeText) {
-        root.classList.add('large-text');
-      } else {
-        root.classList.remove('large-text');
-      }
-      
-      // Apply dyslexia-friendly fonts
-      if (preferences.dyslexiaFriendly) {
-        root.classList.add('dyslexia-friendly');
-      } else {
-        root.classList.remove('dyslexia-friendly');
-      }
-      
-      // Apply reduced motion
-      if (preferences.reducedMotion) {
-        root.classList.add('reduced-motion');
-      } else {
-        root.classList.remove('reduced-motion');
-      }
-      
-      // Apply color blindness filters
-      root.classList.remove('color-blind-protanopia', 'color-blind-deuteranopia', 'color-blind-tritanopia');
-      if (preferences.colorBlindness !== 'none') {
-        root.classList.add(`color-blind-${preferences.colorBlindness}`);
-      }
-      
-      // Apply font size
-      root.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-extra-large');
-      root.classList.add(`font-size-${preferences.fontSize}`);
-      
-      // Apply line spacing
-      root.classList.remove('line-spacing-tight', 'line-spacing-normal', 'line-spacing-loose');
-      root.classList.add(`line-spacing-${preferences.lineSpacing}`);
-      
-      // Apply letter spacing
-      root.classList.remove('letter-spacing-tight', 'letter-spacing-normal', 'letter-spacing-loose');
-      root.classList.add(`letter-spacing-${preferences.letterSpacing}`);
-      
-      // Apply focus indicators
-      if (preferences.focusIndicators) {
-        root.classList.add('focus-indicators');
-      } else {
-        root.classList.remove('focus-indicators');
-      }
-      
-      logger.info('Accessibility preferences applied to document');
-    } catch (error) {
-      logger.error('Error applying accessibility preferences:', error as Error);
+    // Apply large text
+    if (preferences.largeText) {
+      root.style.setProperty('--large-text', 'true');
+      root.classList.add('large-text');
+    } else {
+      root.style.removeProperty('--large-text');
+      root.classList.remove('large-text');
     }
+
+    // Apply dyslexia-friendly fonts
+    if (preferences.dyslexiaFriendly) {
+      root.style.setProperty('--dyslexia-friendly', 'true');
+      root.classList.add('dyslexia-friendly');
+    } else {
+      root.style.removeProperty('--dyslexia-friendly');
+      root.classList.remove('dyslexia-friendly');
+    }
+
+    // Apply reduced motion
+    if (preferences.reducedMotion) {
+      root.style.setProperty('--reduced-motion', 'true');
+      root.classList.add('reduced-motion');
+    } else {
+      root.style.removeProperty('--reduced-motion');
+      root.classList.remove('reduced-motion');
+    }
+
+    // Apply color blindness filters
+    if (preferences.colorBlindness !== 'none') {
+      root.style.setProperty('--color-blindness', preferences.colorBlindness);
+      root.classList.add(`color-blindness-${preferences.colorBlindness}`);
+    } else {
+      root.style.removeProperty('--color-blindness');
+      root.classList.remove('color-blindness-protanopia', 'color-blindness-deuteranopia', 'color-blindness-tritanopia');
+    }
+
+    // Apply font size
+    root.style.setProperty('--font-size', preferences.fontSize);
+
+    // Apply line spacing
+    root.style.setProperty('--line-spacing', preferences.lineSpacing);
+
+    // Apply letter spacing
+    root.style.setProperty('--letter-spacing', preferences.letterSpacing);
+
+    // Apply focus indicators
+    if (preferences.focusIndicators) {
+      root.style.setProperty('--focus-indicators', 'true');
+      root.classList.add('focus-indicators');
+    } else {
+      root.style.removeProperty('--focus-indicators');
+      root.classList.remove('focus-indicators');
+    }
+
+    logger.info('Accessibility styles applied to document');
   }, [preferences]);
 
-  /**
-   * Setup keyboard navigation
-   */
-  const setupKeyboardNavigation = useCallback(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (preferences.keyboardNavigation) {
-        handleKeyboardNavigation(event);
-      }
+  // Detect screen reader
+  useEffect(() => {
+    const detectScreenReader = () => {
+      // Check for screen reader specific properties
+      const hasScreenReader = 
+        'speechSynthesis' in window ||
+        'webkitSpeechSynthesis' in window ||
+        navigator.userAgent.includes('NVDA') ||
+        navigator.userAgent.includes('JAWS') ||
+        navigator.userAgent.includes('VoiceOver') ||
+        navigator.userAgent.includes('TalkBack');
+
+      setIsScreenReaderActive(hasScreenReader);
+      logger.info('Screen reader detection completed', { hasScreenReader });
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [preferences.keyboardNavigation]);
-
-  /**
-   * Setup focus management
-   */
-  const setupFocusManagement = useCallback(() => {
-    const updateFocusableElements = () => {
-      const elements = Array.from(document.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )) as HTMLElement[];
-      setFocusableElements(elements);
-    };
-
-    // Update focusable elements on DOM changes
-    const observer = new MutationObserver(updateFocusableElements);
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    // Initial update
-    updateFocusableElements();
-    
-    return () => {
-      observer.disconnect();
-    };
+    detectScreenReader();
   }, []);
 
-  /**
-   * Announce message to screen reader
-   */
-  const announceToScreenReader = useCallback((message: string) => {
-    try {
-      if (preferences.screenReader) {
-        // Create a live region for screen reader announcements
-        let liveRegion = document.getElementById('screen-reader-announcements');
-        if (!liveRegion) {
-          liveRegion = document.createElement('div');
-          liveRegion.id = 'screen-reader-announcements';
-          liveRegion.setAttribute('aria-live', 'polite');
-          liveRegion.setAttribute('aria-atomic', 'true');
-          liveRegion.style.position = 'absolute';
-          liveRegion.style.left = '-10000px';
-          liveRegion.style.width = '1px';
-          liveRegion.style.height = '1px';
-          liveRegion.style.overflow = 'hidden';
-          document.body.appendChild(liveRegion);
-        }
-        
-        liveRegion.textContent = message;
-        
-        // Clear the message after a short delay
-        setTimeout(() => {
-          if (liveRegion) {
-            liveRegion.textContent = '';
-          }
-        }, 1000);
-        
-        logger.info('Message announced to screen reader', { message });
-      }
-    } catch (error) {
-      logger.error('Error announcing to screen reader:', error as Error);
-    }
-  }, [preferences.screenReader]);
-
-  /**
-   * Set focus to specific element
-   */
-  const setFocus = useCallback((elementId: string) => {
-    try {
-      const element = document.getElementById(elementId);
-      if (element) {
-        element.focus();
-        logger.info('Focus set to element', { elementId });
-      } else {
-        logger.warn('Element not found for focus', { elementId });
-      }
-    } catch (error) {
-      logger.error('Error setting focus:', error as Error);
-    }
+  // Update preferences
+  const updatePreferences = useCallback((newPreferences: Partial<AccessibilityPreferences>) => {
+    setPreferences(prev => ({ ...prev, ...newPreferences }));
+    logger.info('Accessibility preferences updated', { newPreferences });
   }, []);
 
-  /**
-   * Get all focusable elements
-   */
-  const getFocusableElements = useCallback(() => {
-    return focusableElements;
-  }, [focusableElements]);
-
-  /**
-   * Handle keyboard navigation
-   */
-  const handleKeyboardNavigation = useCallback((event: KeyboardEvent) => {
-    try {
-      const { key, shiftKey } = event;
-      
-      switch (key) {
-        case 'Tab':
-          setIsKeyboardNavigating(true);
-          break;
-          
-        case 'Escape':
-          // Close modals, dropdowns, etc.
-          const activeElement = document.activeElement as HTMLElement;
-          if (activeElement && activeElement.blur) {
-            activeElement.blur();
-          }
-          break;
-          
-        case 'Enter':
-        case ' ':
-          // Handle enter and space key actions
-          const focusedElement = document.activeElement as HTMLElement;
-          if (focusedElement && focusedElement.click) {
-            focusedElement.click();
-            event.preventDefault();
-          }
-          break;
-          
-        case 'ArrowUp':
-        case 'ArrowDown':
-        case 'ArrowLeft':
-        case 'ArrowRight':
-          // Handle arrow key navigation
-          handleArrowKeyNavigation(event);
-          break;
-      }
-    } catch (error) {
-      logger.error('Error handling keyboard navigation:', error as Error);
-    }
-  }, []);
-
-  /**
-   * Handle arrow key navigation
-   */
-  const handleArrowKeyNavigation = useCallback((event: KeyboardEvent) => {
-    try {
-      const { key } = event;
-      const currentElement = document.activeElement as HTMLElement;
-      
-      if (!currentElement) return;
-      
-      const currentIndex = focusableElements.findIndex(el => el === currentElement);
-      if (currentIndex === -1) return;
-      
-      let nextIndex = currentIndex;
-      
-      switch (key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          nextIndex = (currentIndex + 1) % focusableElements.length;
-          break;
-          
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          nextIndex = currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
-          break;
-      }
-      
-      if (nextIndex !== currentIndex) {
-        focusableElements[nextIndex].focus();
-        setCurrentFocusIndex(nextIndex);
-        event.preventDefault();
-      }
-    } catch (error) {
-      logger.error('Error handling arrow key navigation:', error as Error);
-    }
-  }, [focusableElements]);
-
-  /**
-   * Toggle high contrast mode
-   */
-  const toggleHighContrast = useCallback(() => {
-    const newValue = !preferences.highContrast;
-    savePreferences({ highContrast: newValue });
-    announceToScreenReader(`High contrast ${newValue ? 'enabled' : 'disabled'}`);
-  }, [preferences.highContrast, savePreferences, announceToScreenReader]);
-
-  /**
-   * Toggle large text mode
-   */
-  const toggleLargeText = useCallback(() => {
-    const newValue = !preferences.largeText;
-    savePreferences({ largeText: newValue });
-    announceToScreenReader(`Large text ${newValue ? 'enabled' : 'disabled'}`);
-  }, [preferences.largeText, savePreferences, announceToScreenReader]);
-
-  /**
-   * Toggle dyslexia-friendly fonts
-   */
-  const toggleDyslexiaFriendly = useCallback(() => {
-    const newValue = !preferences.dyslexiaFriendly;
-    savePreferences({ dyslexiaFriendly: newValue });
-    announceToScreenReader(`Dyslexia-friendly fonts ${newValue ? 'enabled' : 'disabled'}`);
-  }, [preferences.dyslexiaFriendly, savePreferences, announceToScreenReader]);
-
-  /**
-   * Toggle reduced motion
-   */
-  const toggleReducedMotion = useCallback(() => {
-    const newValue = !preferences.reducedMotion;
-    savePreferences({ reducedMotion: newValue });
-    announceToScreenReader(`Reduced motion ${newValue ? 'enabled' : 'disabled'}`);
-  }, [preferences.reducedMotion, savePreferences, announceToScreenReader]);
-
-  /**
-   * Set color blindness type
-   */
-  const setColorBlindness = useCallback((type: AccessibilityPreferences['colorBlindness']) => {
-    savePreferences({ colorBlindness: type });
-    const message = type === 'none' ? 'Color blindness filter disabled' : `${type} color blindness filter enabled`;
-    announceToScreenReader(message);
-  }, [savePreferences, announceToScreenReader]);
-
-  /**
-   * Set font size
-   */
-  const setFontSize = useCallback((size: AccessibilityPreferences['fontSize']) => {
-    savePreferences({ fontSize: size });
-    announceToScreenReader(`Font size set to ${size}`);
-  }, [savePreferences, announceToScreenReader]);
-
-  /**
-   * Set line spacing
-   */
-  const setLineSpacing = useCallback((spacing: AccessibilityPreferences['lineSpacing']) => {
-    savePreferences({ lineSpacing: spacing });
-    announceToScreenReader(`Line spacing set to ${spacing}`);
-  }, [savePreferences, announceToScreenReader]);
-
-  /**
-   * Set letter spacing
-   */
-  const setLetterSpacing = useCallback((spacing: AccessibilityPreferences['letterSpacing']) => {
-    savePreferences({ letterSpacing: spacing });
-    announceToScreenReader(`Letter spacing set to ${spacing}`);
-  }, [savePreferences, announceToScreenReader]);
-
-  /**
-   * Reset accessibility preferences to defaults
-   */
+  // Reset preferences to default
   const resetPreferences = useCallback(() => {
-    const defaults: AccessibilityPreferences = {
-      highContrast: false,
-      largeText: false,
-      dyslexiaFriendly: false,
-      reducedMotion: false,
-      screenReader: false,
-      keyboardNavigation: true,
-      focusIndicators: true,
-      colorBlindness: 'none',
-      fontSize: 'medium',
-      lineSpacing: 'normal',
-      letterSpacing: 'normal'
-    };
+    setPreferences(defaultPreferences);
+    logger.info('Accessibility preferences reset to default');
+  }, []);
+
+  // Announce to screen reader
+  const announceToScreenReader = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    if (isScreenReaderActive || preferences.screenReader) {
+      // Create live region for announcements
+      let liveRegion = document.getElementById('screen-reader-announcements');
+      if (!liveRegion) {
+        liveRegion = document.createElement('div');
+        liveRegion.id = 'screen-reader-announcements';
+        liveRegion.setAttribute('aria-live', priority);
+        liveRegion.setAttribute('aria-atomic', 'true');
+        liveRegion.style.position = 'absolute';
+        liveRegion.style.left = '-10000px';
+        liveRegion.style.width = '1px';
+        liveRegion.style.height = '1px';
+        liveRegion.style.overflow = 'hidden';
+        document.body.appendChild(liveRegion);
+      }
+
+      // Announce message
+      liveRegion.textContent = message;
+      
+      // Clear after announcement
+      setTimeout(() => {
+        if (liveRegion) {
+          liveRegion.textContent = '';
+        }
+      }, 1000);
+
+      logger.info('Screen reader announcement made', { message, priority });
+    }
+  }, [isScreenReaderActive, preferences.screenReader]);
+
+  // Add announcement to queue
+  const addAnnouncement = useCallback((announcement: ScreenReaderAnnouncement) => {
+    setAnnouncements(prev => [...prev, announcement]);
     
-    setPreferences(defaults);
-    localStorage.removeItem('accessibility-preferences');
-    announceToScreenReader('Accessibility preferences reset to defaults');
-    logger.info('Accessibility preferences reset to defaults');
+    // Auto-remove after timeout
+    if (announcement.timeout) {
+      setTimeout(() => {
+        setAnnouncements(prev => prev.filter(a => a !== announcement));
+      }, announcement.timeout);
+    }
+
+    logger.info('Accessibility announcement added to queue', { announcement });
+  }, []);
+
+  // Clear announcements
+  const clearAnnouncements = useCallback(() => {
+    setAnnouncements([]);
+    logger.info('Accessibility announcements cleared');
+  }, []);
+
+  // Handle keyboard navigation
+  const handleKeyboardNavigation = useCallback((event: KeyboardEvent) => {
+    if (!keyboardNavigation.isEnabled) return;
+
+    const { key, target } = event;
+    const focusableElements = Array.from(
+      document.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    ) as HTMLElement[];
+
+    setKeyboardNavigation(prev => ({
+      ...prev,
+      focusableElements: focusableElements.map(el => el.id || el.className)
+    }));
+
+    switch (key) {
+      case 'Tab':
+        setKeyboardNavigation(prev => ({ ...prev, navigationMode: 'tab' }));
+        break;
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        event.preventDefault();
+        setKeyboardNavigation(prev => ({ ...prev, navigationMode: 'arrow' }));
+        
+        // Handle arrow key navigation
+        const currentIndex = focusableElements.findIndex(el => el === target);
+        let nextIndex = currentIndex;
+
+        if (key === 'ArrowDown' || key === 'ArrowRight') {
+          nextIndex = (currentIndex + 1) % focusableElements.length;
+        } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+          nextIndex = currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
+        }
+
+        focusableElements[nextIndex]?.focus();
+        break;
+      case 'Enter':
+      case ' ':
+        if (target instanceof HTMLElement) {
+          target.click();
+        }
+        break;
+    }
+  }, [keyboardNavigation.isEnabled]);
+
+  // Enable keyboard navigation
+  const enableKeyboardNavigation = useCallback(() => {
+    setKeyboardNavigation(prev => ({ ...prev, isEnabled: true }));
+    document.addEventListener('keydown', handleKeyboardNavigation);
+    logger.info('Keyboard navigation enabled');
+  }, [handleKeyboardNavigation]);
+
+  // Disable keyboard navigation
+  const disableKeyboardNavigation = useCallback(() => {
+    setKeyboardNavigation(prev => ({ ...prev, isEnabled: false }));
+    document.removeEventListener('keydown', handleKeyboardNavigation);
+    logger.info('Keyboard navigation disabled');
+  }, [handleKeyboardNavigation]);
+
+  // Set keyboard navigation mode
+  const setKeyboardNavigationMode = useCallback((mode: 'tab' | 'arrow' | 'voice') => {
+    setKeyboardNavigation(prev => ({ ...prev, navigationMode: mode }));
+    logger.info('Keyboard navigation mode changed', { mode });
+  }, []);
+
+  // Focus management
+  const focusElement = useCallback((elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.focus();
+      setKeyboardNavigation(prev => ({ ...prev, currentFocus: elementId }));
+      logger.info('Element focused', { elementId });
+    }
+  }, []);
+
+  // Skip to main content
+  const skipToMainContent = useCallback(() => {
+    const mainContent = document.querySelector('main') || document.querySelector('[role="main"]');
+    if (mainContent) {
+      mainContent.focus();
+      announceToScreenReader('Skipped to main content');
+      logger.info('Skipped to main content');
+    }
   }, [announceToScreenReader]);
 
-  /**
-   * Memoized computed values
-   */
-  const computedValues = useMemo(() => {
-    return {
-      isAccessibilityEnabled: Object.values(preferences).some(Boolean),
-      hasHighContrast: preferences.highContrast,
-      hasLargeText: preferences.largeText,
-      hasDyslexiaFriendly: preferences.dyslexiaFriendly,
-      hasReducedMotion: preferences.reducedMotion,
-      hasScreenReader: preferences.screenReader,
-      hasKeyboardNavigation: preferences.keyboardNavigation,
-      hasFocusIndicators: preferences.focusIndicators,
-      currentColorBlindness: preferences.colorBlindness,
-      currentFontSize: preferences.fontSize,
-      currentLineSpacing: preferences.lineSpacing,
-      currentLetterSpacing: preferences.letterSpacing
+  // Skip to navigation
+  const skipToNavigation = useCallback(() => {
+    const navigation = document.querySelector('nav') || document.querySelector('[role="navigation"]');
+    if (navigation) {
+      navigation.focus();
+      announceToScreenReader('Skipped to navigation');
+      logger.info('Skipped to navigation');
+    }
+  }, [announceToScreenReader]);
+
+  // Toggle high contrast
+  const toggleHighContrast = useCallback(() => {
+    updatePreferences({ highContrast: !preferences.highContrast });
+    announceToScreenReader(`High contrast ${preferences.highContrast ? 'disabled' : 'enabled'}`);
+  }, [preferences.highContrast, updatePreferences, announceToScreenReader]);
+
+  // Toggle large text
+  const toggleLargeText = useCallback(() => {
+    updatePreferences({ largeText: !preferences.largeText });
+    announceToScreenReader(`Large text ${preferences.largeText ? 'disabled' : 'enabled'}`);
+  }, [preferences.largeText, updatePreferences, announceToScreenReader]);
+
+  // Toggle dyslexia-friendly fonts
+  const toggleDyslexiaFriendly = useCallback(() => {
+    updatePreferences({ dyslexiaFriendly: !preferences.dyslexiaFriendly });
+    announceToScreenReader(`Dyslexia-friendly fonts ${preferences.dyslexiaFriendly ? 'disabled' : 'enabled'}`);
+  }, [preferences.dyslexiaFriendly, updatePreferences, announceToScreenReader]);
+
+  // Toggle reduced motion
+  const toggleReducedMotion = useCallback(() => {
+    updatePreferences({ reducedMotion: !preferences.reducedMotion });
+    announceToScreenReader(`Reduced motion ${preferences.reducedMotion ? 'disabled' : 'enabled'}`);
+  }, [preferences.reducedMotion, updatePreferences, announceToScreenReader]);
+
+  // Set font size
+  const setFontSize = useCallback((size: 'small' | 'medium' | 'large' | 'extra-large') => {
+    updatePreferences({ fontSize: size });
+    announceToScreenReader(`Font size set to ${size}`);
+  }, [updatePreferences, announceToScreenReader]);
+
+  // Set line spacing
+  const setLineSpacing = useCallback((spacing: 'tight' | 'normal' | 'loose') => {
+    updatePreferences({ lineSpacing: spacing });
+    announceToScreenReader(`Line spacing set to ${spacing}`);
+  }, [updatePreferences, announceToScreenReader]);
+
+  // Set letter spacing
+  const setLetterSpacing = useCallback((spacing: 'tight' | 'normal' | 'loose') => {
+    updatePreferences({ letterSpacing: spacing });
+    announceToScreenReader(`Letter spacing set to ${spacing}`);
+  }, [updatePreferences, announceToScreenReader]);
+
+  // Set color blindness type
+  const setColorBlindnessType = useCallback((type: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia') => {
+    updatePreferences({ colorBlindness: type });
+    announceToScreenReader(`Color blindness filter set to ${type}`);
+  }, [updatePreferences, announceToScreenReader]);
+
+  // Get accessibility features
+  const getAccessibilityFeatures = useMemo((): AccessibilityFeatures => ({
+    preferences,
+    isHighContrast: preferences.highContrast,
+    isLargeText: preferences.largeText,
+    isDyslexiaFriendly: preferences.dyslexiaFriendly,
+    isReducedMotion: preferences.reducedMotion,
+    isScreenReaderActive,
+    isKeyboardNavigation: keyboardNavigation.isEnabled,
+    hasFocusIndicators: preferences.focusIndicators,
+    colorBlindnessType: preferences.colorBlindness,
+    currentFontSize: preferences.fontSize,
+    currentLineSpacing: preferences.lineSpacing,
+    currentLetterSpacing: preferences.letterSpacing
+  }), [preferences, isScreenReaderActive, keyboardNavigation.isEnabled]);
+
+  // Initialize keyboard navigation
+  useEffect(() => {
+    if (preferences.keyboardNavigation) {
+      enableKeyboardNavigation();
+    }
+
+    return () => {
+      disableKeyboardNavigation();
     };
-  }, [preferences]);
+  }, [preferences.keyboardNavigation, enableKeyboardNavigation, disableKeyboardNavigation]);
 
   return {
     // State
     preferences,
-    isKeyboardNavigating,
-    currentFocusIndex,
-    focusableElements,
-    
+    isScreenReaderActive,
+    keyboardNavigation,
+    announcements,
+    accessibilityFeatures: getAccessibilityFeatures,
+
     // Actions
+    updatePreferences,
+    resetPreferences,
     announceToScreenReader,
-    setFocus,
-    getFocusableElements,
-    handleKeyboardNavigation,
+    addAnnouncement,
+    clearAnnouncements,
+    enableKeyboardNavigation,
+    disableKeyboardNavigation,
+    setKeyboardNavigationMode,
+    focusElement,
+    skipToMainContent,
+    skipToNavigation,
+
+    // Toggle functions
     toggleHighContrast,
     toggleLargeText,
     toggleDyslexiaFriendly,
     toggleReducedMotion,
-    setColorBlindness,
+
+    // Setter functions
     setFontSize,
     setLineSpacing,
     setLetterSpacing,
-    resetPreferences,
-    savePreferences,
-    
-    // Computed values
-    ...computedValues
+    setColorBlindnessType
   };
 };
