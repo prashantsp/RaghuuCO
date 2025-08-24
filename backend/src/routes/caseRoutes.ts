@@ -19,7 +19,7 @@ import {
   deleteCase,
   getCaseStats
 } from '@/controllers/caseController';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
+import { authenticateToken } from '@/middleware/auth';
 import logger from '@/utils/logger';
 
 const router = Router();
@@ -31,14 +31,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken,
-  authorizePermission('case:read'),
-  async (req, res, next) => {
-    try {
-      await getCases(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getCases
 );
 
 /**
@@ -48,14 +41,7 @@ router.get('/',
  */
 router.get('/stats',
   authenticateToken,
-  authorizePermission('case:read'),
-  async (req, res, next) => {
-    try {
-      await getCaseStats(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getCaseStats
 );
 
 /**
@@ -65,14 +51,7 @@ router.get('/stats',
  */
 router.get('/:id',
   authenticateToken,
-  authorizePermission('case:read'),
-  async (req, res, next) => {
-    try {
-      await getCaseById(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getCaseById
 );
 
 /**
@@ -82,14 +61,7 @@ router.get('/:id',
  */
 router.post('/',
   authenticateToken,
-  authorizePermission('case:create'),
-  async (req, res, next) => {
-    try {
-      await createCase(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  createCase
 );
 
 /**
@@ -99,14 +71,7 @@ router.post('/',
  */
 router.put('/:id',
   authenticateToken,
-  authorizePermission('case:update'),
-  async (req, res, next) => {
-    try {
-      await updateCase(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateCase
 );
 
 /**
@@ -116,14 +81,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateToken,
-  authorizePermission('case:delete'),
-  async (req, res, next) => {
-    try {
-      await deleteCase(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  deleteCase
 );
 
 export default router;

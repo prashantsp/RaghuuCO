@@ -10,9 +10,14 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import financialDashboardController from '@/controllers/financialDashboardController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getFinancialOverview,
+  getRevenueAnalytics,
+  getExpenseAnalytics,
+  getProfitLossStatement,
+  getCashFlowAnalysis
+} from '@/controllers/financialDashboardController';
 
 const router = Router();
 
@@ -23,8 +28,7 @@ const router = Router();
  */
 router.get('/overview', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_FINANCIAL_REPORTS),
-  financialDashboardController.getFinancialOverview
+  getFinancialOverview
 );
 
 /**
@@ -34,8 +38,7 @@ router.get('/overview',
  */
 router.get('/revenue', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_FINANCIAL_REPORTS),
-  financialDashboardController.getRevenueAnalytics
+  getRevenueAnalytics
 );
 
 /**
@@ -45,8 +48,7 @@ router.get('/revenue',
  */
 router.get('/expenses', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_FINANCIAL_REPORTS),
-  financialDashboardController.getExpenseAnalytics
+  getExpenseAnalytics
 );
 
 /**
@@ -56,8 +58,7 @@ router.get('/expenses',
  */
 router.get('/pnl', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_FINANCIAL_REPORTS),
-  financialDashboardController.getProfitLossStatement
+  getProfitLossStatement
 );
 
 /**
@@ -67,8 +68,7 @@ router.get('/pnl',
  */
 router.get('/cashflow', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_FINANCIAL_REPORTS),
-  financialDashboardController.getCashFlowAnalysis
+  getCashFlowAnalysis
 );
 
 export default router;

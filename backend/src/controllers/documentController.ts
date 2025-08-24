@@ -11,7 +11,6 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
 import { UserRole, hasPermission } from '@/utils/roleAccess';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
@@ -67,7 +66,7 @@ const upload = multer({
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getDocuments(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getDocuments(req: Request, res: Response): Promise<void> {
   try {
     const { page = 1, limit = 20, search, category, fileType, caseId, clientId, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
@@ -181,7 +180,7 @@ export async function getDocuments(req: AuthenticatedRequest, res: Response): Pr
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getDocumentById(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getDocumentById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
@@ -374,7 +373,7 @@ export const uploadDocument = [
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function updateDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function updateDocument(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { title, description, category, tags, isPublic } = req.body;
@@ -452,7 +451,7 @@ export async function updateDocument(req: AuthenticatedRequest, res: Response): 
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function deleteDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function deleteDocument(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
@@ -522,7 +521,7 @@ export async function deleteDocument(req: AuthenticatedRequest, res: Response): 
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function downloadDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function downloadDocument(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
@@ -597,7 +596,7 @@ export async function downloadDocument(req: AuthenticatedRequest, res: Response)
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function searchDocuments(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function searchDocuments(req: Request, res: Response): Promise<void> {
   try {
     const { q, page = 1, limit = 20 } = req.query;
     
@@ -690,7 +689,7 @@ export async function searchDocuments(req: AuthenticatedRequest, res: Response):
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getDocumentStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getDocumentStats(req: Request, res: Response): Promise<void> {
   try {
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:read')) {

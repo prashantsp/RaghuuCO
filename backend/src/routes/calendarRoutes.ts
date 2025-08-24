@@ -10,9 +10,16 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import calendarController from '@/controllers/calendarController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getCalendarEvents,
+  getUpcomingEvents,
+  getCalendarEventById,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+  checkSchedulingConflicts
+} from '@/controllers/calendarController';
 
 const router = Router();
 
@@ -23,8 +30,7 @@ const router = Router();
  */
 router.get('/events', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), 
-  calendarController.getCalendarEvents
+  getCalendarEvents
 );
 
 /**
@@ -34,8 +40,7 @@ router.get('/events',
  */
 router.get('/events/upcoming', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), 
-  calendarController.getUpcomingEvents
+  getUpcomingEvents
 );
 
 /**
@@ -45,8 +50,7 @@ router.get('/events/upcoming',
  */
 router.get('/events/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), 
-  calendarController.getCalendarEventById
+  getCalendarEventById
 );
 
 /**
@@ -56,8 +60,7 @@ router.get('/events/:id',
  */
 router.post('/events', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), 
-  calendarController.createCalendarEvent
+  createCalendarEvent
 );
 
 /**
@@ -67,8 +70,7 @@ router.post('/events',
  */
 router.put('/events/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EVENTS), 
-  calendarController.updateCalendarEvent
+  updateCalendarEvent
 );
 
 /**
@@ -78,8 +80,7 @@ router.put('/events/:id',
  */
 router.delete('/events/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_EVENTS), 
-  calendarController.deleteCalendarEvent
+  deleteCalendarEvent
 );
 
 /**
@@ -89,8 +90,7 @@ router.delete('/events/:id',
  */
 router.post('/events/check-conflicts', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), 
-  calendarController.checkSchedulingConflicts
+  checkSchedulingConflicts
 );
 
 export default router;

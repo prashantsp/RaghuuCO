@@ -10,9 +10,17 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import billingController from '@/controllers/billingController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getInvoices,
+  getInvoiceStats,
+  getInvoiceById,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice,
+  getBillingRates,
+  createBillingRate
+} from '@/controllers/billingController';
 
 const router = Router();
 
@@ -23,8 +31,7 @@ const router = Router();
  */
 router.get('/invoices', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_INVOICES), 
-  billingController.getInvoices
+  getInvoices
 );
 
 /**
@@ -34,8 +41,7 @@ router.get('/invoices',
  */
 router.get('/invoices/stats', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_INVOICES), 
-  billingController.getInvoiceStats
+  getInvoiceStats
 );
 
 /**
@@ -45,8 +51,7 @@ router.get('/invoices/stats',
  */
 router.get('/invoices/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_INVOICES), 
-  billingController.getInvoiceById
+  getInvoiceById
 );
 
 /**
@@ -56,8 +61,7 @@ router.get('/invoices/:id',
  */
 router.post('/invoices', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_INVOICES), 
-  billingController.createInvoice
+  createInvoice
 );
 
 /**
@@ -67,8 +71,7 @@ router.post('/invoices',
  */
 router.put('/invoices/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_INVOICES), 
-  billingController.updateInvoice
+  updateInvoice
 );
 
 /**
@@ -78,8 +81,7 @@ router.put('/invoices/:id',
  */
 router.delete('/invoices/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_INVOICES), 
-  billingController.deleteInvoice
+  deleteInvoice
 );
 
 /**
@@ -89,8 +91,7 @@ router.delete('/invoices/:id',
  */
 router.get('/rates', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_BILLING_RATES), 
-  billingController.getBillingRates
+  getBillingRates
 );
 
 /**
@@ -100,8 +101,7 @@ router.get('/rates',
  */
 router.post('/rates', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_BILLING_RATES), 
-  billingController.createBillingRate
+  createBillingRate
 );
 
 export default router;
