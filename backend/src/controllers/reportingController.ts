@@ -95,13 +95,13 @@ export const getReportById = async (req: Request, res: Response) => {
 
     logger.info('Report fetched successfully', { userId, reportId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: { report }
     });
   } catch (error) {
     logger.error('Error fetching report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_FETCH_ERROR',
@@ -242,13 +242,13 @@ export const deleteReport = async (req: Request, res: Response) => {
 
     logger.businessEvent('report_deleted', 'report', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Report deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_DELETE_ERROR',
@@ -307,7 +307,7 @@ export const executeReport = async (req: Request, res: Response) => {
 
     logger.businessEvent('report_executed', 'report_execution', execution.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { 
         execution: reportResult,
@@ -316,7 +316,7 @@ export const executeReport = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error executing report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_EXECUTION_ERROR',

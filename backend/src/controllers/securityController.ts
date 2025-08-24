@@ -119,13 +119,13 @@ export const verify2FA = async (req: Request, res: Response) => {
 
     logger.businessEvent('2fa_enabled', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Two-factor authentication enabled successfully'
     });
   } catch (error) {
     logger.error('Error verifying 2FA', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: '2FA_VERIFICATION_ERROR',
@@ -192,13 +192,13 @@ export const disable2FA = async (req: Request, res: Response) => {
 
     logger.businessEvent('2fa_disabled', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Two-factor authentication disabled successfully'
     });
   } catch (error) {
     logger.error('Error disabling 2FA', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: '2FA_DISABLE_ERROR',
@@ -339,13 +339,13 @@ export const verifyBackupCode = async (req: Request, res: Response) => {
 
     logger.businessEvent('backup_code_used', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Backup code verified successfully'
     });
   } catch (error) {
     logger.error('Error verifying backup code', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'BACKUP_CODE_VERIFICATION_ERROR',

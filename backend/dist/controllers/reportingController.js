@@ -58,14 +58,14 @@ const getReportById = async (req, res) => {
             });
         }
         logger_1.default.info('Report fetched successfully', { userId, reportId: id });
-        res.json({
+        return res.json({
             success: true,
             data: { report }
         });
     }
     catch (error) {
         logger_1.default.error('Error fetching report', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'REPORT_FETCH_ERROR',
@@ -159,14 +159,14 @@ const deleteReport = async (req, res) => {
         }
         await db.query(db_SQLQueries_1.SQLQueries.REPORTS.DELETE, [id]);
         logger_1.default.businessEvent('report_deleted', 'report', id, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Report deleted successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error deleting report', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'REPORT_DELETE_ERROR',
@@ -203,7 +203,7 @@ const executeReport = async (req, res) => {
         const reportResult = await reportExecutionService_1.reportExecutionService.executeReport(id, parameters || [], userId);
         logger_1.default.businessEvent('report_executed', 'report_execution', execution.id, userId);
         logger_1.default.businessEvent('report_executed', 'report_execution', execution.id, userId);
-        res.json({
+        return res.json({
             success: true,
             data: {
                 execution: reportResult,
@@ -213,7 +213,7 @@ const executeReport = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error executing report', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'REPORT_EXECUTION_ERROR',

@@ -81,7 +81,7 @@ const getInternalMessageById = async (req, res) => {
         const recipientsResult = await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.GET_BY_MESSAGE_ID, [id]);
         const recipients = recipientsResult;
         logger_1.default.info('Internal message fetched successfully', { userId, messageId: id });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 message: {
@@ -93,7 +93,7 @@ const getInternalMessageById = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching internal message', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'INTERNAL_MESSAGE_FETCH_ERROR',
@@ -177,14 +177,14 @@ const updateInternalMessage = async (req, res) => {
         ]);
         const updatedMessage = result[0];
         logger_1.default.businessEvent('internal_message_updated', 'internal_message', id, userId);
-        res.json({
+        return res.json({
             success: true,
             data: { message: updatedMessage }
         });
     }
     catch (error) {
         logger_1.default.error('Error updating internal message', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'INTERNAL_MESSAGE_UPDATE_ERROR',
@@ -212,14 +212,14 @@ const deleteInternalMessage = async (req, res) => {
         }
         await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.DELETE, [id]);
         logger_1.default.businessEvent('internal_message_deleted', 'internal_message', id, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Internal message deleted successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error deleting internal message', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'INTERNAL_MESSAGE_DELETE_ERROR',

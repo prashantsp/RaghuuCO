@@ -125,7 +125,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
 
     logger.info('Internal message fetched successfully', { userId, messageId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         message: {
@@ -136,7 +136,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_FETCH_ERROR',
@@ -265,13 +265,13 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
 
     logger.businessEvent('internal_message_updated', 'internal_message', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { message: updatedMessage }
     });
   } catch (error) {
     logger.error('Error updating internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_UPDATE_ERROR',
@@ -313,13 +313,13 @@ export const deleteInternalMessage = async (req: Request, res: Response) => {
 
     logger.businessEvent('internal_message_deleted', 'internal_message', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Internal message deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_DELETE_ERROR',

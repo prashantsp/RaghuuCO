@@ -80,14 +80,14 @@ const verify2FA = async (req, res) => {
         await db.query(db_SQLQueries_1.SQLQueries.SECURITY.UPDATE_2FA_SECRET, [tempSecret, userId]);
         delete req.session.temp2FASecret;
         logger_1.default.businessEvent('2fa_enabled', 'user', userId, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Two-factor authentication enabled successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error verifying 2FA', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: '2FA_VERIFICATION_ERROR',
@@ -137,14 +137,14 @@ const disable2FA = async (req, res) => {
         }
         await db.query(db_SQLQueries_1.SQLQueries.SECURITY.DISABLE_2FA, [userId]);
         logger_1.default.businessEvent('2fa_disabled', 'user', userId, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Two-factor authentication disabled successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error disabling 2FA', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: '2FA_DISABLE_ERROR',
@@ -244,14 +244,14 @@ const verifyBackupCode = async (req, res) => {
         const updatedCodes = user.backup_codes.filter((_, index) => index !== codeIndex);
         await db.query(db_SQLQueries_1.SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [updatedCodes, userId]);
         logger_1.default.businessEvent('backup_code_used', 'user', userId, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Backup code verified successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error verifying backup code', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'BACKUP_CODE_VERIFICATION_ERROR',
