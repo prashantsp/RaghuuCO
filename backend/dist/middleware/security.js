@@ -66,6 +66,16 @@ exports.require2FA = require2FA;
 const ipWhitelist = async (req, res, next) => {
     try {
         const clientIP = req.ip || req.connection.remoteAddress;
+        if (!clientIP) {
+            logger_1.default.warn('Unable to determine client IP address');
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_CLIENT_IP',
+                    message: 'Unable to determine client IP address'
+                }
+            });
+        }
         const whitelistedIPs = process.env.IP_WHITELIST?.split(',') || [];
         if (whitelistedIPs.length > 0 && !whitelistedIPs.includes(clientIP)) {
             logger_1.default.warn('Access denied from non-whitelisted IP', {

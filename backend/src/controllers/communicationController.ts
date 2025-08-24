@@ -233,6 +233,26 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
       responseDeadline
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating internal message', { userId, messageId: id });
 
     // Get current message
@@ -292,6 +312,26 @@ export const deleteInternalMessage = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Deleting internal message', { userId, messageId: id });
 
     // Check if message exists
@@ -340,6 +380,16 @@ export const getReceivedMessages = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
     const { page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Fetching received messages', { userId });
 
@@ -391,6 +441,26 @@ export const updateMessageStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
     const { status, responseContent } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Updating message status', { userId, messageId: id, status });
 
@@ -533,6 +603,26 @@ export const updateEmailTemplate = async (req: Request, res: Response) => {
       variables,
       isActive
     } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TEMPLATE_ID',
+          message: 'Template ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Updating email template', { userId, templateId: id });
 

@@ -153,6 +153,24 @@ const updateInternalMessage = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { subject, content, messageType, priority, isUrgent, requiresResponse, responseDeadline } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_MESSAGE_ID',
+                    message: 'Message ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating internal message', { userId, messageId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
         const currentMessage = currentResult[0];
@@ -198,6 +216,24 @@ const deleteInternalMessage = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_MESSAGE_ID',
+                    message: 'Message ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Deleting internal message', { userId, messageId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
         const message = currentResult[0];
@@ -234,6 +270,15 @@ const getReceivedMessages = async (req, res) => {
         const userId = req.user?.id;
         const { page = 1, limit = 20 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Fetching received messages', { userId });
         const result = await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.GET_BY_RECIPIENT_ID, [
             userId,
@@ -273,6 +318,24 @@ const updateMessageStatus = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { status, responseContent } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_MESSAGE_ID',
+                    message: 'Message ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating message status', { userId, messageId: id, status });
         const readAt = status === 'read' ? new Date() : null;
         const respondedAt = status === 'responded' ? new Date() : null;
@@ -371,6 +434,24 @@ const updateEmailTemplate = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { name, subject, content, templateType, variables, isActive } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TEMPLATE_ID',
+                    message: 'Template ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating email template', { userId, templateId: id });
         const result = await db.query(db_SQLQueries_1.SQLQueries.EMAIL_TEMPLATES.UPDATE, [
             id,

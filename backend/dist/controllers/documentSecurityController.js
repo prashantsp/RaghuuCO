@@ -64,6 +64,24 @@ const downloadSecureDocument = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DOCUMENT_ID',
+                    message: 'Document ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Downloading secure document', { userId, documentId: id });
         const documentResult = await db.query(`
       SELECT * FROM documents WHERE id = $1
@@ -103,6 +121,24 @@ const updateDocumentSecurity = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { securityLevel, watermarkText, watermarkPosition } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DOCUMENT_ID',
+                    message: 'Document ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating document security settings', { userId, documentId: id });
         const documentResult = await db.query(`
       SELECT * FROM documents WHERE id = $1
@@ -144,6 +180,24 @@ const getDocumentSecurityMetadata = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DOCUMENT_ID',
+                    message: 'Document ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Getting document security metadata', { userId, documentId: id });
         const documentResult = await db.query(`
       SELECT * FROM documents WHERE id = $1
@@ -183,6 +237,24 @@ const getDocumentAuditLog = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DOCUMENT_ID',
+                    message: 'Document ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Getting document audit log', { documentId: id, userId });
         const result = await documentSecurityService_1.documentSecurityService.getDocumentAuditLog(id);
         return res.json(result);
@@ -203,6 +275,24 @@ const checkDocumentAccess = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DOCUMENT_ID',
+                    message: 'Document ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Checking document access permissions', { documentId: id, userId });
         const result = await documentSecurityService_1.documentSecurityService.checkDocumentAccess(id, userId);
         return res.json(result);

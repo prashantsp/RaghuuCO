@@ -88,6 +88,15 @@ exports.createArticle = createArticle;
 const getArticleById = async (req, res) => {
     try {
         const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_ARTICLE_ID',
+                    message: 'Article ID is required'
+                }
+            });
+        }
         logger_1.default.info('Getting article by ID', { articleId: id });
         const result = await contentManagementService_1.contentManagementService.getArticleById(id);
         res.json(result);
@@ -107,6 +116,15 @@ exports.getArticleById = getArticleById;
 const getArticleBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
+        if (!slug) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_ARTICLE_SLUG',
+                    message: 'Article slug is required'
+                }
+            });
+        }
         logger_1.default.info('Getting article by slug', { slug });
         const result = await contentManagementService_1.contentManagementService.getArticleBySlug(slug);
         res.json(result);
@@ -217,6 +235,15 @@ exports.createComment = createComment;
 const getArticleComments = async (req, res) => {
     try {
         const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_ARTICLE_ID',
+                    message: 'Article ID is required'
+                }
+            });
+        }
         logger_1.default.info('Getting article comments', { articleId: id });
         const result = await contentManagementService_1.contentManagementService.getArticleComments(id);
         res.json(result);
@@ -365,6 +392,24 @@ exports.trackContentAnalytics = trackContentAnalytics;
 const getContentStats = async (req, res) => {
     try {
         const { contentType, contentId } = req.params;
+        if (!contentId) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_CONTENT_ID',
+                    message: 'Content ID is required'
+                }
+            });
+        }
+        if (!contentType) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_CONTENT_TYPE',
+                    message: 'Content type is required'
+                }
+            });
+        }
         logger_1.default.info('Getting content statistics', { contentType, contentId });
         const result = await contentManagementService_1.contentManagementService.getContentStats(contentId, contentType);
         res.json(result);

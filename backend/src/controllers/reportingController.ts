@@ -178,6 +178,26 @@ export const updateReport = async (req: Request, res: Response) => {
       isActive
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating report', { userId, reportId: id });
 
     const result = await db.query(SQLQueries.REPORTS.UPDATE, [
@@ -220,6 +240,26 @@ export const deleteReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Deleting report', { userId, reportId: id });
 
@@ -269,6 +309,26 @@ export const executeReport = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
     const { parameters } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Executing report', { userId, reportId: id });
 
@@ -338,6 +398,26 @@ export const getReportExecutions = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
     const { page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Fetching report executions', { userId, reportId: id });
 

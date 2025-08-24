@@ -90,6 +90,17 @@ export const ipWhitelist = async (req: Request, res: Response, next: NextFunctio
   try {
     const clientIP = req.ip || req.connection.remoteAddress;
     
+    if (!clientIP) {
+      logger.warn('Unable to determine client IP address');
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CLIENT_IP',
+          message: 'Unable to determine client IP address'
+        }
+      });
+    }
+    
     // Get IP whitelist from environment or database
     const whitelistedIPs = process.env.IP_WHITELIST?.split(',') || [];
     

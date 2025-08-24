@@ -3,11 +3,11 @@ export declare const getDataSources: (req: Request, res: Response) => Promise<vo
 export declare const executeCustomReport: (req: Request, res: Response) => Promise<void>;
 export declare const saveReportTemplate: (req: Request, res: Response) => Promise<void>;
 export declare const getReportTemplates: (req: Request, res: Response) => Promise<void>;
-export declare const getReportTemplateById: (req: Request, res: Response) => Promise<void>;
-export declare const updateReportTemplate: (req: Request, res: Response) => Promise<void>;
-export declare const deleteReportTemplate: (req: Request, res: Response) => Promise<void>;
+export declare const getReportTemplateById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const updateReportTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const deleteReportTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getPreBuiltTemplates: (req: Request, res: Response) => Promise<void>;
-export declare const executeReportFromTemplate: (req: Request, res: Response) => Promise<void>;
+export declare const executeReportFromTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const exportReport: (req: Request, res: Response) => Promise<void>;
 export declare const getReportBuilderAnalytics: (req: Request, res: Response) => Promise<void>;
 declare const _default: {
@@ -15,11 +15,11 @@ declare const _default: {
     executeCustomReport: (req: Request, res: Response) => Promise<void>;
     saveReportTemplate: (req: Request, res: Response) => Promise<void>;
     getReportTemplates: (req: Request, res: Response) => Promise<void>;
-    getReportTemplateById: (req: Request, res: Response) => Promise<void>;
-    updateReportTemplate: (req: Request, res: Response) => Promise<void>;
-    deleteReportTemplate: (req: Request, res: Response) => Promise<void>;
+    getReportTemplateById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    updateReportTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    deleteReportTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getPreBuiltTemplates: (req: Request, res: Response) => Promise<void>;
-    executeReportFromTemplate: (req: Request, res: Response) => Promise<void>;
+    executeReportFromTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     exportReport: (req: Request, res: Response) => Promise<void>;
     getReportBuilderAnalytics: (req: Request, res: Response) => Promise<void>;
 };

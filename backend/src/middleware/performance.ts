@@ -165,6 +165,9 @@ function parseSize(size: string): number {
   }
   
   const [, value, unit] = match;
+  if (!unit || !value) {
+    return 1024 * 1024; // Default to 1MB
+  }
   return parseFloat(value) * units[unit];
 }
 
@@ -191,8 +194,8 @@ export const queryOptimization = (req: Request, res: Response, next: NextFunctio
   req.query.page = req.query.page || '1';
   
   // Optimize search queries
-  if (req.query.search) {
-    const search = req.query.search as string;
+  if (req.query.search && typeof req.query.search === 'string') {
+    const search = req.query.search;
     if (search.length < 2) {
       return res.status(400).json({
         success: false,

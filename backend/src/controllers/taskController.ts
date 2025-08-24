@@ -261,6 +261,26 @@ export const updateTask = async (req: Request, res: Response) => {
       tags
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating task', { userId, taskId: id });
 
     // Check if task exists
@@ -326,6 +346,26 @@ export const deleteTask = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Deleting task', { userId, taskId: id });
 
@@ -416,6 +456,26 @@ export const startTaskTimer = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
     const { description } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Starting task timer', { userId, taskId: id });
 

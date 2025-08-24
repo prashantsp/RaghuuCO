@@ -110,6 +110,9 @@ function parseSize(size) {
         return 1024 * 1024;
     }
     const [, value, unit] = match;
+    if (!unit || !value) {
+        return 1024 * 1024;
+    }
     return parseFloat(value) * units[unit];
 }
 const queryOptimization = (req, res, next) => {
@@ -126,7 +129,7 @@ const queryOptimization = (req, res, next) => {
     }
     req.query.limit = limit.toString();
     req.query.page = req.query.page || '1';
-    if (req.query.search) {
+    if (req.query.search && typeof req.query.search === 'string') {
         const search = req.query.search;
         if (search.length < 2) {
             return res.status(400).json({

@@ -108,6 +108,26 @@ export const downloadSecureDocument = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Downloading secure document', { userId, documentId: id });
 
     // Get document metadata
@@ -167,6 +187,26 @@ export const updateDocumentSecurity = async (req: Request, res: Response) => {
       watermarkText,
       watermarkPosition
     } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Updating document security settings', { userId, documentId: id });
 
@@ -229,6 +269,26 @@ export const getDocumentSecurityMetadata = async (req: Request, res: Response) =
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Getting document security metadata', { userId, documentId: id });
 
     // Get document metadata
@@ -280,6 +340,26 @@ export const getDocumentAuditLog = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Getting document audit log', { documentId: id, userId });
 
     const result = await documentSecurityService.getDocumentAuditLog(id);
@@ -307,6 +387,26 @@ export const checkDocumentAccess = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Checking document access permissions', { documentId: id, userId });
 

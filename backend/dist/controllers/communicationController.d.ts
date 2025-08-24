@@ -4,22 +4,22 @@ export declare const getInternalMessageById: (req: Request, res: Response) => Pr
 export declare const createInternalMessage: (req: Request, res: Response) => Promise<void>;
 export declare const updateInternalMessage: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const deleteInternalMessage: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
-export declare const getReceivedMessages: (req: Request, res: Response) => Promise<void>;
-export declare const updateMessageStatus: (req: Request, res: Response) => Promise<void>;
+export declare const getReceivedMessages: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const updateMessageStatus: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getEmailTemplates: (req: Request, res: Response) => Promise<void>;
 export declare const createEmailTemplate: (req: Request, res: Response) => Promise<void>;
-export declare const updateEmailTemplate: (req: Request, res: Response) => Promise<void>;
+export declare const updateEmailTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 declare const _default: {
     getInternalMessages: (req: Request, res: Response) => Promise<void>;
     getInternalMessageById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
     createInternalMessage: (req: Request, res: Response) => Promise<void>;
     updateInternalMessage: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
     deleteInternalMessage: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
-    getReceivedMessages: (req: Request, res: Response) => Promise<void>;
-    updateMessageStatus: (req: Request, res: Response) => Promise<void>;
+    getReceivedMessages: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    updateMessageStatus: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getEmailTemplates: (req: Request, res: Response) => Promise<void>;
     createEmailTemplate: (req: Request, res: Response) => Promise<void>;
-    updateEmailTemplate: (req: Request, res: Response) => Promise<void>;
+    updateEmailTemplate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 };
 export default _default;
 //# sourceMappingURL=communicationController.d.ts.map

@@ -91,6 +91,24 @@ const getReportTemplateById = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TEMPLATE_ID',
+                    message: 'Template ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Getting custom report template by ID', { userId, templateId: id });
         const result = await customReportBuilderService_1.customReportBuilderService.getReportTemplateById(id, userId);
         res.json(result);
@@ -112,6 +130,24 @@ const updateReportTemplate = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const updates = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TEMPLATE_ID',
+                    message: 'Template ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating custom report template', { userId, templateId: id });
         const result = await customReportBuilderService_1.customReportBuilderService.updateReportTemplate(id, updates, userId);
         res.json(result);
@@ -132,6 +168,24 @@ const deleteReportTemplate = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TEMPLATE_ID',
+                    message: 'Template ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Deleting custom report template', { userId, templateId: id });
         const result = await customReportBuilderService_1.customReportBuilderService.deleteReportTemplate(id, userId);
         res.json(result);
@@ -172,6 +226,24 @@ const executeReportFromTemplate = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { parameters } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TEMPLATE_ID',
+                    message: 'Template ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Executing report from template', { userId, templateId: id });
         const templateResult = await customReportBuilderService_1.customReportBuilderService.getReportTemplateById(id, userId);
         const template = templateResult.data.template;

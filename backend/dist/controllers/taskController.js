@@ -165,6 +165,24 @@ const updateTask = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { title, description, taskType, status, priority, caseId, clientId, assignedTo, estimatedHours, actualHours, dueDate, completedDate, parentTaskId, tags } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TASK_ID',
+                    message: 'Task ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Updating task', { userId, taskId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_BY_ID, [id]);
         const currentTask = currentResult[0];
@@ -217,6 +235,24 @@ const deleteTask = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TASK_ID',
+                    message: 'Task ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Deleting task', { userId, taskId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.TASKS.GET_BY_ID, [id]);
         const task = currentResult[0];
@@ -282,6 +318,24 @@ const startTaskTimer = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         const { description } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_TASK_ID',
+                    message: 'Task ID is required'
+                }
+            });
+        }
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'User ID is required'
+                }
+            });
+        }
         logger_1.default.info('Starting task timer', { userId, taskId: id });
         const activeTimerResult = await db.query(db_SQLQueries_1.SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
         const activeTimer = activeTimerResult[0];
