@@ -1,0 +1,402 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres-staging:
+    image: postgres:14-alpine
+    container_name: raghuuco_postgres_staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: raghuuco_staging
+      POSTGRES_USER: raghuuco_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raghuuco_user -d raghuuco_staging"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis-staging:
+    image: redis:7-alpine
+    container_name: raghuuco_redis_staging
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_staging_data:/data
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API
+  backend-staging:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.staging
+    container_name: raghuuco_backend_staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: staging
+      PORT: 3001
+      DATABASE_URL: postgresql://raghuuco_user:${POSTGRES_PASSWORD}@postgres-staging:5432/raghuuco_staging
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis-staging:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}_staging
+      AWS_REGION: ${AWS_REGION}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      LOG_LEVEL: debug
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+      redis-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Application
+  frontend-staging:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.staging
+    container_name: raghuuco_frontend_staging
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:3001
+      REACT_APP_ENVIRONMENT: staging
+      REACT_APP_VERSION: ${APP_VERSION}
+      REACT_APP_GOOGLE_ANALYTICS_ID: ${GOOGLE_ANALYTICS_ID}
+      REACT_APP_SENTRY_DSN: ${SENTRY_DSN}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-staging
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx-staging:
+    image: nginx:alpine
+    container_name: raghuuco_nginx_staging
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf
+      - ./nginx/logs:/var/log/nginx
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - frontend-staging
+      - backend-staging
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring - Prometheus
+  prometheus-staging:
+    image: prom/prometheus:latest
+    container_name: raghuuco_prometheus_staging
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.staging.yml:/etc/prometheus/prometheus.yml
+      - prometheus_staging_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - raghuuco_staging_network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Monitoring - Grafana
+  grafana-staging:
+    image: grafana/grafana:latest
+    container_name: raghuuco_grafana_staging
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_staging_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3003:3000"
+    depends_on:
+      - prometheus-staging
+    networks:
+      - raghuuco_staging_network
+
+  # Logging - Elasticsearch
+  elasticsearch-staging:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: raghuuco_elasticsearch_staging
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_staging_data:/usr/share/elasticsearch/data
+    ports:
+      - "9201:9200"
+    networks:
+      - raghuuco_staging_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Logging - Kibana
+  kibana-staging:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: raghuuco_kibana_staging
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch-staging:9200
+    ports:
+      - "5602:5601"
+    depends_on:
+      elasticsearch-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+
+  # Logging - Filebeat
+  filebeat-staging:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: raghuuco_filebeat_staging
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./monitoring/filebeat.staging.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      elasticsearch-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+
+  # Backup Service
+  backup-staging:
+    image: postgres:14-alpine
+    container_name: raghuuco_backup_staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_SCHEDULE: "0 3 * * *"  # Daily at 3 AM
+      BACKUP_RETENTION: 7  # Keep backups for 7 days
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /backup.sh && /backup.sh"]
+
+  # Security Scanner
+  security-scanner-staging:
+    image: aquasec/trivy:latest
+    container_name: raghuuco_security_scanner_staging
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security-reports:/reports
+    environment:
+      TRIVY_CACHE_DIR: /tmp/trivy
+    networks:
+      - raghuuco_staging_network
+    command: >
+      sh -c "
+        trivy image --format json --output /reports/backend-staging-security-report.json raghuuco_backend_staging &&
+        trivy image --format json --output /reports/frontend-staging-security-report.json raghuuco_frontend_staging &&
+        echo 'Security scan completed'
+      "
+
+  # Performance Testing
+  k6-staging:
+    image: grafana/k6:latest
+    container_name: raghuuco_k6_staging
+    restart: "no"
+    volumes:
+      - ./k6-load-test-staging.js:/scripts/k6-load-test-staging.js
+      - ./performance-reports:/reports
+    environment:
+      K6_OUT: json=/reports/staging-performance-test-results.json
+    networks:
+      - raghuuco_staging_network
+    command: ["k6", "run", "/scripts/k6-load-test-staging.js"]
+
+  # Database Migration Service
+  migration-staging:
+    image: postgres:14-alpine
+    container_name: raghuuco_migration_staging
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://raghuuco_user:${POSTGRES_PASSWORD}@postgres-staging:5432/raghuuco_staging
+    volumes:
+      - ./migrations:/migrations
+      - ./scripts/migrate.sh:/migrate.sh
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /migrate.sh && /migrate.sh"]
+
+  # Test Data Seeding Service
+  seed-staging:
+    image: postgres:14-alpine
+    container_name: raghuuco_seed_staging
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://raghuuco_user:${POSTGRES_PASSWORD}@postgres-staging:5432/raghuuco_staging
+    volumes:
+      - ./seed-data:/seed-data
+      - ./scripts/seed.sh:/seed.sh
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /seed.sh && /seed.sh"]
+
+  # API Testing Service
+  api-test-staging:
+    image: node:18-alpine
+    container_name: raghuuco_api_test_staging
+    restart: "no"
+    environment:
+      API_URL: http://backend-staging:3001
+      TEST_ENVIRONMENT: staging
+    volumes:
+      - ./tests:/tests
+      - ./scripts/run-api-tests.sh:/run-api-tests.sh
+    depends_on:
+      backend-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /run-api-tests.sh && /run-api-tests.sh"]
+
+  # E2E Testing Service
+  e2e-test-staging:
+    image: mcr.microsoft.com/playwright:v1.40.0
+    container_name: raghuuco_e2e_test_staging
+    restart: "no"
+    environment:
+      BASE_URL: http://frontend-staging
+      API_URL: http://backend-staging:3001
+      TEST_ENVIRONMENT: staging
+    volumes:
+      - ./e2e-tests:/e2e-tests
+      - ./scripts/run-e2e-tests.sh:/run-e2e-tests.sh
+    depends_on:
+      frontend-staging:
+        condition: service_healthy
+      backend-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /run-e2e-tests.sh && /run-e2e-tests.sh"]
+
+  # Load Testing Service
+  load-test-staging:
+    image: grafana/k6:latest
+    container_name: raghuuco_load_test_staging
+    restart: "no"
+    environment:
+      TARGET_URL: http://nginx-staging
+      TEST_DURATION: 300s
+      VUS: 50
+    volumes:
+      - ./load-tests:/load-tests
+      - ./scripts/run-load-tests.sh:/run-load-tests.sh
+    depends_on:
+      nginx-staging:
+        condition: service_healthy
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /run-load-tests.sh && /run-load-tests.sh"]
+
+  # Health Check Service
+  health-check-staging:
+    image: curlimages/curl:latest
+    container_name: raghuuco_health_check_staging
+    restart: unless-stopped
+    environment:
+      HEALTH_CHECK_INTERVAL: 60
+      SERVICES: "backend-staging:3001,frontend-staging:80,nginx-staging:80"
+    volumes:
+      - ./scripts/health-check.sh:/health-check.sh
+    networks:
+      - raghuuco_staging_network
+    command: ["/bin/sh", "-c", "chmod +x /health-check.sh && /health-check.sh"]
+
+volumes:
+  postgres_staging_data:
+    driver: local
+  redis_staging_data:
+    driver: local
+  prometheus_staging_data:
+    driver: local
+  grafana_staging_data:
+    driver: local
+  elasticsearch_staging_data:
+    driver: local
+
+networks:
+  raghuuco_staging_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
