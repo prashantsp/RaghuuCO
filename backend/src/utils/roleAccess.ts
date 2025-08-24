@@ -280,6 +280,28 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.USE_GLOBAL_SEARCH
   ],
 
+  [UserRole.JUNIOR_ASSOCIATE]: [
+    // Limited access for junior associates
+    Permission.VIEW_USERS,
+    Permission.VIEW_CLIENTS, Permission.UPDATE_CLIENTS,
+    Permission.VIEW_CASES, Permission.UPDATE_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES,
+    Permission.VIEW_BILLING_RATES,
+    Permission.VIEW_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
+    Permission.VIEW_REPORTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT,
+    Permission.VIEW_EXPENSES, Permission.CREATE_EXPENSES, Permission.UPDATE_EXPENSES,
+    Permission.VIEW_TASKS, Permission.CREATE_TASKS, Permission.UPDATE_TASKS,
+    Permission.VIEW_COMMUNICATION, Permission.CREATE_COMMUNICATION, Permission.SEND_MESSAGES,
+    Permission.VIEW_FINANCIAL_REPORTS,
+    Permission.VIEW_PRODUCTIVITY_REPORTS,
+    Permission.CREATE_REPORTS, Permission.EXPORT_REPORTS,
+    Permission.USE_GLOBAL_SEARCH
+  ],
+
   [UserRole.PARALEGAL]: [
     // Limited access for support tasks
     Permission.VIEW_USERS,
@@ -391,7 +413,7 @@ export function canAccessResource(
  */
 export function canAccessCase(
   userRole: UserRole,
-  userId: string,
+  // userId: string,
   caseData: {
     assigned_partner?: string;
     assigned_associates?: string[];
@@ -406,13 +428,13 @@ export function canAccessCase(
   // Senior associate can access cases they're assigned to
   if (userRole === UserRole.SENIOR_ASSOCIATE) {
     return (caseData.assigned_partner === userId) || 
-           (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+           (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
   }
 
   // Junior associate and paralegal can access cases they're assigned to
   if (userRole === UserRole.JUNIOR_ASSOCIATE || userRole === UserRole.PARALEGAL) {
     return (caseData.assigned_partner === userId) || 
-           (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+           (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
   }
 
   // Client can only access their own cases
@@ -434,7 +456,7 @@ export function canAccessCase(
  */
 export function canAccessDocument(
   userRole: UserRole,
-  userId: string,
+  // userId: string,
   documentData: {
     case_id?: string;
     uploaded_by?: string;

@@ -43,7 +43,7 @@ export declare class ReportExecutionService {
     generateExcel(data: any[], filePath: string): Promise<void>;
     logExecutionStart(executionId: string, templateId: string, userId: string, parameters: ReportParameter[]): Promise<void>;
     logExecutionCompletion(executionId: string, result: ReportExecutionResult): Promise<void>;
-    logExecutionError(executionId: string, templateId: string, userId: string, error: string): Promise<void>;
+    logExecutionError(executionId: string, _templateId: string, _userId: string, error: string): Promise<void>;
     getExecutionHistory(userId: string, templateId?: string, limit?: number, offset?: number): Promise<{
         executions: any[];
         total: number;

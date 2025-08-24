@@ -56,7 +56,7 @@ export interface UserFeedback {
   status: FeedbackStatus;
   timestamp: Date;
   reviewedBy?: string;
-  reviewedAt?: Date;
+  reviewedAt: Date | undefined;
   response?: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   tags?: string[];
@@ -229,7 +229,7 @@ class UserFeedbackService {
   }): Promise<UserFeedback[]> {
     try {
       // Check if user has permission to view all feedback
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:read_all')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_READ_ALL)) {
         throw new Error('Unauthorized access to all feedback');
       }
 
@@ -287,7 +287,7 @@ class UserFeedbackService {
       }
 
       // Check if user has permission to update feedback
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:update')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_UPDATE)) {
         throw new Error('Unauthorized to update feedback');
       }
 
@@ -326,7 +326,7 @@ class UserFeedbackService {
   }): Promise<FeedbackStatistics> {
     try {
       // Check if user has permission to view statistics
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:view_stats')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_STATS)) {
         throw new Error('Unauthorized to view feedback statistics');
       }
 
@@ -349,10 +349,10 @@ class UserFeedbackService {
    * @param userId - The requesting user ID
    * @returns Promise<UserFeedback[]>
    */
-  async searchFeedback(searchTerm: string, userId: string): Promise<UserFeedback[]> {
+  async searchFeedback(searchTerm: string, _userId: string): Promise<UserFeedback[]> {
     try {
       // Check if user has permission to search feedback
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:search')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_SEARCH)) {
         throw new Error('Unauthorized to search feedback');
       }
 
@@ -370,10 +370,10 @@ class UserFeedbackService {
    * @param days - Number of days to analyze
    * @returns Promise<any>
    */
-  async getFeedbackTrends(userId: string, days: number = 30): Promise<any> {
+  async getFeedbackTrends(_userId: string, days: number = 30): Promise<any> {
     try {
       // Check if user has permission to view trends
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:view_trends')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_TRENDS)) {
         throw new Error('Unauthorized to view feedback trends');
       }
 
@@ -394,7 +394,7 @@ class UserFeedbackService {
    * @param userId - The requesting user ID
    * @returns Promise<UserFeedback[]>
    */
-  async getFeatureFeedback(feature: string, userId: string): Promise<UserFeedback[]> {
+  async getFeatureFeedback(feature: string, _userId: string): Promise<UserFeedback[]> {
     try {
       const result = await db.query(SQLQueries.FEEDBACK.GET_FEATURE_FEEDBACK, [feature]);
       return result.map((row: any) => this.mapFeedbackFromRow(row));
@@ -410,14 +410,14 @@ class UserFeedbackService {
    * @param filters - Optional filters
    * @returns Promise<any>
    */
-  async getFeedbackAnalytics(userId: string, filters?: {
+  async getFeedbackAnalytics(_userId: string, filters?: {
     startDate?: Date;
     endDate?: Date;
     category?: FeedbackCategory;
   }): Promise<any> {
     try {
       // Check if user has permission to view analytics
-      if (!hasPermission(UserRole.SUPER_ADMIN, 'feedback:view_analytics')) {
+      if (!hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_ANALYTICS)) {
         throw new Error('Unauthorized to view feedback analytics');
       }
 
@@ -450,7 +450,7 @@ class UserFeedbackService {
    */
   private canUserAccessFeedback(feedback: UserFeedback, userId: string): boolean {
     return feedback.userId === userId ||
-           hasPermission(UserRole.SUPER_ADMIN, 'feedback:read_all');
+                       hasPermission(UserRole.SUPER_ADMIN, Permission.FEEDBACK_READ_ALL);
   }
 
   /**
@@ -507,13 +507,14 @@ class UserFeedbackService {
    */
   private async notifyAdminTeam(feedback: UserFeedback): Promise<void> {
     try {
-      await sendNotification({
-        type: 'high_priority_feedback',
-        title: 'High Priority Feedback Received',
-        message: `High priority feedback received for ${feedback.feature}: ${feedback.comment?.substring(0, 100)}...`,
-        recipients: ['admin-team'],
-        data: { feedbackId: feedback.id, priority: feedback.priority }
-      });
+      await sendNotification(
+        'admin-team',
+        NotificationType.WARNING,
+        NotificationPriority.HIGH,
+        'High Priority Feedback Received',
+        `High priority feedback received for ${feedback.feature}: ${feedback.comment?.substring(0, 100)}...`,
+        { feedbackId: feedback.id, priority: feedback.priority }
+      );
     } catch (error) {
       logger.error('Error notifying admin team:', error as Error);
     }
@@ -528,7 +529,7 @@ class UserFeedbackService {
       await sendEmail({
         to: feedback.userId,
         subject: 'Feedback Received - Thank You',
-        template: 'feedback-confirmation',
+        html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`,
         data: { feedback }
       });
     } catch (error) {
@@ -544,13 +545,14 @@ class UserFeedbackService {
    */
   private async notifyUserOfStatusChange(feedback: UserFeedback, status: FeedbackStatus, response?: string): Promise<void> {
     try {
-      await sendNotification({
-        type: 'feedback_status_changed',
-        title: 'Feedback Status Updated',
-        message: `Your feedback status has been updated to ${status}`,
-        recipients: [feedback.userId],
-        data: { feedbackId: feedback.id, status, response }
-      });
+      await sendNotification(
+        feedback.userId,
+        NotificationType.INFO,
+        NotificationPriority.MEDIUM,
+        'Feedback Status Updated',
+        `Your feedback status has been updated to ${status}`,
+        { feedbackId: feedback.id, status, response }
+      );
     } catch (error) {
       logger.error('Error notifying user of status change:', error as Error);
     }

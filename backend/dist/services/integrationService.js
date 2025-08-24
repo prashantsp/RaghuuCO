@@ -9,11 +9,11 @@ const crypto_1 = __importDefault(require("crypto"));
 const logger_1 = __importDefault(require("@/utils/logger"));
 class PaymentService {
     constructor() {
-        this.razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
-        this.razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
-        this.payuMerchantId = process.env.PAYU_MERCHANT_ID || '';
-        this.payuMerchantKey = process.env.PAYU_MERCHANT_KEY || '';
-        this.payuMerchantSalt = process.env.PAYU_MERCHANT_SALT || '';
+        this.razorpayKeyId = process.env["RAZORPAY_KEY_ID"] || '';
+        this.razorpayKeySecret = process.env["RAZORPAY_KEY_SECRET"] || '';
+        this.payuMerchantId = process.env["PAYU_MERCHANT_ID"] || '';
+        this.payuMerchantKey = process.env["PAYU_MERCHANT_KEY"] || '';
+        this.payuMerchantSalt = process.env["PAYU_MERCHANT_SALT"] || '';
     }
     async createRazorpayOrder(amount, currency = 'INR', receipt) {
         try {
@@ -72,8 +72,8 @@ class PaymentService {
                 firstname: 'Customer',
                 email: customerEmail,
                 phone: '',
-                surl: `${process.env.BASE_URL}/api/v1/payments/success`,
-                furl: `${process.env.BASE_URL}/api/v1/payments/failure`,
+                surl: `${process.env["BASE_URL"]}/api/v1/payments/success`,
+                furl: `${process.env["BASE_URL"]}/api/v1/payments/failure`,
                 hash
             };
             logger_1.default.info('PayU payment request created', { txnId, amount });
@@ -88,10 +88,10 @@ class PaymentService {
 exports.PaymentService = PaymentService;
 class EmailService {
     constructor() {
-        this.gmailClientId = process.env.GMAIL_CLIENT_ID || '';
-        this.gmailClientSecret = process.env.GMAIL_CLIENT_SECRET || '';
-        this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
-        this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
+        this.gmailClientId = process.env["GMAIL_CLIENT_ID"] || '';
+        this.gmailClientSecret = process.env["GMAIL_CLIENT_SECRET"] || '';
+        this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
+        this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
     }
     async sendGmailEmail(to, subject, body, accessToken) {
         try {
@@ -152,10 +152,10 @@ class EmailService {
 exports.EmailService = EmailService;
 class DocumentSigningService {
     constructor() {
-        this.docusignAccountId = process.env.DOCUSIGN_ACCOUNT_ID || '';
-        this.docusignIntegrationKey = process.env.DOCUSIGN_INTEGRATION_KEY || '';
-        this.docusignUserId = process.env.DOCUSIGN_USER_ID || '';
-        this.docusignPrivateKey = process.env.DOCUSIGN_PRIVATE_KEY || '';
+        this.docusignAccountId = process.env["DOCUSIGN_ACCOUNT_ID"] || '';
+        this.docusignIntegrationKey = process.env["DOCUSIGN_INTEGRATION_KEY"] || '';
+        this.docusignUserId = process.env["DOCUSIGN_USER_ID"] || '';
+        this.docusignPrivateKey = process.env["DOCUSIGN_PRIVATE_KEY"] || '';
     }
     async createDocuSignEnvelope(documentBase64, signerEmail, signerName) {
         try {
@@ -233,11 +233,11 @@ class DocumentSigningService {
 exports.DocumentSigningService = DocumentSigningService;
 class SMSService {
     constructor() {
-        this.twilioAccountSid = process.env.TWILIO_ACCOUNT_SID || '';
-        this.twilioAuthToken = process.env.TWILIO_AUTH_TOKEN || '';
-        this.twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || '';
-        this.textlocalApiKey = process.env.TEXTLOCAL_API_KEY || '';
-        this.textlocalSender = process.env.TEXTLOCAL_SENDER || '';
+        this.twilioAccountSid = process.env["TWILIO_ACCOUNT_SID"] || '';
+        this.twilioAuthToken = process.env["TWILIO_AUTH_TOKEN"] || '';
+        this.twilioPhoneNumber = process.env["TWILIO_PHONE_NUMBER"] || '';
+        this.textlocalApiKey = process.env["TEXTLOCAL_API_KEY"] || '';
+        this.textlocalSender = process.env["TEXTLOCAL_SENDER"] || '';
     }
     async sendTwilioSMS(to, message) {
         try {
@@ -281,10 +281,10 @@ class SMSService {
 exports.SMSService = SMSService;
 class CalendarService {
     constructor() {
-        this.googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-        this.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-        this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
-        this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
+        this.googleClientId = process.env["GOOGLE_CLIENT_ID"] || '';
+        this.googleClientSecret = process.env["GOOGLE_CLIENT_SECRET"] || '';
+        this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
+        this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
     }
     async createGoogleCalendarEvent(accessToken, summary, description, startTime, endTime, attendees) {
         try {

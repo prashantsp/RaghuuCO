@@ -30,7 +30,7 @@ export interface SupportTicket {
     assignedTo?: string;
     createdAt: Date;
     updatedAt: Date;
-    resolvedAt?: Date;
+    resolvedAt: Date | undefined;
     resolution?: string;
     attachments?: string[];
     tags?: string[];
@@ -68,7 +68,7 @@ declare class SupportTicketService {
         limit?: number;
         offset?: number;
     }): Promise<SupportTicket[]>;
-    getAllTickets(userId: string, filters?: {
+    getAllTickets(_userId: string, filters?: {
         status?: TicketStatus;
         priority?: TicketPriority;
         category?: TicketCategory;
@@ -79,7 +79,7 @@ declare class SupportTicketService {
     updateTicketStatus(ticketId: string, status: TicketStatus, userId: string): Promise<SupportTicket>;
     assignTicket(ticketId: string, assignedTo: string, userId: string): Promise<SupportTicket>;
     addComment(ticketId: string, comment: Omit<TicketComment, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<TicketComment>;
-    getTicketStatistics(userId: string, filters?: {
+    getTicketStatistics(_userId: string, filters?: {
         startDate?: Date;
         endDate?: Date;
         category?: TicketCategory;

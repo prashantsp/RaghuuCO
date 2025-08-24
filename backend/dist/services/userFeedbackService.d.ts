@@ -24,7 +24,7 @@ export interface UserFeedback {
     status: FeedbackStatus;
     timestamp: Date;
     reviewedBy?: string;
-    reviewedAt?: Date;
+    reviewedAt: Date | undefined;
     response?: string;
     priority: 'low' | 'medium' | 'high' | 'critical';
     tags?: string[];
@@ -76,10 +76,10 @@ declare class UserFeedbackService {
         endDate?: Date;
         category?: FeedbackCategory;
     }): Promise<FeedbackStatistics>;
-    searchFeedback(searchTerm: string, userId: string): Promise<UserFeedback[]>;
-    getFeedbackTrends(userId: string, days?: number): Promise<any>;
-    getFeatureFeedback(feature: string, userId: string): Promise<UserFeedback[]>;
-    getFeedbackAnalytics(userId: string, filters?: {
+    searchFeedback(searchTerm: string, _userId: string): Promise<UserFeedback[]>;
+    getFeedbackTrends(_userId: string, days?: number): Promise<any>;
+    getFeatureFeedback(feature: string, _userId: string): Promise<UserFeedback[]>;
+    getFeedbackAnalytics(_userId: string, filters?: {
         startDate?: Date;
         endDate?: Date;
         category?: FeedbackCategory;

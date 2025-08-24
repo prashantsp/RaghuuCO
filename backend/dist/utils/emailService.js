@@ -59,7 +59,7 @@ class EmailService {
                 logger_1.default.warn('Email service not configured - missing SMTP credentials');
                 return;
             }
-            this.transporter = nodemailer.createTransporter(config);
+            this.transporter = nodemailer.createTransport(config);
             this.isConfigured = true;
             logger_1.default.info('Email service initialized successfully');
         }

@@ -207,7 +207,7 @@ class MachineLearningService {
     }
     async getPopularSearches(partialQuery, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_POPULAR_SEARCHES, [`%${partialQuery}%`, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             query: row.query,
             frequency: parseInt(row.frequency),
             relevance: parseFloat(row.relevance),
@@ -217,7 +217,7 @@ class MachineLearningService {
     }
     async getUserSearchHistory(userId, partialQuery, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_USER_SEARCH_HISTORY, [userId, `%${partialQuery}%`, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             query: row.query,
             frequency: parseInt(row.frequency),
             relevance: parseFloat(row.relevance) * 1.2,
@@ -227,7 +227,7 @@ class MachineLearningService {
     }
     async getContentBasedSuggestions(partialQuery, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_CONTENT_BASED_SUGGESTIONS, [partialQuery, `%${partialQuery}%`, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             query: row.query,
             frequency: parseInt(row.frequency),
             relevance: parseFloat(row.relevance),
@@ -263,9 +263,9 @@ class MachineLearningService {
     }
     async findSimilarUsers(userId) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.FIND_SIMILAR_USERS, [userId]);
-        return result.rows.map(row => row.id);
+        return result.map((row) => row.id);
     }
-    async predictNextAction(recentActivities, behaviorPatterns, similarUsers) {
+    async predictNextAction(recentActivities, behaviorPatterns) {
         const actionCounts = recentActivities.reduce((acc, activity) => {
             acc[activity.action] = (acc[activity.action] || 0) + 1;
             return acc;
@@ -274,7 +274,7 @@ class MachineLearningService {
             .sort(([, a], [, b]) => b - a)[0];
         return mostCommonAction ? mostCommonAction[0] : 'view_dashboard';
     }
-    async getNextBestAction(userId, predictedAction) {
+    async getNextBestAction(_userId, predictedAction) {
         const actionMap = {
             'view_cases': 'create_case',
             'view_clients': 'add_client',
@@ -284,7 +284,7 @@ class MachineLearningService {
         };
         return actionMap[predictedAction] || 'view_dashboard';
     }
-    async generateRecommendations(userId, predictedAction) {
+    async generateRecommendations(_userId, predictedAction) {
         const recommendations = [];
         switch (predictedAction) {
             case 'view_cases':
@@ -317,9 +317,9 @@ class MachineLearningService {
         return {
             wordCount: content.split(' ').length,
             hasLegalTerms: this.containsLegalTerms(content),
-            fileType: metadata.fileType,
-            fileSize: metadata.fileSize,
-            uploadDate: metadata.uploadDate,
+            fileType: metadata["fileType"],
+            fileSize: metadata["fileSize"],
+            uploadDate: metadata["uploadDate"],
             keywords: this.extractKeywords(content)
         };
     }
@@ -373,7 +373,7 @@ class MachineLearningService {
     }
     async getSimilarCaseRecommendations(userId, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_SIMILAR_CASE_RECOMMENDATIONS, [userId, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             caseId: row.case_id,
             userId,
             recommendationType: 'similar_case',
@@ -385,7 +385,7 @@ class MachineLearningService {
     }
     async getExpertAssignmentRecommendations(userId, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_EXPERT_ASSIGNMENT_RECOMMENDATIONS, [userId, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             caseId: row.case_id,
             userId,
             recommendationType: 'expert_assignment',
@@ -397,7 +397,7 @@ class MachineLearningService {
     }
     async getResourceAllocationRecommendations(userId, limit) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_RESOURCE_ALLOCATION_RECOMMENDATIONS, [userId, limit]);
-        return result.rows.map(row => ({
+        return result.map((row) => ({
             caseId: row.case_id,
             userId,
             recommendationType: 'resource_allocation',
@@ -407,7 +407,7 @@ class MachineLearningService {
             timestamp: new Date().toISOString()
         }));
     }
-    async identifyRiskFactors(userId, activity) {
+    async identifyRiskFactors(userId, _activity) {
         const riskFactors = [];
         const hour = new Date().getHours();
         if (hour < 6 || hour > 22) {
@@ -489,7 +489,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training search suggestion model...');
             const trainingData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_SEARCH_TRAINING_DATA);
-            const processedData = trainingData.rows.map(row => ({
+            const processedData = trainingData.rows.map((row) => ({
                 query: row.query.toLowerCase(),
                 frequency: parseInt(row.frequency),
                 relevance: parseFloat(row.avg_relevance),
@@ -511,7 +511,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training user behavior model...');
             const behaviorData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_BEHAVIOR_TRAINING_DATA);
-            const patterns = behaviorData.rows.reduce((acc, row) => {
+            const patterns = behaviorData.reduce((acc, row) => {
                 if (!acc[row.user_id]) {
                     acc[row.user_id] = {};
                 }
@@ -536,7 +536,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training document classification model...');
             const documentData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_DOCUMENT_TRAINING_DATA);
-            const features = documentData.rows.map(row => ({
+            const features = documentData.map((row) => ({
                 documentId: row.id,
                 wordCount: (row.title + ' ' + (row.description || '')).split(' ').length,
                 hasLegalTerms: this.containsLegalTerms(row.title + ' ' + (row.description || '')),
@@ -559,7 +559,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training case recommendation model...');
             const assignmentData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_CASE_ASSIGNMENT_TRAINING_DATA);
-            const patterns = assignmentData.rows.reduce((acc, row) => {
+            const patterns = assignmentData.reduce((acc, row) => {
                 const key = `${row.category}_${row.priority}_${row.complexity}`;
                 if (!acc[key]) {
                     acc[key] = [];
@@ -585,7 +585,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training fraud detection model...');
             const suspiciousData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_FRAUD_TRAINING_DATA);
-            const fraudPatterns = suspiciousData.rows.reduce((acc, row) => {
+            const fraudPatterns = suspiciousData.reduce((acc, row) => {
                 const riskFactors = JSON.parse(row.risk_factors);
                 riskFactors.forEach((factor) => {
                     if (!acc[factor]) {
@@ -611,7 +611,7 @@ class MachineLearningService {
             throw error;
         }
     }
-    generateClassificationRules(features) {
+    generateClassificationRules(_features) {
         const rules = {
             legal_document: {
                 minWordCount: 1000,

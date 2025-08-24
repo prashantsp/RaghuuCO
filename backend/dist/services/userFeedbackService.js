@@ -115,7 +115,7 @@ class UserFeedbackService {
     }
     async getAllFeedback(userId, filters) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:read_all')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_READ_ALL)) {
                 throw new Error('Unauthorized access to all feedback');
             }
             let query = db_SQLQueries_1.SQLQueries.FEEDBACK.GET_ALL_FEEDBACK;
@@ -155,7 +155,7 @@ class UserFeedbackService {
             if (!feedback) {
                 throw new Error('Feedback not found');
             }
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:update')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_UPDATE)) {
                 throw new Error('Unauthorized to update feedback');
             }
             await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.UPDATE_FEEDBACK_STATUS, [
@@ -178,7 +178,7 @@ class UserFeedbackService {
     }
     async getFeedbackStatistics(userId, filters) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:view_stats')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_STATS)) {
                 throw new Error('Unauthorized to view feedback statistics');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEEDBACK_STATISTICS, [
@@ -193,9 +193,9 @@ class UserFeedbackService {
             throw error;
         }
     }
-    async searchFeedback(searchTerm, userId) {
+    async searchFeedback(searchTerm, _userId) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:search')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_SEARCH)) {
                 throw new Error('Unauthorized to search feedback');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.SEARCH_FEEDBACK, [`%${searchTerm}%`]);
@@ -206,9 +206,9 @@ class UserFeedbackService {
             throw error;
         }
     }
-    async getFeedbackTrends(userId, days = 30) {
+    async getFeedbackTrends(_userId, days = 30) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:view_trends')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_TRENDS)) {
                 throw new Error('Unauthorized to view feedback trends');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEEDBACK_TRENDS, [
@@ -221,7 +221,7 @@ class UserFeedbackService {
             throw error;
         }
     }
-    async getFeatureFeedback(feature, userId) {
+    async getFeatureFeedback(feature, _userId) {
         try {
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEATURE_FEEDBACK, [feature]);
             return result.map((row) => this.mapFeedbackFromRow(row));
@@ -231,9 +231,9 @@ class UserFeedbackService {
             throw error;
         }
     }
-    async getFeedbackAnalytics(userId, filters) {
+    async getFeedbackAnalytics(_userId, filters) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:view_analytics')) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_VIEW_ANALYTICS)) {
                 throw new Error('Unauthorized to view feedback analytics');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEEDBACK_ANALYTICS, [
@@ -253,7 +253,7 @@ class UserFeedbackService {
     }
     canUserAccessFeedback(feedback, userId) {
         return feedback.userId === userId ||
-            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, 'feedback:read_all');
+            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.FEEDBACK_READ_ALL);
     }
     mapFeedbackFromRow(row) {
         return {
@@ -293,13 +293,7 @@ class UserFeedbackService {
     }
     async notifyAdminTeam(feedback) {
         try {
-            await (0, notificationService_1.sendNotification)({
-                type: 'high_priority_feedback',
-                title: 'High Priority Feedback Received',
-                message: `High priority feedback received for ${feedback.feature}: ${feedback.comment?.substring(0, 100)}...`,
-                recipients: ['admin-team'],
-                data: { feedbackId: feedback.id, priority: feedback.priority }
-            });
+            await (0, notificationService_1.sendNotification)('admin-team', NotificationType.WARNING, NotificationPriority.HIGH, 'High Priority Feedback Received', `High priority feedback received for ${feedback.feature}: ${feedback.comment?.substring(0, 100)}...`, { feedbackId: feedback.id, priority: feedback.priority });
         }
         catch (error) {
             logger_1.logger.error('Error notifying admin team:', error);
@@ -310,7 +304,7 @@ class UserFeedbackService {
             await (0, emailService_1.sendEmail)({
                 to: feedback.userId,
                 subject: 'Feedback Received - Thank You',
-                template: 'feedback-confirmation',
+                html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`,
                 data: { feedback }
             });
         }
@@ -320,13 +314,7 @@ class UserFeedbackService {
     }
     async notifyUserOfStatusChange(feedback, status, response) {
         try {
-            await (0, notificationService_1.sendNotification)({
-                type: 'feedback_status_changed',
-                title: 'Feedback Status Updated',
-                message: `Your feedback status has been updated to ${status}`,
-                recipients: [feedback.userId],
-                data: { feedbackId: feedback.id, status, response }
-            });
+            await (0, notificationService_1.sendNotification)(feedback.userId, NotificationType.INFO, NotificationPriority.MEDIUM, 'Feedback Status Updated', `Your feedback status has been updated to ${status}`, { feedbackId: feedback.id, status, response });
         }
         catch (error) {
             logger_1.logger.error('Error notifying user of status change:', error);

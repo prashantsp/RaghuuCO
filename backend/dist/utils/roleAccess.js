@@ -217,6 +217,26 @@ exports.ROLE_PERMISSIONS = {
         Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.EXPORT_REPORTS,
         Permission.USE_GLOBAL_SEARCH
     ],
+    [UserRole.JUNIOR_ASSOCIATE]: [
+        Permission.VIEW_USERS,
+        Permission.VIEW_CLIENTS, Permission.UPDATE_CLIENTS,
+        Permission.VIEW_CASES, Permission.UPDATE_CASES,
+        Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+        Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES,
+        Permission.VIEW_INVOICES,
+        Permission.VIEW_BILLING_RATES,
+        Permission.VIEW_PAYMENTS,
+        Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
+        Permission.VIEW_REPORTS,
+        Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT,
+        Permission.VIEW_EXPENSES, Permission.CREATE_EXPENSES, Permission.UPDATE_EXPENSES,
+        Permission.VIEW_TASKS, Permission.CREATE_TASKS, Permission.UPDATE_TASKS,
+        Permission.VIEW_COMMUNICATION, Permission.CREATE_COMMUNICATION, Permission.SEND_MESSAGES,
+        Permission.VIEW_FINANCIAL_REPORTS,
+        Permission.VIEW_PRODUCTIVITY_REPORTS,
+        Permission.CREATE_REPORTS, Permission.EXPORT_REPORTS,
+        Permission.USE_GLOBAL_SEARCH
+    ],
     [UserRole.PARALEGAL]: [
         Permission.VIEW_USERS,
         Permission.VIEW_CLIENTS, Permission.UPDATE_CLIENTS,
@@ -274,24 +294,24 @@ function canAccessResource(userRole, resourceType, action) {
     const permission = `${resourceType}:${action}`;
     return hasPermission(userRole, permission);
 }
-function canAccessCase(userRole, userId, caseData) {
+function canAccessCase(userRole, caseData) {
     if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.PARTNER) {
         return true;
     }
     if (userRole === UserRole.SENIOR_ASSOCIATE) {
         return (caseData.assigned_partner === userId) ||
-            (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+            (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
     }
     if (userRole === UserRole.JUNIOR_ASSOCIATE || userRole === UserRole.PARALEGAL) {
         return (caseData.assigned_partner === userId) ||
-            (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+            (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
     }
     if (userRole === UserRole.CLIENT) {
         return false;
     }
     return false;
 }
-function canAccessDocument(userRole, userId, documentData) {
+function canAccessDocument(userRole, documentData) {
     if (userRole === UserRole.SUPER_ADMIN) {
         return true;
     }

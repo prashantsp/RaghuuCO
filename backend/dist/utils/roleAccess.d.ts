@@ -106,12 +106,12 @@ export declare function hasAnyPermission(userRole: UserRole, permissions: Permis
 export declare function hasAllPermissions(userRole: UserRole, permissions: Permission[]): boolean;
 export declare function getRolePermissions(userRole: UserRole): Permission[];
 export declare function canAccessResource(userRole: UserRole, resourceType: string, action: string): boolean;
-export declare function canAccessCase(userRole: UserRole, userId: string, caseData: {
+export declare function canAccessCase(userRole: UserRole, caseData: {
     assigned_partner?: string;
     assigned_associates?: string[];
     client_id?: string;
 }): boolean;
-export declare function canAccessDocument(userRole: UserRole, userId: string, documentData: {
+export declare function canAccessDocument(userRole: UserRole, documentData: {
     case_id?: string;
     uploaded_by?: string;
     is_confidential?: boolean;

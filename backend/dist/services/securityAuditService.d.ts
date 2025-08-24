@@ -28,9 +28,9 @@ export interface SecurityIncident {
     type: SecurityIncidentType;
     severity: VulnerabilityLevel;
     description: string;
-    userId?: string;
-    ipAddress?: string;
-    userAgent?: string;
+    userId: string;
+    ipAddress: string;
+    userAgent: string;
     metadata: Record<string, any>;
     status: 'open' | 'investigating' | 'resolved' | 'false_positive';
     createdAt: string;
@@ -52,7 +52,7 @@ declare class SecurityAuditService {
     private generateAuditId;
     private generateIncidentId;
 }
-export { SecurityAuditService, VulnerabilityLevel, SecurityIncidentType };
+export { SecurityAuditService };
 declare const _default: SecurityAuditService;
 export default _default;
 //# sourceMappingURL=securityAuditService.d.ts.map

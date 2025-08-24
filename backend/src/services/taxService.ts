@@ -274,7 +274,7 @@ export class TaxService {
 
       let cgstAmount = 0;
       let sgstAmount = 0;
-      let igstAmount = 0;
+      // let igstAmount = 0;
       let tdsAmount = 0;
       let cessAmount = 0;
 
@@ -346,12 +346,12 @@ export class TaxService {
     try {
       logger.info('Calculating expense tax', params);
       
-      const { amount, expenseType, isReimbursable, gstRate = this.defaultConfig.gstRate } = params;
+      const { amount, isReimbursable, gstRate = this.defaultConfig.gstRate } = params;
 
       let gstAmount = 0;
       let cgstAmount = 0;
       let sgstAmount = 0;
-      let igstAmount = 0;
+      // let igstAmount = 0;
 
       // GST calculation for expenses
       if (isReimbursable) {

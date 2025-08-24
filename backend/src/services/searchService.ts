@@ -229,12 +229,12 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND (c.created_by = $3 OR c.assigned_to = $3)' : ''}
-        ${filters.status ? 'AND c.status = $4' : ''}
-        ${filters.priority ? 'AND c.priority = $5' : ''}
+        ${filters["status"] ? 'AND c.status = $4' : ''}
+        ${filters["priority"] ? 'AND c.priority = $5' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.status, filters.priority].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["status"], filters["priority"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -293,11 +293,11 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND c.created_by = $3' : ''}
-        ${filters.clientType ? 'AND c.client_type = $4' : ''}
+        ${filters["clientType"] ? 'AND c.client_type = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.clientType].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["clientType"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -354,12 +354,12 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND d.uploaded_by = $3' : ''}
-        ${filters.fileType ? 'AND d.file_type = $4' : ''}
-        ${filters.caseId ? 'AND d.case_id = $5' : ''}
+        ${filters["fileType"] ? 'AND d.file_type = $4' : ''}
+        ${filters["caseId"] ? 'AND d.case_id = $5' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.fileType, filters.caseId].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["fileType"], filters["caseId"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -383,7 +383,7 @@ class SearchService {
   /**
    * Search users
    */
-  private async searchUsers(query: string, filters: Record<string, any>, userId?: string): Promise<SearchResult[]> {
+  private async searchUsers(query: string, filters: Record<string, any>, _userId?: string): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         u.id,
@@ -411,11 +411,11 @@ class SearchService {
             COALESCE(u.email, '')
           ) @@ plainto_tsquery('english', $1)
         )
-        ${filters.role ? 'AND u.role = $2' : ''}
+        ${filters["role"] ? 'AND u.role = $2' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, filters.role].filter(Boolean);
+    const params = [query, filters["role"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -440,7 +440,7 @@ class SearchService {
   /**
    * Search expenses
    */
-  private async searchExpenses(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchExpenses(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         e.id,
@@ -471,12 +471,12 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND e.created_by = $2' : ''}
-        ${filters.category ? 'AND e.category = $3' : ''}
-        ${filters.isApproved !== undefined ? 'AND e.is_approved = $4' : ''}
+        ${filters["category"] ? 'AND e.category = $3' : ''}
+        ${filters["isApproved"] !== undefined ? 'AND e.is_approved = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.category, filters.isApproved].filter(Boolean);
+    const params = [query, userId, filters["category"], filters["isApproved"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -533,12 +533,12 @@ class SearchService {
             COALESCE(a.excerpt, '')
           ) @@ plainto_tsquery('english', $1)
         )
-        ${filters.status ? 'AND a.status = $3' : ''}
-        ${filters.categoryId ? 'AND a.category_id = $4' : ''}
+        ${filters["status"] ? 'AND a.status = $3' : ''}
+        ${filters["categoryId"] ? 'AND a.category_id = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, filters.status, filters.categoryId].filter(Boolean);
+    const params = [query, includeArchived, filters["status"], filters["categoryId"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -563,7 +563,7 @@ class SearchService {
   /**
    * Search tasks
    */
-  private async searchTasks(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchTasks(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         t.id,
@@ -592,12 +592,12 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND t.assigned_to = $2' : ''}
-        ${filters.status ? 'AND t.status = $3' : ''}
-        ${filters.priority ? 'AND t.priority = $4' : ''}
+        ${filters["status"] ? 'AND t.status = $3' : ''}
+        ${filters["priority"] ? 'AND t.priority = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.status, filters.priority].filter(Boolean);
+    const params = [query, userId, filters["status"], filters["priority"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -622,7 +622,7 @@ class SearchService {
   /**
    * Search invoices
    */
-  private async searchInvoices(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchInvoices(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         i.id,
@@ -657,11 +657,11 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND i.created_by = $2' : ''}
-        ${filters.status ? 'AND i.status = $3' : ''}
+        ${filters["status"] ? 'AND i.status = $3' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.status].filter(Boolean);
+    const params = [query, userId, filters["status"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -688,7 +688,7 @@ class SearchService {
   /**
    * Search time entries
    */
-  private async searchTimeEntries(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchTimeEntries(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         te.id,
@@ -719,12 +719,12 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND te.user_id = $2' : ''}
-        ${filters.dateFrom ? 'AND te.date >= $3' : ''}
-        ${filters.dateTo ? 'AND te.date <= $4' : ''}
+        ${filters["dateFrom"] ? 'AND te.date >= $3' : ''}
+        ${filters["dateTo"] ? 'AND te.date <= $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.dateFrom, filters.dateTo].filter(Boolean);
+    const params = [query, userId, filters["dateFrom"], filters["dateTo"]].filter(Boolean);
     const result = await db.query(sql, params);
 
     return result.map((row: any) => ({
@@ -905,5 +905,5 @@ class SearchService {
   }
 }
 
-export { SearchService, SearchEntityType };
+export { SearchService };
 export default new SearchService();

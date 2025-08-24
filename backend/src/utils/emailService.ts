@@ -44,7 +44,7 @@ interface EmailContent {
  * Email service class
  */
 class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter!: nodemailer.Transporter;
   private isConfigured: boolean = false;
 
   constructor() {
@@ -71,7 +71,7 @@ class EmailService {
         return;
       }
 
-      this.transporter = nodemailer.createTransporter(config);
+      this.transporter = nodemailer.createTransport(config);
       this.isConfigured = true;
       logger.info('Email service initialized successfully');
     } catch (error) {

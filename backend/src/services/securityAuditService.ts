@@ -12,9 +12,7 @@
 
 import { DatabaseService } from './DatabaseService';
 import logger from '../utils/logger';
-import cacheService from './cacheService';
 import * as crypto from 'crypto';
-import * as bcrypt from 'bcrypt';
 
 const db = new DatabaseService();
 
@@ -63,9 +61,9 @@ export interface SecurityIncident {
   type: SecurityIncidentType;
   severity: VulnerabilityLevel;
   description: string;
-  userId?: string;
-  ipAddress?: string;
-  userAgent?: string;
+  userId: string;
+  ipAddress: string;
+  userAgent: string;
   metadata: Record<string, any>;
   status: 'open' | 'investigating' | 'resolved' | 'false_positive';
   createdAt: string;
@@ -635,5 +633,5 @@ class SecurityAuditService {
   }
 }
 
-export { SecurityAuditService, VulnerabilityLevel, SecurityIncidentType };
+export { SecurityAuditService };
 export default new SecurityAuditService();

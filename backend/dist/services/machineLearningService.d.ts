@@ -84,5 +84,5 @@ declare class MachineLearningService {
 }
 declare const _default: MachineLearningService;
 export default _default;
-export { MachineLearningService, MLModelType };
+export { MachineLearningService };
 //# sourceMappingURL=machineLearningService.d.ts.map

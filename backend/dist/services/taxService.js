@@ -87,7 +87,6 @@ class TaxService {
             const { subtotal, isInterState, isTDSApplicable, gstRate = this.defaultConfig.gstRate, tdsRate = this.defaultConfig.tdsRate, cessRate = this.defaultConfig.cessRate } = params;
             let cgstAmount = 0;
             let sgstAmount = 0;
-            let igstAmount = 0;
             let tdsAmount = 0;
             let cessAmount = 0;
             if (isInterState) {
@@ -138,11 +137,10 @@ class TaxService {
     calculateExpenseTax(params) {
         try {
             logger_1.default.info('Calculating expense tax', params);
-            const { amount, expenseType, isReimbursable, gstRate = this.defaultConfig.gstRate } = params;
+            const { amount, isReimbursable, gstRate = this.defaultConfig.gstRate } = params;
             let gstAmount = 0;
             let cgstAmount = 0;
             let sgstAmount = 0;
-            let igstAmount = 0;
             if (isReimbursable) {
                 gstAmount = 0;
             }

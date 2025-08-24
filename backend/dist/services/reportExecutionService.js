@@ -286,7 +286,7 @@ ${JSON.stringify(result.data.slice(0, 5), null, 2)}
             logger_1.default.error('Error logging execution completion', error);
         }
     }
-    async logExecutionError(executionId, templateId, userId, error) {
+    async logExecutionError(executionId, _templateId, _userId, error) {
         try {
             await db.query(`
         UPDATE report_executions 

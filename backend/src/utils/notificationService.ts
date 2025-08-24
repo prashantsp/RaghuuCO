@@ -141,7 +141,7 @@ class NotificationService {
         data: row.data ? JSON.parse(row.data) : undefined,
         isRead: row.is_read,
         createdAt: new Date(row.created_at),
-        readAt: row.read_at ? new Date(row.read_at) : undefined
+        readAt: row.read_at ? new Date(row.read_at) : undefined as any
       }));
     } catch (error) {
       logger.error('Failed to get user notifications:', error as Error);
