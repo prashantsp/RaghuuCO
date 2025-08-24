@@ -1,0 +1,385 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: raghuuco_postgres
+    environment:
+      POSTGRES_DB: raghuuco_prod
+      POSTGRES_USER: raghuuco_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backup:/backup
+    ports:
+      - "5432:5432"
+    networks:
+      - raghuuco_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raghuuco_user -d raghuuco_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: raghuuco_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - raghuuco_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: raghuuco_backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://raghuuco_user:${POSTGRES_PASSWORD}@postgres:5432/raghuuco_prod
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 5000
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      LOG_LEVEL: info
+      # CDN Configuration
+      CDN_ENABLED: true
+      CDN_URL: ${CDN_URL}
+      CDN_API_KEY: ${CDN_API_KEY}
+      CDN_ZONE_ID: ${CDN_ZONE_ID}
+      # File Storage
+      UPLOAD_PATH: /app/uploads
+      MAX_FILE_SIZE: 50mb
+      ALLOWED_FILE_TYPES: pdf,doc,docx,xls,xlsx,jpg,jpeg,png,gif
+      # Email Configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      # Payment Gateway
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      PAYU_MERCHANT_KEY: ${PAYU_MERCHANT_KEY}
+      PAYU_MERCHANT_SALT: ${PAYU_MERCHANT_SALT}
+      # External Integrations
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      # SMS Gateway
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      TEXTLOCAL_API_KEY: ${TEXTLOCAL_API_KEY}
+      # Document Signing
+      DOCUSIGN_ACCOUNT_ID: ${DOCUSIGN_ACCOUNT_ID}
+      DOCUSIGN_USER_ID: ${DOCUSIGN_USER_ID}
+      DOCUSIGN_PRIVATE_KEY: ${DOCUSIGN_PRIVATE_KEY}
+      ESIGN_CLIENT_ID: ${ESIGN_CLIENT_ID}
+      ESIGN_CLIENT_SECRET: ${ESIGN_CLIENT_SECRET}
+    volumes:
+      - uploads_data:/app/uploads
+      - ./logs:/app/logs
+    ports:
+      - "5000:5000"
+    networks:
+      - raghuuco_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: raghuuco_frontend
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      REACT_APP_CDN_URL: ${CDN_URL}
+      REACT_APP_APP_NAME: "RAGHUU CO Legal Practice Management"
+      REACT_APP_VERSION: ${APP_VERSION}
+      REACT_APP_ENVIRONMENT: production
+      # Analytics
+      REACT_APP_GA_TRACKING_ID: ${REACT_APP_GA_TRACKING_ID}
+      REACT_APP_HOTJAR_ID: ${REACT_APP_HOTJAR_ID}
+      # Feature Flags
+      REACT_APP_ENABLE_PWA: true
+      REACT_APP_ENABLE_OFFLINE: true
+      REACT_APP_ENABLE_PUSH_NOTIFICATIONS: true
+      REACT_APP_ENABLE_KEYBOARD_SHORTCUTS: true
+      REACT_APP_ENABLE_REAL_TIME_UPDATES: true
+    volumes:
+      - static_assets:/app/build/static
+    ports:
+      - "3000:3000"
+    networks:
+      - raghuuco_network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy with CDN Optimization
+  nginx:
+    image: nginx:alpine
+    container_name: raghuuco_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - static_assets:/var/www/static
+      - uploads_data:/var/www/uploads
+      - ./logs/nginx:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - raghuuco_network
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # CDN Edge Server (Local CDN for development/testing)
+  cdn:
+    image: nginx:alpine
+    container_name: raghuuco_cdn
+    volumes:
+      - ./nginx/cdn.conf:/etc/nginx/nginx.conf:ro
+      - static_assets:/var/www/static:ro
+      - uploads_data:/var/www/uploads:ro
+      - ./logs/cdn:/var/log/nginx
+    ports:
+      - "8080:80"
+    networks:
+      - raghuuco_network
+    depends_on:
+      - frontend
+    restart: unless-stopped
+    profiles:
+      - cdn-local
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: raghuuco_prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+      - ./logs/prometheus:/var/log/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - raghuuco_network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: raghuuco_grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - raghuuco_network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Elasticsearch for Logging
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: raghuuco_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - raghuuco_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kibana for Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: raghuuco_kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - raghuuco_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Filebeat for Log Collection
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: raghuuco_filebeat
+    user: root
+    volumes:
+      - ./monitoring/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/var/log/raghuuco:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - raghuuco_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Backup Service
+  backup:
+    image: postgres:14-alpine
+    container_name: raghuuco_backup
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      BACKUP_RETENTION_DAYS: 30
+      S3_BUCKET: ${S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+    volumes:
+      - ./backup:/backup
+      - ./scripts/backup.sh:/backup.sh:ro
+    networks:
+      - raghuuco_network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    command: ["/bin/sh", "-c", "chmod +x /backup.sh && /backup.sh"]
+
+  # CDN Cache Warmer
+  cdn-warmer:
+    image: curlimages/curl:latest
+    container_name: raghuuco_cdn_warmer
+    environment:
+      CDN_URL: ${CDN_URL}
+      CDN_API_KEY: ${CDN_API_KEY}
+      WARM_SCHEDULE: "*/30 * * * *"  # Every 30 minutes
+    volumes:
+      - ./scripts/cdn-warm.sh:/cdn-warm.sh:ro
+    networks:
+      - raghuuco_network
+    depends_on:
+      - frontend
+    restart: unless-stopped
+    command: ["/bin/sh", "-c", "chmod +x /cdn-warm.sh && /cdn-warm.sh"]
+    profiles:
+      - cdn-warming
+
+  # Performance Testing
+  k6:
+    image: grafana/k6:latest
+    container_name: raghuuco_k6
+    volumes:
+      - ./tests/performance:/scripts
+    networks:
+      - raghuuco_network
+    command: ["k6", "run", "/scripts/load-test.js"]
+    profiles:
+      - performance-test
+
+  # Security Scanner
+  security-scanner:
+    image: aquasec/trivy:latest
+    container_name: raghuuco_security_scanner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./security-reports:/reports
+    networks:
+      - raghuuco_network
+    command: ["trivy", "image", "--format", "json", "--output", "/reports/scan-report.json", "raghuuco-backend:latest"]
+    profiles:
+      - security-scan
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  static_assets:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  raghuuco_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

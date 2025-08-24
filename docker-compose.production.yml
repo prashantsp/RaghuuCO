@@ -1,0 +1,313 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: raghuuco_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: raghuuco_production
+      POSTGRES_USER: raghuuco_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raghuuco_user -d raghuuco_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: raghuuco_redis_prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    container_name: raghuuco_backend_prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://raghuuco_user:${POSTGRES_PASSWORD}@postgres:5432/raghuuco_production
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_REGION: ${AWS_REGION}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      LOG_LEVEL: info
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+    container_name: raghuuco_frontend_prod
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: https://api.raghuuco.com
+      REACT_APP_ENVIRONMENT: production
+      REACT_APP_VERSION: ${APP_VERSION}
+      REACT_APP_GOOGLE_ANALYTICS_ID: ${GOOGLE_ANALYTICS_ID}
+      REACT_APP_SENTRY_DSN: ${SENTRY_DSN}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: raghuuco_nginx_prod
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.production.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: raghuuco_prometheus_prod
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - raghuuco_network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: raghuuco_grafana_prod
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - raghuuco_network
+
+  # Logging - Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: raghuuco_elasticsearch_prod
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - raghuuco_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Logging - Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: raghuuco_kibana_prod
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - raghuuco_network
+
+  # Logging - Filebeat
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: raghuuco_filebeat_prod
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./monitoring/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - raghuuco_network
+
+  # Backup Service
+  backup:
+    image: postgres:14-alpine
+    container_name: raghuuco_backup_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      BACKUP_RETENTION: 30  # Keep backups for 30 days
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - raghuuco_network
+    command: ["/bin/sh", "-c", "chmod +x /backup.sh && /backup.sh"]
+
+  # Security Scanner
+  security-scanner:
+    image: aquasec/trivy:latest
+    container_name: raghuuco_security_scanner_prod
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security-reports:/reports
+    environment:
+      TRIVY_CACHE_DIR: /tmp/trivy
+    networks:
+      - raghuuco_network
+    command: >
+      sh -c "
+        trivy image --format json --output /reports/backend-security-report.json raghuuco_backend_prod &&
+        trivy image --format json --output /reports/frontend-security-report.json raghuuco_frontend_prod &&
+        echo 'Security scan completed'
+      "
+
+  # Performance Testing
+  k6:
+    image: grafana/k6:latest
+    container_name: raghuuco_k6_prod
+    restart: "no"
+    volumes:
+      - ./k6-load-test.js:/scripts/k6-load-test.js
+      - ./performance-reports:/reports
+    environment:
+      K6_OUT: json=/reports/performance-test-results.json
+    networks:
+      - raghuuco_network
+    command: ["k6", "run", "/scripts/k6-load-test.js"]
+
+  # SSL Certificate Renewal
+  certbot:
+    image: certbot/certbot:latest
+    container_name: raghuuco_certbot_prod
+    restart: unless-stopped
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/webroot:/var/www/html
+    networks:
+      - raghuuco_network
+    command: >
+      sh -c "
+        certbot renew --webroot -w /var/www/html --quiet &&
+        nginx -s reload
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  raghuuco_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
