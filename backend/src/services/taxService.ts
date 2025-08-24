@@ -274,14 +274,14 @@ export class TaxService {
 
       let cgstAmount = 0;
       let sgstAmount = 0;
-      // let igstAmount = 0;
+      let igstAmount = 0;
       let tdsAmount = 0;
       let cessAmount = 0;
 
       // Calculate GST based on transaction type
       if (isInterState) {
         // Inter-state transaction - IGST applies
-        const igstAmount = this.calculateIGST(subtotal, gstRate);
+        igstAmount = this.calculateIGST(subtotal, gstRate);
       } else {
         // Intra-state transaction - CGST and SGST apply
         const cgstSgst = this.calculateCGSTSGST(subtotal, gstRate);

@@ -594,7 +594,7 @@ class SupportTicketService {
       attachments: row.attachments ? JSON.parse(row.attachments) : undefined,
       tags: row.tags ? JSON.parse(row.tags) : undefined,
               estimatedResolutionTime: row.estimated_resolution_time ? new Date(row.estimated_resolution_time) : undefined as any,
-      actualResolutionTime: row.actual_resolution_time ? new Date(row.actual_resolution_time) : undefined,
+      actualResolutionTime: row.actual_resolution_time ? new Date(row.actual_resolution_time) : undefined as any,
       userSatisfaction: row.user_satisfaction,
       internalNotes: row.internal_notes
     };
@@ -646,7 +646,6 @@ class SupportTicketService {
       await sendEmail({
         to: ticket.userId,
         subject: `Support Ticket Created - ${ticket.id}`,
-        html: `Your ticket "${ticket.subject}" has been created successfully.`,
         html: `Your ticket "${ticket.subject}" has been created successfully.`
       });
     } catch (error) {
@@ -731,7 +730,6 @@ class SupportTicketService {
       await sendEmail({
         to: ticket.userId,
         subject: `Ticket Resolved - ${ticket.id}`,
-        html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`,
         html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`
       });
     } catch (error) {

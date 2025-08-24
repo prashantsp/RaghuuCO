@@ -456,7 +456,7 @@ export function canAccessCase(
  */
 export function canAccessDocument(
   userRole: UserRole,
-  userId: string,
+  _userId: string,
   documentData: {
     case_id?: string;
     uploaded_by?: string;

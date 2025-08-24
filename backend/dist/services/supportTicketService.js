@@ -371,7 +371,6 @@ class SupportTicketService {
             await (0, emailService_1.sendEmail)({
                 to: ticket.userId,
                 subject: `Support Ticket Created - ${ticket.id}`,
-                html: `Your ticket "${ticket.subject}" has been created successfully.`,
                 html: `Your ticket "${ticket.subject}" has been created successfully.`
             });
         }
@@ -414,7 +413,6 @@ class SupportTicketService {
             await (0, emailService_1.sendEmail)({
                 to: ticket.userId,
                 subject: `Ticket Resolved - ${ticket.id}`,
-                html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`,
                 html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`
             });
         }

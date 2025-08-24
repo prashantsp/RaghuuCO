@@ -11,8 +11,7 @@ class PaymentService {
     constructor() {
         this.razorpayKeyId = process.env["RAZORPAY_KEY_ID"] || '';
         this.razorpayKeySecret = process.env["RAZORPAY_KEY_SECRET"] || '';
-        this.payuMerchantId = process.env["PAYU_MERCHANT_ID"] || '';
-        this.payuMerchantKey = process.env["PAYU_MERCHANT_KEY"] || '';
+        this.payuMerchantKey = process.env.PAYU_MERCHANT_KEY || '';
         this.payuMerchantSalt = process.env["PAYU_MERCHANT_SALT"] || '';
     }
     async createRazorpayOrder(amount, currency = 'INR', receipt) {
@@ -88,10 +87,10 @@ class PaymentService {
 exports.PaymentService = PaymentService;
 class EmailService {
     constructor() {
-        this.gmailClientId = process.env["GMAIL_CLIENT_ID"] || '';
-        this.gmailClientSecret = process.env["GMAIL_CLIENT_SECRET"] || '';
-        this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
-        this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
+        this.gmailClientId = process.env.GMAIL_CLIENT_ID || '';
+        this.gmailClientSecret = process.env.GMAIL_CLIENT_SECRET || '';
+        this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
+        this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
     }
     async sendGmailEmail(to, subject, body, accessToken) {
         try {
@@ -281,10 +280,10 @@ class SMSService {
 exports.SMSService = SMSService;
 class CalendarService {
     constructor() {
-        this.googleClientId = process.env["GOOGLE_CLIENT_ID"] || '';
-        this.googleClientSecret = process.env["GOOGLE_CLIENT_SECRET"] || '';
-        this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
-        this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
+        this.googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+        this.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+        this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
+        this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
     }
     async createGoogleCalendarEvent(accessToken, summary, description, startTime, endTime, attendees) {
         try {

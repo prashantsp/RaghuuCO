@@ -18,7 +18,7 @@ class CalendarService {
             if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 const auth = new googleapis_1.google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
                 auth.setCredentials({
-                    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+                    refresh_token: process.env.GOOGLE_REFRESH_TOKEN || null
                 });
                 this.googleCalendar = googleapis_1.google.calendar({ version: 'v3', auth });
                 logger_1.default.info('Google Calendar initialized successfully');

@@ -59,5 +59,4 @@ declare class AnalyticsService {
 }
 declare const _default: AnalyticsService;
 export default _default;
-export { AnalyticsService, AnalyticsMetricType, TimePeriod };
 //# sourceMappingURL=analyticsService.d.ts.map

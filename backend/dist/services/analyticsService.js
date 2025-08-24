@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnalyticsService = exports.TimePeriod = exports.AnalyticsMetricType = void 0;
+exports.TimePeriod = exports.AnalyticsMetricType = void 0;
 const DatabaseService_1 = require("@/services/DatabaseService");
 const logger_1 = require("@/utils/logger");
 const cacheService_1 = __importDefault(require("@/services/cacheService"));
@@ -70,7 +70,7 @@ class AnalyticsService {
       WHERE created_at >= $1
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const trends = await this.getRevenueTrends(period);
         return {
             summary: {
@@ -104,7 +104,7 @@ class AnalyticsService {
       WHERE created_at >= $1 AND status != 'deleted'
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const trends = await this.getCaseTrends(period);
         return {
             summary: {
@@ -139,7 +139,7 @@ class AnalyticsService {
       WHERE is_active = true
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const trends = await this.getClientTrends(period);
         return {
             summary: {
@@ -179,7 +179,7 @@ class AnalyticsService {
       ORDER BY total_minutes DESC NULLS LAST
     `;
         const result = await db.query(sql, [timeFilter]);
-        const productivityMetrics = result.rows.map(row => ({
+        const productivityMetrics = result.map(row => ({
             userId: row.id,
             name: `${row.first_name} ${row.last_name}`,
             role: row.role,
@@ -201,7 +201,7 @@ class AnalyticsService {
                 totalUsers: productivityMetrics.length,
                 totalBillableHours: productivityMetrics.reduce((sum, user) => sum + user.billableHours, 0),
                 averageTaskCompletionRate: productivityMetrics.reduce((sum, user) => sum + user.taskCompletionRate, 0) / productivityMetrics.length,
-                mostProductiveUser: productivityMetrics.reduce((max, user) => user.billableHours > max.billableHours ? user : max, productivityMetrics[0])
+                mostProductiveUser: productivityMetrics.length > 0 ? productivityMetrics.reduce((max, user) => user.billableHours > max.billableHours ? user : max, productivityMetrics[0]) : null
             },
             period
         };
@@ -221,7 +221,7 @@ class AnalyticsService {
       WHERE expense_date >= $1
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const categoryBreakdown = await this.getExpenseCategoryBreakdown(period);
         return {
             summary: {
@@ -258,7 +258,7 @@ class AnalyticsService {
       ORDER BY total_actions DESC
     `;
         const result = await db.query(sql, [timeFilter]);
-        const userActivity = result.rows.map(row => ({
+        const userActivity = result.map(row => ({
             userId: row.id,
             name: `${row.first_name} ${row.last_name}`,
             role: row.role,
@@ -274,7 +274,7 @@ class AnalyticsService {
             summary: {
                 totalUsers: userActivity.length,
                 totalActions: userActivity.reduce((sum, user) => sum + user.totalActions, 0),
-                mostActiveUser: userActivity.reduce((max, user) => user.totalActions > max.totalActions ? user : max, userActivity[0]),
+                mostActiveUser: userActivity.length > 0 ? userActivity.reduce((max, user) => user.totalActions > max.totalActions ? user : max, userActivity[0]) : null,
                 averageActionsPerUser: userActivity.reduce((sum, user) => sum + user.totalActions, 0) / userActivity.length
             },
             period
@@ -295,7 +295,7 @@ class AnalyticsService {
       WHERE created_at >= $1 AND is_deleted = false
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const trends = await this.getDocumentTrends(period);
         return {
             summary: {
@@ -325,7 +325,7 @@ class AnalyticsService {
       WHERE date >= $1
     `;
         const result = await db.query(sql, [timeFilter]);
-        const data = result.rows[0];
+        const data = result[0];
         const trends = await this.getTimeTrackingTrends(period);
         return {
             summary: {
@@ -355,7 +355,7 @@ class AnalyticsService {
       ORDER BY period
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     async getCaseTrends(period) {
         const timeFilter = this.getTimeFilter(period);
@@ -372,7 +372,7 @@ class AnalyticsService {
       ORDER BY period
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     async getClientTrends(period) {
         const timeFilter = this.getTimeFilter(period);
@@ -389,7 +389,7 @@ class AnalyticsService {
       ORDER BY period
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     async getExpenseCategoryBreakdown(period) {
         const timeFilter = this.getTimeFilter(period);
@@ -405,7 +405,7 @@ class AnalyticsService {
       ORDER BY total_amount DESC
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     async getDocumentTrends(period) {
         const timeFilter = this.getTimeFilter(period);
@@ -421,7 +421,7 @@ class AnalyticsService {
       ORDER BY period
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     async getTimeTrackingTrends(period) {
         const timeFilter = this.getTimeFilter(period);
@@ -438,7 +438,7 @@ class AnalyticsService {
       ORDER BY period
     `;
         const result = await db.query(sql, [timeFilter]);
-        return result.rows;
+        return result;
     }
     getTimeFilter(period) {
         const now = new Date();
@@ -486,7 +486,7 @@ class AnalyticsService {
                 updatedAt: new Date().toISOString()
             };
             const result = await db.query(query, Object.values(filters));
-            report.data = result.rows;
+            report.data = result;
             await db.query(`
         INSERT INTO bi_reports (
           id, name, description, type, query, filters, data, created_at, updated_at
@@ -516,7 +516,7 @@ class AnalyticsService {
         SELECT * FROM bi_reports 
         ORDER BY updated_at DESC
       `);
-            return result.rows.map(row => ({
+            return result.map(row => ({
                 ...row,
                 filters: JSON.parse(row.filters || '{}'),
                 data: JSON.parse(row.data || '[]')
@@ -531,6 +531,5 @@ class AnalyticsService {
         return `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 }
-exports.AnalyticsService = AnalyticsService;
 exports.default = new AnalyticsService();
 //# sourceMappingURL=analyticsService.js.map

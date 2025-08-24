@@ -27,8 +27,7 @@ export class PaymentService {
   constructor() {
     this.razorpayKeyId = process.env["RAZORPAY_KEY_ID"] || '';
     this.razorpayKeySecret = process.env["RAZORPAY_KEY_SECRET"] || '';
-    this.payuMerchantId = process.env["PAYU_MERCHANT_ID"] || '';
-    this.payuMerchantKey = process.env["PAYU_MERCHANT_KEY"] || '';
+    this.payuMerchantKey = (process as any).env.PAYU_MERCHANT_KEY || '';
     this.payuMerchantSalt = process.env["PAYU_MERCHANT_SALT"] || '';
   }
 
@@ -120,16 +119,16 @@ export class PaymentService {
  * Handles Gmail and Outlook integrations
  */
 export class EmailService {
-  // private gmailClientId: string;
-  // private gmailClientSecret: string;
-  // private outlookClientId: string;
-  // private outlookClientSecret: string;
+  private gmailClientId: string;
+  private gmailClientSecret: string;
+  private outlookClientId: string;
+  private outlookClientSecret: string;
 
   constructor() {
-    this.gmailClientId = process.env["GMAIL_CLIENT_ID"] || '';
-    this.gmailClientSecret = process.env["GMAIL_CLIENT_SECRET"] || '';
-    this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
-    this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
+    this.gmailClientId = (process as any).env.GMAIL_CLIENT_ID || '';
+    this.gmailClientSecret = (process as any).env.GMAIL_CLIENT_SECRET || '';
+    this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**
@@ -390,16 +389,16 @@ export class SMSService {
  * Handles Google Calendar and Outlook Calendar integrations
  */
 export class CalendarService {
-  // private googleClientId: string;
-  // private googleClientSecret: string;
-  // private outlookClientId: string;
-  // private outlookClientSecret: string;
+  private googleClientId: string;
+  private googleClientSecret: string;
+  private outlookClientId: string;
+  private outlookClientSecret: string;
 
   constructor() {
-    this.googleClientId = process.env["GOOGLE_CLIENT_ID"] || '';
-    this.googleClientSecret = process.env["GOOGLE_CLIENT_SECRET"] || '';
-    this.outlookClientId = process.env["OUTLOOK_CLIENT_ID"] || '';
-    this.outlookClientSecret = process.env["OUTLOOK_CLIENT_SECRET"] || '';
+    this.googleClientId = (process as any).env.GOOGLE_CLIENT_ID || '';
+    this.googleClientSecret = (process as any).env.GOOGLE_CLIENT_SECRET || '';
+    this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**

@@ -56,7 +56,6 @@ class MachineLearningService {
             }
             const recentActivities = await this.getUserRecentActivities(userId);
             const behaviorPatterns = await this.analyzeBehaviorPatterns(userId);
-            const similarUsers = await this.findSimilarUsers(userId);
             const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns);
             const nextBestAction = await this.getNextBestAction(userId, predictedAction);
             const recommendations = await this.generateRecommendations(userId, predictedAction);
@@ -261,8 +260,8 @@ class MachineLearningService {
             return acc;
         }, {});
     }
-    async findSimilarUsers(userId) {
-        const result = await db.query(db_SQLQueries_1.SQLQueries.ML.FIND_SIMILAR_USERS, [userId]);
+    async findSimilarUsers(_userId) {
+        const result = await db.query(db_SQLQueries_1.SQLQueries.ML.FIND_SIMILAR_USERS, [_userId]);
         return result.map((row) => row.id);
     }
     async predictNextAction(recentActivities, _behaviorPatterns) {
@@ -489,7 +488,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training search suggestion model...');
             const trainingData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_SEARCH_TRAINING_DATA);
-            const processedData = trainingData.map((row) => ({
+            trainingData.map((row) => ({
                 query: row.query.toLowerCase(),
                 frequency: parseInt(row.frequency),
                 relevance: parseFloat(row.avg_relevance),

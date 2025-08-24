@@ -304,7 +304,6 @@ class UserFeedbackService {
             await (0, emailService_1.sendEmail)({
                 to: feedback.userId,
                 subject: 'Feedback Received - Thank You',
-                html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`,
                 html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`
             });
         }

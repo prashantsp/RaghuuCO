@@ -311,7 +311,7 @@ function canAccessCase(userRole, userId, caseData) {
     }
     return false;
 }
-function canAccessDocument(userRole, userId, documentData) {
+function canAccessDocument(userRole, _userId, documentData) {
     if (userRole === UserRole.SUPER_ADMIN) {
         return true;
     }

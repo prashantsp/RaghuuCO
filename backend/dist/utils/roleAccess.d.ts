@@ -111,7 +111,7 @@ export declare function canAccessCase(userRole: UserRole, userId: string, caseDa
     assigned_associates?: string[];
     client_id?: string;
 }): boolean;
-export declare function canAccessDocument(userRole: UserRole, userId: string, documentData: {
+export declare function canAccessDocument(userRole: UserRole, _userId: string, documentData: {
     case_id?: string;
     uploaded_by?: string;
     is_confidential?: boolean;

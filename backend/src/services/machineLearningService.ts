@@ -143,8 +143,6 @@ class MachineLearningService {
       // Analyze user's recent activities
       const recentActivities = await this.getUserRecentActivities(userId);
       const behaviorPatterns = await this.analyzeBehaviorPatterns(userId);
-      const similarUsers = await this.findSimilarUsers(userId);
-
       // Predict next action based on patterns
       const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns);
       const nextBestAction = await this.getNextBestAction(userId, predictedAction);
@@ -458,8 +456,8 @@ class MachineLearningService {
   /**
    * Find similar users
    */
-  private async findSimilarUsers(userId: string): Promise<string[]> {
-    const result = await db.query(SQLQueries.ML.FIND_SIMILAR_USERS, [userId]);
+  private async findSimilarUsers(_userId: string): Promise<string[]> {
+    const result = await db.query(SQLQueries.ML.FIND_SIMILAR_USERS, [_userId]);
 
     return result.map((row: any) => row.id);
   }
@@ -797,7 +795,7 @@ class MachineLearningService {
       const trainingData = await db.query(SQLQueries.ML.GET_SEARCH_TRAINING_DATA);
 
       // Process training data
-      const processedData = trainingData.map((row: any) => ({
+      trainingData.map((row: any) => ({
         query: row.query.toLowerCase(),
         frequency: parseInt(row.frequency),
         relevance: parseFloat(row.avg_relevance),

@@ -31,15 +31,15 @@ export class CalendarService {
   private async initializeCalendars() {
     try {
       // Initialize Google Calendar
-      if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      if ((process as any).env.GOOGLE_CLIENT_ID && (process as any).env.GOOGLE_CLIENT_SECRET) {
         const auth = new google.auth.OAuth2(
-          process.env.GOOGLE_CLIENT_ID,
-          process.env.GOOGLE_CLIENT_SECRET,
-          process.env.GOOGLE_REDIRECT_URI
+          (process as any).env.GOOGLE_CLIENT_ID,
+          (process as any).env.GOOGLE_CLIENT_SECRET,
+          (process as any).env.GOOGLE_REDIRECT_URI
         );
 
         auth.setCredentials({
-          refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+          refresh_token: (process as any).env.GOOGLE_REFRESH_TOKEN || null
         });
 
         this.googleCalendar = google.calendar({ version: 'v3', auth });
@@ -47,11 +47,11 @@ export class CalendarService {
       }
 
       // Initialize Outlook Calendar
-      if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+      if ((process as any).env.MICROSOFT_CLIENT_ID && (process as any).env.MICROSOFT_CLIENT_SECRET) {
         const auth = {
-          clientId: process.env.MICROSOFT_CLIENT_ID,
-          clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-          tenantId: process.env.MICROSOFT_TENANT_ID
+          clientId: (process as any).env.MICROSOFT_CLIENT_ID,
+          clientSecret: (process as any).env.MICROSOFT_CLIENT_SECRET,
+          tenantId: (process as any).env.MICROSOFT_TENANT_ID
         };
 
         this.outlookCalendar = Client.init({

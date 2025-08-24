@@ -44,10 +44,10 @@ class CacheService {
 
   constructor() {
     const config: CacheConfig = {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_DB || '0'),
+      host: (process as any).env.REDIS_HOST || 'localhost',
+      port: parseInt((process as any).env.REDIS_PORT || '6379'),
+      password: (process as any).env.REDIS_PASSWORD,
+      db: parseInt((process as any).env.REDIS_DB || '0'),
       keyPrefix: 'raghuuco:',
       retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3
