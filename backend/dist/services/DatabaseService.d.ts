@@ -2,7 +2,6 @@ import { PoolClient } from 'pg';
 import { DatabaseConfig } from '../config/database';
 export declare class DatabaseService {
     private pool;
-    private isConnected;
     constructor(config?: DatabaseConfig);
     private setupEventHandlers;
     query<T = any>(query: string, params?: any[]): Promise<T[]>;

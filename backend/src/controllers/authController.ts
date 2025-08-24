@@ -36,11 +36,11 @@ import logger from '@/utils/logger';
 
 // Initialize database service
 const databaseConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'raghuuco_legal',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
+  host: (process as any).env.DB_HOST || 'localhost',
+  port: parseInt((process as any).env.DB_PORT || '5432'),
+  database: (process as any).env.DB_NAME || 'raghuuco_legal',
+  user: (process as any).env.DB_USER || 'postgres',
+  password: (process as any).env.DB_PASSWORD || 'password',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -68,20 +68,7 @@ interface LoginRequest {
   password: string;
 }
 
-/**
- * Password reset request interface
- */
-interface PasswordResetRequest {
-  email: string;
-}
 
-/**
- * Password reset confirmation interface
- */
-interface PasswordResetConfirmRequest {
-  token: string;
-  newPassword: string;
-}
 
 /**
  * Register a new user account
@@ -160,8 +147,8 @@ export async function register(req: Request, res: Response): Promise<void> {
       passwordHash: hashedPassword,
       firstName,
       lastName,
-      role,
-      phone,
+      role: role as string,
+      ...(phone && { phone }),
       isActive: true,
       emailVerified: false
     };
@@ -173,7 +160,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     const refreshToken = await generateRefreshToken(user.id);
 
     // Log successful registration
-    logger.authEvent('user_registered', user.id, true, req.ip);
+    logger.authEvent('user_registered', user.id, true);
 
     // Create audit log
     await db.createAuditLog({
@@ -181,9 +168,7 @@ export async function register(req: Request, res: Response): Promise<void> {
       action: 'USER_REGISTERED',
       resourceType: 'users',
       resourceId: user.id,
-      newValues: { email, firstName, lastName, role },
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
+      newValues: { email, firstName, lastName, role }
     });
 
     res.status(201).json({
@@ -268,7 +253,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     // Find user by email
     const user = await db.getUserByEmail(email);
     if (!user) {
-      logger.authEvent('login_failed', undefined, false, req.ip, { email });
+      logger.authEvent('login_failed', '', false);
       res.status(401).json({
         success: false,
         error: {
@@ -281,7 +266,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     // Check if user is active
     if (!user.is_active) {
-      logger.authEvent('login_failed', user.id, false, req.ip, { reason: 'inactive_user' });
+      logger.authEvent('login_failed', user.id, false);
       res.status(401).json({
         success: false,
         error: {
@@ -295,7 +280,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     // Verify password
     const isValidPassword = await comparePassword(password, user.password_hash);
     if (!isValidPassword) {
-      logger.authEvent('login_failed', user.id, false, req.ip, { reason: 'invalid_password' });
+      logger.authEvent('login_failed', user.id, false);
       res.status(401).json({
         success: false,
         error: {
@@ -314,16 +299,14 @@ export async function login(req: Request, res: Response): Promise<void> {
     const refreshToken = await generateRefreshToken(user.id);
 
     // Log successful login
-    logger.authEvent('login_success', user.id, true, req.ip);
+    logger.authEvent('login_success', user.id, true);
 
     // Create audit log
     await db.createAuditLog({
       userId: user.id,
       action: 'USER_LOGIN',
       resourceType: 'users',
-      resourceId: user.id,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
+      resourceId: user.id
     });
 
     res.status(200).json({
@@ -434,7 +417,7 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
       [newRefreshToken, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), refreshToken]
     );
 
-    logger.authEvent('token_refreshed', user.id, true, req.ip);
+    logger.authEvent('token_refreshed', user.id, true);
 
     res.status(200).json({
       success: true,
@@ -500,16 +483,14 @@ export async function logout(req: AuthenticatedRequest, res: Response): Promise<
     );
 
     if (userId) {
-      logger.authEvent('logout_success', userId, true, req.ip);
+      logger.authEvent('logout_success', userId, true);
 
       // Create audit log
       await db.createAuditLog({
         userId,
         action: 'USER_LOGOUT',
         resourceType: 'users',
-        resourceId: userId,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        resourceId: userId
       });
     }
 
@@ -682,9 +663,7 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response): P
       action: 'PROFILE_UPDATED',
       resourceType: 'users',
       resourceId: userId,
-      newValues: { firstName, lastName, phone },
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
+      newValues: { firstName, lastName, phone }
     });
 
     res.status(200).json({

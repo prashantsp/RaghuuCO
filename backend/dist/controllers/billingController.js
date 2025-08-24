@@ -7,6 +7,7 @@ exports.createBillingRate = exports.getBillingRates = exports.getInvoiceStats = 
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
 const taxService_1 = require("@/services/taxService");
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 const getInvoices = async (req, res) => {
     try {
@@ -14,7 +15,7 @@ const getInvoices = async (req, res) => {
         const { page = 1, limit = 20, search, status, clientId, userId: filterUserId } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         logger_1.default.info('Fetching invoices', { userId, filters: req.query });
-        const result = await db.query(SQLQueries.INVOICES.SEARCH, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.SEARCH, [
             search || null,
             status || null,
             clientId || null,
@@ -22,7 +23,7 @@ const getInvoices = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const invoices = result.rows;
+        const invoices = result;
         const countResult = await db.query(`
       SELECT COUNT(*) as total
       FROM invoices i
@@ -34,7 +35,7 @@ const getInvoices = async (req, res) => {
       AND ($3::uuid IS NULL OR i.client_id = $3)
       AND ($4::uuid IS NULL OR i.user_id = $4)
     `, [search || null, status || null, clientId || null, filterUserId || null]);
-        const total = parseInt(countResult.rows[0]?.total || '0');
+        const total = parseInt(countResult[0]?.total || '0');
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Invoices fetched successfully', { userId, count: invoices.length });
         res.json({
@@ -67,8 +68,8 @@ const getInvoiceById = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Fetching invoice by ID', { userId, invoiceId: id });
-        const result = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-        const invoice = result.rows[0];
+        const result = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GET_BY_ID, [id]);
+        const invoice = result[0];
         if (!invoice) {
             return res.status(404).json({
                 success: false,
@@ -78,10 +79,10 @@ const getInvoiceById = async (req, res) => {
                 }
             });
         }
-        const itemsResult = await db.query(SQLQueries.INVOICE_ITEMS.GET_BY_INVOICE_ID, [id]);
-        const items = itemsResult.rows;
-        const paymentsResult = await db.query(SQLQueries.PAYMENTS.GET_BY_INVOICE_ID, [id]);
-        const payments = paymentsResult.rows;
+        const itemsResult = await db.query(db_SQLQueries_1.SQLQueries.INVOICE_ITEMS.GET_BY_INVOICE_ID, [id]);
+        const items = itemsResult;
+        const paymentsResult = await db.query(db_SQLQueries_1.SQLQueries.PAYMENTS.GET_BY_INVOICE_ID, [id]);
+        const payments = paymentsResult;
         logger_1.default.info('Invoice fetched successfully', { userId, invoiceId: id });
         res.json({
             success: true,
@@ -111,14 +112,14 @@ const createInvoice = async (req, res) => {
         const userId = req.user?.id;
         const { caseId, clientId, userId: invoiceUserId, dueDate, notes, termsConditions, items } = req.body;
         logger_1.default.info('Creating new invoice', { userId, caseId, clientId });
-        const numberResult = await db.query(SQLQueries.INVOICES.GENERATE_INVOICE_NUMBER);
-        const invoiceNumber = numberResult.rows[0]?.next_number || `INV-${Date.now()}`;
+        const numberResult = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GENERATE_INVOICE_NUMBER);
+        const invoiceNumber = numberResult[0]?.next_number || `INV-${Date.now()}`;
         let subtotal = 0;
         if (items && Array.isArray(items)) {
             subtotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
         }
-        const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [clientId]);
-        const clientType = clientResult.rows[0]?.client_type || 'individual';
+        const clientResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENTS.GET_CLIENT_TYPE, [clientId]);
+        const clientType = clientResult[0]?.client_type || 'individual';
         const taxCalculation = taxService_1.taxService.calculateInvoiceTax({
             subtotal,
             isInterState: false,
@@ -127,7 +128,7 @@ const createInvoice = async (req, res) => {
         });
         const taxAmount = taxCalculation.totalTax;
         const totalAmount = taxCalculation.grandTotal;
-        const invoiceResult = await db.query(SQLQueries.INVOICES.CREATE, [
+        const invoiceResult = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.CREATE, [
             invoiceNumber,
             caseId,
             clientId,
@@ -143,10 +144,10 @@ const createInvoice = async (req, res) => {
             termsConditions,
             userId
         ]);
-        const invoice = invoiceResult.rows[0];
+        const invoice = invoiceResult[0];
         if (items && Array.isArray(items)) {
             for (const item of items) {
-                await db.query(SQLQueries.INVOICE_ITEMS.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.INVOICE_ITEMS.CREATE, [
                     invoice.id,
                     item.timeEntryId || null,
                     item.description,
@@ -157,7 +158,7 @@ const createInvoice = async (req, res) => {
                 ]);
             }
         }
-        logger_1.default.businessEvent('invoice_created', 'invoice', invoice.id, userId);
+        logger_1.default.businessEvent('invoice_created', 'invoice', invoice.id || '', userId || '');
         res.status(201).json({
             success: true,
             data: { invoice }
@@ -181,8 +182,8 @@ const updateInvoice = async (req, res) => {
         const userId = req.user?.id;
         const { status, dueDate, issuedDate, paidDate, paymentMethod, notes, termsConditions, items } = req.body;
         logger_1.default.info('Updating invoice', { userId, invoiceId: id });
-        const currentResult = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-        const currentInvoice = currentResult.rows[0];
+        const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GET_BY_ID, [id]);
+        const currentInvoice = currentResult[0];
         if (!currentInvoice) {
             return res.status(404).json({
                 success: false,
@@ -195,10 +196,10 @@ const updateInvoice = async (req, res) => {
         let subtotal = currentInvoice.subtotal;
         let totalAmount = currentInvoice.total_amount;
         if (items && Array.isArray(items)) {
-            await db.query(SQLQueries.INVOICE_ITEMS.DELETE_BY_INVOICE_ID, [id]);
+            await db.query(db_SQLQueries_1.SQLQueries.INVOICE_ITEMS.DELETE_BY_INVOICE_ID, [id]);
             subtotal = 0;
             for (const item of items) {
-                await db.query(SQLQueries.INVOICE_ITEMS.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.INVOICE_ITEMS.CREATE, [
                     id,
                     item.timeEntryId || null,
                     item.description,
@@ -209,18 +210,17 @@ const updateInvoice = async (req, res) => {
                 ]);
                 subtotal += item.amount;
             }
-            const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [currentInvoice.client_id]);
-            const clientType = clientResult.rows[0]?.client_type || 'individual';
+            const clientResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENTS.GET_CLIENT_TYPE, [currentInvoice.client_id]);
+            const clientType = clientResult[0]?.client_type || 'individual';
             const taxCalculation = taxService_1.taxService.calculateInvoiceTax({
                 subtotal,
                 isInterState: false,
                 isTDSApplicable: clientType === 'company',
                 clientType: clientType
             });
-            const taxAmount = taxCalculation.totalTax;
             totalAmount = taxCalculation.grandTotal;
         }
-        const result = await db.query(SQLQueries.INVOICES.UPDATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.UPDATE, [
             id,
             status || currentInvoice.status,
             subtotal,
@@ -233,8 +233,8 @@ const updateInvoice = async (req, res) => {
             notes || currentInvoice.notes,
             termsConditions || currentInvoice.terms_conditions
         ]);
-        const updatedInvoice = result.rows[0];
-        logger_1.default.businessEvent('invoice_updated', 'invoice', id, userId);
+        const updatedInvoice = result[0];
+        logger_1.default.businessEvent('invoice_updated', 'invoice', id || '', userId || '');
         res.json({
             success: true,
             data: { invoice: updatedInvoice }
@@ -257,8 +257,8 @@ const deleteInvoice = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Deleting invoice', { userId, invoiceId: id });
-        const currentResult = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-        const invoice = currentResult.rows[0];
+        const currentResult = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GET_BY_ID, [id]);
+        const invoice = currentResult[0];
         if (!invoice) {
             return res.status(404).json({
                 success: false,
@@ -277,8 +277,8 @@ const deleteInvoice = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.INVOICES.DELETE, [id]);
-        logger_1.default.businessEvent('invoice_deleted', 'invoice', id, userId);
+        await db.query(db_SQLQueries_1.SQLQueries.INVOICES.DELETE, [id]);
+        logger_1.default.businessEvent('invoice_deleted', 'invoice', id || '', userId || '');
         res.json({
             success: true,
             message: 'Invoice deleted successfully'
@@ -301,8 +301,8 @@ const getInvoiceStats = async (req, res) => {
         const userId = req.user?.id;
         const { clientId } = req.query;
         logger_1.default.info('Fetching invoice statistics', { userId, clientId });
-        const result = await db.query(SQLQueries.INVOICES.GET_STATS, [userId, clientId || null]);
-        const stats = result.rows[0];
+        const result = await db.query(db_SQLQueries_1.SQLQueries.INVOICES.GET_STATS, [userId, clientId || null]);
+        const stats = result[0];
         logger_1.default.info('Invoice statistics fetched successfully', { userId, stats });
         res.json({
             success: true,
@@ -327,13 +327,13 @@ const getBillingRates = async (req, res) => {
         const { search, caseType, page = 1, limit = 20 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         logger_1.default.info('Fetching billing rates', { userId, filters: req.query });
-        const result = await db.query(SQLQueries.BILLING_RATES.SEARCH, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.BILLING_RATES.SEARCH, [
             search || null,
             caseType || null,
             parseInt(limit),
             offset
         ]);
-        const rates = result.rows;
+        const rates = result;
         logger_1.default.info('Billing rates fetched successfully', { userId, count: rates.length });
         res.json({
             success: true,
@@ -357,7 +357,7 @@ const createBillingRate = async (req, res) => {
         const userId = req.user?.id;
         const { targetUserId, caseType, hourlyRate, isDefault, effectiveDate, endDate } = req.body;
         logger_1.default.info('Creating billing rate', { userId, targetUserId, caseType, hourlyRate });
-        const result = await db.query(SQLQueries.BILLING_RATES.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.BILLING_RATES.CREATE, [
             targetUserId,
             caseType || null,
             hourlyRate,
@@ -366,7 +366,7 @@ const createBillingRate = async (req, res) => {
             endDate || null,
             userId
         ]);
-        const rate = result.rows[0];
+        const rate = result[0];
         logger_1.default.businessEvent('billing_rate_created', 'billing_rate', rate.id, userId);
         res.status(201).json({
             success: true,

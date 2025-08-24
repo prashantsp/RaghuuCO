@@ -35,11 +35,11 @@ import logger from '@/utils/logger';
 
 // Initialize database service
 const databaseConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'raghuuco_legal',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
+  host: (process as any).env.DB_HOST || 'localhost',
+  port: parseInt((process as any).env.DB_PORT || '5432'),
+  database: (process as any).env.DB_NAME || 'raghuuco_legal',
+  user: (process as any).env.DB_USER || 'postgres',
+  password: (process as any).env.DB_PASSWORD || 'password',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -52,9 +52,9 @@ const db = new DatabaseService(databaseConfig);
  * Authenticates users using Google OAuth 2.0
  */
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID || '',
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/google/callback',
+  clientID: (process as any).env.GOOGLE_CLIENT_ID || '',
+  clientSecret: (process as any).env.GOOGLE_CLIENT_SECRET || '',
+  callbackURL: (process as any).env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/google/callback',
   scope: ['profile', 'email']
 }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
   try {
@@ -87,9 +87,9 @@ passport.use(new GoogleStrategy({
  * Authenticates users using LinkedIn OAuth 2.0
  */
 passport.use(new LinkedInStrategy({
-  clientID: process.env.LINKEDIN_CLIENT_ID || '',
-  clientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
-  callbackURL: process.env.LINKEDIN_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/linkedin/callback',
+  clientID: (process as any).env.LINKEDIN_CLIENT_ID || '',
+  clientSecret: (process as any).env.LINKEDIN_CLIENT_SECRET || '',
+  callbackURL: (process as any).env.LINKEDIN_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/linkedin/callback',
   scope: ['r_emailaddress', 'r_liteprofile']
 }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
   try {
@@ -122,9 +122,9 @@ passport.use(new LinkedInStrategy({
  * Authenticates users using Microsoft 365 OAuth 2.0
  */
 passport.use(new MicrosoftStrategy({
-  clientID: process.env.MICROSOFT_CLIENT_ID || '',
-  clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
-  callbackURL: process.env.MICROSOFT_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/microsoft/callback',
+  clientID: (process as any).env.MICROSOFT_CLIENT_ID || '',
+  clientSecret: (process as any).env.MICROSOFT_CLIENT_SECRET || '',
+  callbackURL: (process as any).env.MICROSOFT_CALLBACK_URL || 'http://localhost:3001/api/v1/auth/microsoft/callback',
   scope: ['user.read', 'email']
 }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
   try {
@@ -165,20 +165,20 @@ passport.use(new LocalStrategy({
     const user = await db.getUserByEmail(email);
     
     if (!user) {
-      logger.authEvent('local_login_failed', undefined, false, undefined, { email });
+      logger.authEvent('local_login_failed', '', false);
       return done(null, false, { message: 'Invalid email or password' });
     }
 
     // Check if user is active
     if (!user.is_active) {
-      logger.authEvent('local_login_failed', user.id, false, undefined, { reason: 'inactive_user' });
+      logger.authEvent('local_login_failed', user.id, false);
       return done(null, false, { message: 'Account is disabled' });
     }
 
     // Verify password
     const isValidPassword = await comparePassword(password, user.password_hash);
     if (!isValidPassword) {
-      logger.authEvent('local_login_failed', user.id, false, undefined, { reason: 'invalid_password' });
+      logger.authEvent('local_login_failed', user.id, false);
       return done(null, false, { message: 'Invalid email or password' });
     }
 

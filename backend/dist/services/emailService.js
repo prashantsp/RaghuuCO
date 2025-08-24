@@ -18,10 +18,9 @@ class EmailService {
             if (process.env["GMAIL_CLIENT_ID"] && process.env["GMAIL_CLIENT_SECRET"]) {
                 const oauth2Client = new googleapis_1.google.auth.OAuth2(process.env["GMAIL_CLIENT_ID"], process.env["GMAIL_CLIENT_SECRET"], process.env["GMAIL_REDIRECT_URI"]);
                 oauth2Client.setCredentials({
-                    refresh_token: process.env["GMAIL_REFRESH_TOKEN"]
+                    refresh_token: process.env["GMAIL_REFRESH_TOKEN"] || null
                 });
                 this.gmailTransporter = nodemailer_1.default.createTransport({
-                    service: 'gmail',
                     auth: {
                         type: 'OAuth2',
                         user: process.env["GMAIL_USER"],
@@ -159,7 +158,7 @@ class EmailService {
                 subject: templateData.subject,
                 html,
                 text,
-                provider: templateData.provider
+                provider: templateData.provider || undefined
             });
         }
         catch (error) {

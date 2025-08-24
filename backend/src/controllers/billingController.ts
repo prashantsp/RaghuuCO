@@ -11,10 +11,9 @@
 
 import { Request, Response } from 'express';
 import DatabaseService from '@/services/DatabaseService';
-import { authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
 import { taxService } from '@/services/taxService';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -41,7 +40,7 @@ export const getInvoices = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const invoices = result.rows;
+    const invoices = result;
 
     // Get total count for pagination
     const countResult = await db.query(`
@@ -56,7 +55,7 @@ export const getInvoices = async (req: Request, res: Response) => {
       AND ($4::uuid IS NULL OR i.user_id = $4)
     `, [search || null, status || null, clientId || null, filterUserId || null]);
 
-    const total = parseInt(countResult.rows[0]?.total || '0');
+    const total = parseInt(countResult[0]?.total || '0');
     const totalPages = Math.ceil(total / parseInt(limit as string));
 
     logger.info('Invoices fetched successfully', { userId, count: invoices.length });
@@ -99,7 +98,7 @@ export const getInvoiceById = async (req: Request, res: Response) => {
     logger.info('Fetching invoice by ID', { userId, invoiceId: id });
 
     const result = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-    const invoice = result.rows[0];
+    const invoice = result[0];
 
     if (!invoice) {
       return res.status(404).json({
@@ -113,11 +112,11 @@ export const getInvoiceById = async (req: Request, res: Response) => {
 
     // Get invoice items
     const itemsResult = await db.query(SQLQueries.INVOICE_ITEMS.GET_BY_INVOICE_ID, [id]);
-    const items = itemsResult.rows;
+    const items = itemsResult;
 
     // Get payments
     const paymentsResult = await db.query(SQLQueries.PAYMENTS.GET_BY_INVOICE_ID, [id]);
-    const payments = paymentsResult.rows;
+    const payments = paymentsResult;
 
     logger.info('Invoice fetched successfully', { userId, invoiceId: id });
 
@@ -166,7 +165,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 
     // Generate invoice number
     const numberResult = await db.query(SQLQueries.INVOICES.GENERATE_INVOICE_NUMBER);
-    const invoiceNumber = numberResult.rows[0]?.next_number || `INV-${Date.now()}`;
+    const invoiceNumber = numberResult[0]?.next_number || `INV-${Date.now()}`;
 
     // Calculate totals
     let subtotal = 0;
@@ -176,7 +175,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 
     // Get client information for tax calculation using centralized query
     const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [clientId]);
-    const clientType = clientResult.rows[0]?.client_type || 'individual';
+    const clientType = clientResult[0]?.client_type || 'individual';
     
     // Calculate tax using tax service
     const taxCalculation = taxService.calculateInvoiceTax({
@@ -207,7 +206,7 @@ export const createInvoice = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const invoice = invoiceResult.rows[0];
+    const invoice = invoiceResult[0];
 
     // Create invoice items
     if (items && Array.isArray(items)) {
@@ -224,7 +223,7 @@ export const createInvoice = async (req: Request, res: Response) => {
       }
     }
 
-    logger.businessEvent('invoice_created', 'invoice', invoice.id, userId);
+    logger.businessEvent('invoice_created', 'invoice', invoice.id || '', userId || '');
 
     res.status(201).json({
       success: true,
@@ -267,7 +266,7 @@ export const updateInvoice = async (req: Request, res: Response) => {
 
     // Get current invoice
     const currentResult = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-    const currentInvoice = currentResult.rows[0];
+    const currentInvoice = currentResult[0];
 
     if (!currentInvoice) {
       return res.status(404).json({
@@ -304,7 +303,7 @@ export const updateInvoice = async (req: Request, res: Response) => {
       
       // Get client information for tax calculation using centralized query
       const clientResult = await db.query(SQLQueries.CLIENTS.GET_CLIENT_TYPE, [currentInvoice.client_id]);
-      const clientType = clientResult.rows[0]?.client_type || 'individual';
+      const clientType = clientResult[0]?.client_type || 'individual';
       
       // Calculate tax using tax service
       const taxCalculation = taxService.calculateInvoiceTax({
@@ -314,7 +313,6 @@ export const updateInvoice = async (req: Request, res: Response) => {
         clientType: clientType as 'individual' | 'company'
       });
       
-      const taxAmount = taxCalculation.totalTax;
       totalAmount = taxCalculation.grandTotal;
     }
 
@@ -333,9 +331,9 @@ export const updateInvoice = async (req: Request, res: Response) => {
       termsConditions || currentInvoice.terms_conditions
     ]);
 
-    const updatedInvoice = result.rows[0];
+    const updatedInvoice = result[0];
 
-    logger.businessEvent('invoice_updated', 'invoice', id, userId);
+    logger.businessEvent('invoice_updated', 'invoice', id || '', userId || '');
 
     res.json({
       success: true,
@@ -368,7 +366,7 @@ export const deleteInvoice = async (req: Request, res: Response) => {
 
     // Check if invoice exists
     const currentResult = await db.query(SQLQueries.INVOICES.GET_BY_ID, [id]);
-    const invoice = currentResult.rows[0];
+    const invoice = currentResult[0];
 
     if (!invoice) {
       return res.status(404).json({
@@ -394,7 +392,7 @@ export const deleteInvoice = async (req: Request, res: Response) => {
     // Delete invoice (cascade will delete items)
     await db.query(SQLQueries.INVOICES.DELETE, [id]);
 
-    logger.businessEvent('invoice_deleted', 'invoice', id, userId);
+    logger.businessEvent('invoice_deleted', 'invoice', id || '', userId || '');
 
     res.json({
       success: true,
@@ -425,8 +423,8 @@ export const getInvoiceStats = async (req: Request, res: Response) => {
 
     logger.info('Fetching invoice statistics', { userId, clientId });
 
-    const result = await db.query(SQLQueries.INVOICES.GET_STATS, [userId, clientId || null]);
-    const stats = result.rows[0];
+    const result = await db.query(SQLQueries.INVOICES.GET_STATS, [userId, (clientId as string) || null]);
+    const stats = result[0];
 
     logger.info('Invoice statistics fetched successfully', { userId, stats });
 
@@ -467,7 +465,7 @@ export const getBillingRates = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const rates = result.rows;
+    const rates = result;
 
     logger.info('Billing rates fetched successfully', { userId, count: rates.length });
 
@@ -517,7 +515,7 @@ export const createBillingRate = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const rate = result.rows[0];
+    const rate = result[0];
 
     logger.businessEvent('billing_rate_created', 'billing_rate', rate.id, userId);
 

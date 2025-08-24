@@ -21,7 +21,7 @@ import {
   getAssignableRoles
 } from '@/controllers/userController';
 import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import logger from '@/utils/logger';
+
 
 const router = Router();
 
@@ -32,7 +32,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken,
-  authorizePermission('user:read'),
+  authorizePermission(Permission.VIEW_USERS),
   async (req, res, next) => {
     try {
       await getUsers(req, res);
@@ -97,7 +97,7 @@ router.get('/:id/activity',
  */
 router.post('/',
   authenticateToken,
-  authorizePermission('user:create'),
+  authorizePermission(Permission.CREATE_USERS),
   async (req, res, next) => {
     try {
       await createUser(req, res);
@@ -130,7 +130,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateToken,
-  authorizePermission('user:delete'),
+  authorizePermission(Permission.DELETE_USERS),
   async (req, res, next) => {
     try {
       await deleteUser(req, res);

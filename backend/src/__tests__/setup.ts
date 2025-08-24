@@ -50,13 +50,13 @@ jest.mock('bcrypt', () => ({
 jest.setTimeout(30000);
 
 // Test environment setup
-process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-secret-key';
-process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key';
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
+(process as any).env.NODE_ENV = 'test';
+(process as any).env.JWT_SECRET = 'test-secret-key';
+(process as any).env.JWT_REFRESH_SECRET = 'test-refresh-secret-key';
+(process as any).env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
 
 // Global test utilities
-global.testUtils = {
+(global as any).testUtils = {
   mockUser: {
     id: 'test-user-id',
     email: 'test@example.com',

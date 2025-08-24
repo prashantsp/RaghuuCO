@@ -17,6 +17,7 @@
     "check:logging": "echo 'Logging check completed'"
   },
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/sharp": "^0.31.1",
     "bcryptjs": "^2.4.3",
     "bull": "^4.12.0",
@@ -63,6 +64,7 @@
     "@types/passport-google-oauth20": "^2.0.14",
     "@types/passport-linkedin-oauth2": "^1.5.5",
     "@types/passport-local": "^1.0.38",
+    "@types/passport-microsoft": "^2.1.0",
     "@types/pg": "^8.10.9",
     "@types/supertest": "^2.0.16",
     "@types/uuid": "^9.0.7",

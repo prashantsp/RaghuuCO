@@ -11,8 +11,9 @@
 
 import { Request, Response } from 'express';
 import DatabaseService from '@/services/DatabaseService';
-import { authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
+import { SQLQueries } from '@/utils/db_SQLQueries';
+// import { authorizePermission } from '@/middleware/auth';
+// import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
 
 const db = new DatabaseService();
@@ -54,7 +55,7 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
         parseInt(limit as string),
         offset
       ]);
-      events = result.rows;
+      events = result;
       total = events.length; // For date range, we don't need pagination count
     } else {
       // Use search query with pagination
@@ -68,7 +69,7 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
         parseInt(limit as string),
         offset
       ]);
-      events = result.rows;
+      events = result;
 
       // Get total count for pagination
       const countResult = await db.query(`
@@ -84,7 +85,7 @@ export const getCalendarEvents = async (req: Request, res: Response) => {
         AND ($5::uuid IS NULL OR ce.case_id = $5)
         AND ($6::uuid IS NULL OR ce.client_id = $6)
       `, [search || null, eventType || null, status || null, assignedTo || null, caseId || null, clientId || null]);
-      total = parseInt(countResult.rows[0]?.total || '0');
+      total = parseInt(countResult[0]?.total || '0');
     }
 
     const totalPages = Math.ceil(total / parseInt(limit as string));
@@ -129,7 +130,7 @@ export const getCalendarEventById = async (req: Request, res: Response) => {
     logger.info('Fetching calendar event by ID', { userId, eventId: id });
 
     const result = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-    const event = result.rows[0];
+    const event = result[0];
 
     if (!event) {
       return res.status(404).json({
@@ -143,11 +144,11 @@ export const getCalendarEventById = async (req: Request, res: Response) => {
 
     // Get attendees
     const attendeesResult = await db.query(SQLQueries.CALENDAR_EVENT_ATTENDEES.GET_BY_EVENT_ID, [id]);
-    const attendees = attendeesResult.rows;
+    const attendees = attendeesResult;
 
     // Get reminders
     const remindersResult = await db.query(SQLQueries.CALENDAR_EVENT_REMINDERS.GET_BY_EVENT_ID, [id]);
-    const reminders = remindersResult.rows;
+    const reminders = remindersResult;
 
     logger.info('Calendar event fetched successfully', { userId, eventId: id });
 
@@ -211,13 +212,13 @@ export const createCalendarEvent = async (req: Request, res: Response) => {
         null // No existing event ID for new events
       ]);
       
-      if (conflictsResult.rows.length > 0) {
+      if (conflictsResult.length > 0) {
         return res.status(409).json({
           success: false,
           error: {
             code: 'SCHEDULING_CONFLICT',
             message: 'Scheduling conflict detected',
-            data: { conflicts: conflictsResult.rows }
+            data: { conflicts: conflictsResult }
           }
         });
       }
@@ -243,7 +244,7 @@ export const createCalendarEvent = async (req: Request, res: Response) => {
       null  // external_calendar_provider
     ]);
 
-    const event = eventResult.rows[0];
+    const event = eventResult[0];
 
     // Create attendees
     if (attendees && Array.isArray(attendees)) {
@@ -323,7 +324,7 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
 
     // Get current event
     const currentResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-    const currentEvent = currentResult.rows[0];
+    const currentEvent = currentResult[0];
 
     if (!currentEvent) {
       return res.status(404).json({
@@ -344,13 +345,13 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
         id
       ]);
       
-      if (conflictsResult.rows.length > 0) {
+      if (conflictsResult.length > 0) {
         return res.status(409).json({
           success: false,
           error: {
             code: 'SCHEDULING_CONFLICT',
             message: 'Scheduling conflict detected',
-            data: { conflicts: conflictsResult.rows }
+            data: { conflicts: conflictsResult }
           }
         });
       }
@@ -376,7 +377,7 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
       currentEvent.external_calendar_provider
     ]);
 
-    const updatedEvent = result.rows[0];
+    const updatedEvent = result[0];
 
     // Update attendees if provided
     if (attendees && Array.isArray(attendees)) {

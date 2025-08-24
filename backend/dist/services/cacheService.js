@@ -143,7 +143,7 @@ class CacheService {
         return result;
     }
     cache(key, ttl = 3600) {
-        return function (target, propertyName, descriptor) {
+        return function (_target, _propertyName, descriptor) {
             const method = descriptor.value;
             descriptor.value = async function (...args) {
                 const cacheKey = `${key}:${JSON.stringify(args)}`;

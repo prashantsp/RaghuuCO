@@ -289,7 +289,7 @@ class AnalyticsService {
         totalBillableHours: productivityMetrics.reduce((sum, user) => sum + user.billableHours, 0),
         averageTaskCompletionRate: productivityMetrics.reduce((sum, user) => sum + user.taskCompletionRate, 0) / productivityMetrics.length,
         mostProductiveUser: productivityMetrics.length > 0 ? productivityMetrics.reduce((max, user) => 
-          user.billableHours > max.billableHours ? user : max, productivityMetrics[0]) : null
+          user.billableHours > max.billableHours ? user : max, productivityMetrics[0]!) : null
       },
       period
     };
@@ -380,7 +380,7 @@ class AnalyticsService {
         totalUsers: userActivity.length,
         totalActions: userActivity.reduce((sum, user) => sum + user.totalActions, 0),
         mostActiveUser: userActivity.length > 0 ? userActivity.reduce((max, user) => 
-          user.totalActions > max.totalActions ? user : max, userActivity[0]) : null,
+          user.totalActions > max.totalActions ? user : max, userActivity[0]!) : null,
         averageActionsPerUser: userActivity.reduce((sum, user) => sum + user.totalActions, 0) / userActivity.length
       },
       period

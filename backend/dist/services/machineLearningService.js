@@ -260,10 +260,6 @@ class MachineLearningService {
             return acc;
         }, {});
     }
-    async findSimilarUsers(_userId) {
-        const result = await db.query(db_SQLQueries_1.SQLQueries.ML.FIND_SIMILAR_USERS, [_userId]);
-        return result.map((row) => row.id);
-    }
     async predictNextAction(recentActivities, _behaviorPatterns) {
         const actionCounts = recentActivities.reduce((acc, activity) => {
             acc[activity.action] = (acc[activity.action] || 0) + 1;

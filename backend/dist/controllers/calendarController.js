@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkSchedulingConflicts = exports.getUpcomingEvents = exports.deleteCalendarEvent = exports.updateCalendarEvent = exports.createCalendarEvent = exports.getCalendarEventById = exports.getCalendarEvents = void 0;
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const logger_1 = __importDefault(require("@/utils/logger"));
 const db = new DatabaseService_1.default();
 const getCalendarEvents = async (req, res) => {
@@ -16,18 +17,18 @@ const getCalendarEvents = async (req, res) => {
         let events;
         let total = 0;
         if (startDate && endDate) {
-            const result = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_DATE_RANGE, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_BY_DATE_RANGE, [
                 startDate,
                 endDate,
                 assignedTo || null,
                 parseInt(limit),
                 offset
             ]);
-            events = result.rows;
+            events = result;
             total = events.length;
         }
         else {
-            const result = await db.query(SQLQueries.CALENDAR_EVENTS.SEARCH, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.SEARCH, [
                 search || null,
                 eventType || null,
                 status || null,
@@ -37,7 +38,7 @@ const getCalendarEvents = async (req, res) => {
                 parseInt(limit),
                 offset
             ]);
-            events = result.rows;
+            events = result;
             const countResult = await db.query(`
         SELECT COUNT(*) as total
         FROM calendar_events ce
@@ -51,7 +52,7 @@ const getCalendarEvents = async (req, res) => {
         AND ($5::uuid IS NULL OR ce.case_id = $5)
         AND ($6::uuid IS NULL OR ce.client_id = $6)
       `, [search || null, eventType || null, status || null, assignedTo || null, caseId || null, clientId || null]);
-            total = parseInt(countResult.rows[0]?.total || '0');
+            total = parseInt(countResult[0]?.total || '0');
         }
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Calendar events fetched successfully', { userId, count: events.length });
@@ -85,8 +86,8 @@ const getCalendarEventById = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Fetching calendar event by ID', { userId, eventId: id });
-        const result = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-        const event = result.rows[0];
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
+        const event = result[0];
         if (!event) {
             return res.status(404).json({
                 success: false,
@@ -96,10 +97,10 @@ const getCalendarEventById = async (req, res) => {
                 }
             });
         }
-        const attendeesResult = await db.query(SQLQueries.CALENDAR_EVENT_ATTENDEES.GET_BY_EVENT_ID, [id]);
-        const attendees = attendeesResult.rows;
-        const remindersResult = await db.query(SQLQueries.CALENDAR_EVENT_REMINDERS.GET_BY_EVENT_ID, [id]);
-        const reminders = remindersResult.rows;
+        const attendeesResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_ATTENDEES.GET_BY_EVENT_ID, [id]);
+        const attendees = attendeesResult;
+        const remindersResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_REMINDERS.GET_BY_EVENT_ID, [id]);
+        const reminders = remindersResult;
         logger_1.default.info('Calendar event fetched successfully', { userId, eventId: id });
         res.json({
             success: true,
@@ -130,24 +131,24 @@ const createCalendarEvent = async (req, res) => {
         const { title, description, eventType, startDatetime, endDatetime, allDay, location, caseId, clientId, assignedTo, status, priority, reminderMinutes, attendees, reminders } = req.body;
         logger_1.default.info('Creating new calendar event', { userId, title, eventType });
         if (assignedTo && startDatetime && endDatetime) {
-            const conflictsResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
+            const conflictsResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
                 assignedTo,
                 startDatetime,
                 endDatetime,
                 null
             ]);
-            if (conflictsResult.rows.length > 0) {
+            if (conflictsResult.length > 0) {
                 return res.status(409).json({
                     success: false,
                     error: {
                         code: 'SCHEDULING_CONFLICT',
                         message: 'Scheduling conflict detected',
-                        data: { conflicts: conflictsResult.rows }
+                        data: { conflicts: conflictsResult }
                     }
                 });
             }
         }
-        const eventResult = await db.query(SQLQueries.CALENDAR_EVENTS.CREATE, [
+        const eventResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.CREATE, [
             title,
             description,
             eventType,
@@ -165,10 +166,10 @@ const createCalendarEvent = async (req, res) => {
             null,
             null
         ]);
-        const event = eventResult.rows[0];
+        const event = eventResult[0];
         if (attendees && Array.isArray(attendees)) {
             for (const attendee of attendees) {
-                await db.query(SQLQueries.CALENDAR_EVENT_ATTENDEES.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_ATTENDEES.CREATE, [
                     event.id,
                     attendee.userId || null,
                     attendee.clientId || null,
@@ -180,7 +181,7 @@ const createCalendarEvent = async (req, res) => {
         }
         if (reminders && Array.isArray(reminders)) {
             for (const reminder of reminders) {
-                await db.query(SQLQueries.CALENDAR_EVENT_REMINDERS.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_REMINDERS.CREATE, [
                     event.id,
                     reminder.type,
                     reminder.time,
@@ -214,8 +215,8 @@ const updateCalendarEvent = async (req, res) => {
         const userId = req.user?.id;
         const { title, description, eventType, startDatetime, endDatetime, allDay, location, caseId, clientId, assignedTo, status, priority, reminderMinutes, attendees, reminders } = req.body;
         logger_1.default.info('Updating calendar event', { userId, eventId: id });
-        const currentResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-        const currentEvent = currentResult.rows[0];
+        const currentResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
+        const currentEvent = currentResult[0];
         if (!currentEvent) {
             return res.status(404).json({
                 success: false,
@@ -226,24 +227,24 @@ const updateCalendarEvent = async (req, res) => {
             });
         }
         if (assignedTo && startDatetime && endDatetime) {
-            const conflictsResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
+            const conflictsResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
                 assignedTo,
                 startDatetime,
                 endDatetime,
                 id
             ]);
-            if (conflictsResult.rows.length > 0) {
+            if (conflictsResult.length > 0) {
                 return res.status(409).json({
                     success: false,
                     error: {
                         code: 'SCHEDULING_CONFLICT',
                         message: 'Scheduling conflict detected',
-                        data: { conflicts: conflictsResult.rows }
+                        data: { conflicts: conflictsResult }
                     }
                 });
             }
         }
-        const result = await db.query(SQLQueries.CALENDAR_EVENTS.UPDATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.UPDATE, [
             id,
             title || currentEvent.title,
             description || currentEvent.description,
@@ -261,11 +262,11 @@ const updateCalendarEvent = async (req, res) => {
             currentEvent.external_calendar_id,
             currentEvent.external_calendar_provider
         ]);
-        const updatedEvent = result.rows[0];
+        const updatedEvent = result[0];
         if (attendees && Array.isArray(attendees)) {
-            await db.query(SQLQueries.CALENDAR_EVENT_ATTENDEES.DELETE_BY_EVENT_ID, [id]);
+            await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_ATTENDEES.DELETE_BY_EVENT_ID, [id]);
             for (const attendee of attendees) {
-                await db.query(SQLQueries.CALENDAR_EVENT_ATTENDEES.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_ATTENDEES.CREATE, [
                     id,
                     attendee.userId || null,
                     attendee.clientId || null,
@@ -276,9 +277,9 @@ const updateCalendarEvent = async (req, res) => {
             }
         }
         if (reminders && Array.isArray(reminders)) {
-            await db.query(SQLQueries.CALENDAR_EVENT_REMINDERS.DELETE_BY_EVENT_ID, [id]);
+            await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_REMINDERS.DELETE_BY_EVENT_ID, [id]);
             for (const reminder of reminders) {
-                await db.query(SQLQueries.CALENDAR_EVENT_REMINDERS.CREATE, [
+                await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENT_REMINDERS.CREATE, [
                     id,
                     reminder.type,
                     reminder.time,
@@ -311,7 +312,7 @@ const deleteCalendarEvent = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Deleting calendar event', { userId, eventId: id });
-        const currentResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
+        const currentResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
         const event = currentResult.rows[0];
         if (!event) {
             return res.status(404).json({
@@ -322,7 +323,7 @@ const deleteCalendarEvent = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.CALENDAR_EVENTS.DELETE, [id]);
+        await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.DELETE, [id]);
         logger_1.default.businessEvent('calendar_event_deleted', 'calendar_event', id, userId);
         res.json({
             success: true,
@@ -346,7 +347,7 @@ const getUpcomingEvents = async (req, res) => {
         const userId = req.user?.id;
         const { assignedTo, limit = 10 } = req.query;
         logger_1.default.info('Fetching upcoming events', { userId, assignedTo, limit });
-        const result = await db.query(SQLQueries.CALENDAR_EVENTS.GET_UPCOMING, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_UPCOMING, [
             assignedTo || null,
             parseInt(limit)
         ]);
@@ -383,7 +384,7 @@ const checkSchedulingConflicts = async (req, res) => {
                 }
             });
         }
-        const result = await db.query(SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_CONFLICTS, [
             assignedTo,
             startDatetime,
             endDatetime,

@@ -20,10 +20,6 @@ export declare class PaymentService {
     }>;
 }
 export declare class EmailService {
-    private gmailClientId;
-    private gmailClientSecret;
-    private outlookClientId;
-    private outlookClientSecret;
     constructor();
     sendGmailEmail(to: string, subject: string, body: string, accessToken: string): Promise<any>;
     sendOutlookEmail(to: string, subject: string, body: string, accessToken: string): Promise<any>;
@@ -49,10 +45,6 @@ export declare class SMSService {
     sendTextLocalSMS(to: string, message: string): Promise<any>;
 }
 export declare class CalendarService {
-    private googleClientId;
-    private googleClientSecret;
-    private outlookClientId;
-    private outlookClientSecret;
     constructor();
     createGoogleCalendarEvent(accessToken: string, summary: string, description: string, startTime: string, endTime: string, attendees: string[]): Promise<any>;
     createOutlookCalendarEvent(accessToken: string, subject: string, body: string, startTime: string, endTime: string, attendees: string[]): Promise<any>;

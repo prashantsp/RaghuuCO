@@ -56,7 +56,6 @@ declare class MachineLearningService {
     private removeDuplicateSuggestions;
     private getUserRecentActivities;
     private analyzeBehaviorPatterns;
-    private findSimilarUsers;
     private predictNextAction;
     private getNextBestAction;
     private generateRecommendations;

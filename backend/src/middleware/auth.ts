@@ -177,7 +177,7 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
  * ```
  */
 export function authenticateToken(
-  req: AuthenticatedRequest, 
+  req: Request, 
   res: Response, 
   next: NextFunction
 ): void {
@@ -212,7 +212,7 @@ export function authenticateToken(
       return;
     }
 
-    req.user = decoded;
+    (req as AuthenticatedRequest).user = decoded;
     logger.authEvent('token_validated', decoded.id, true, req.ip);
     next();
   });

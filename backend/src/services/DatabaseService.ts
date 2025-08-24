@@ -39,7 +39,7 @@ import { DatabaseConfig, defaultDatabaseConfig } from '../config/database';
  */
 export class DatabaseService {
   private pool: Pool;
-  private isConnected: boolean = false;
+  // private isConnected: boolean = false;
 
   constructor(config?: DatabaseConfig) {
     const dbConfig = config || defaultDatabaseConfig;
@@ -52,18 +52,18 @@ export class DatabaseService {
    * Setup database connection event handlers
    */
   private setupEventHandlers(): void {
-    this.pool.on('connect', (client: PoolClient) => {
-      this.isConnected = true;
+    this.pool.on('connect', (_client: PoolClient) => {
+      // this.isConnected = true;
       logger.info('Database client connected');
     });
 
-    this.pool.on('error', (err: Error, client: PoolClient) => {
-      this.isConnected = false;
-      logger.error('Database pool error', err, { clientId: client.processID });
+    this.pool.on('error', (err: Error, _client: PoolClient) => {
+      // this.isConnected = false;
+      logger.error('Database pool error', err);
     });
 
-    this.pool.on('remove', (client: PoolClient) => {
-      logger.info('Database client removed from pool', { clientId: client.processID });
+    this.pool.on('remove', (_client: PoolClient) => {
+      logger.info('Database client removed from pool');
     });
   }
 
@@ -104,7 +104,7 @@ export class DatabaseService {
    */
   async queryOne<T = any>(query: string, params: any[] = []): Promise<T | null> {
     const rows = await this.query<T>(query, params);
-    return rows.length > 0 ? rows[0] : null;
+    return rows.length > 0 ? rows[0] : null as T | null;
   }
 
   /**
@@ -684,7 +684,7 @@ export class DatabaseService {
    * @returns Promise with social account data
    */
   async getSocialAccountByProvider(provider: string, providerId: string): Promise<any> {
-    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_BY_PROVIDER;
+    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_SOCIAL_ACCOUNT;
     return await this.queryOne(query, [provider, providerId]);
   }
 
@@ -694,7 +694,7 @@ export class DatabaseService {
    * @returns Promise with social accounts array
    */
   async getSocialAccountsByUserId(userId: string): Promise<any[]> {
-    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_BY_USER_ID;
+    const query = SQLQueries.SOCIAL_ACCOUNTS.GET_SOCIAL_ACCOUNTS_BY_USER;
     return await this.query(query, [userId]);
   }
 
@@ -750,7 +750,7 @@ export class DatabaseService {
     userAgent?: string;
     expiresAt: Date;
   }): Promise<any> {
-    const query = SQLQueries.USER_SESSIONS.CREATE_SESSION;
+    const query = SQLQueries.USER_SESSIONS.CREATE;
     const params = [
       sessionData.userId,
       sessionData.sessionToken,
@@ -796,7 +796,7 @@ export class DatabaseService {
     expiresAt?: Date;
     lastActivity?: Date;
   }): Promise<any> {
-    const query = SQLQueries.USER_SESSIONS.UPDATE_SESSION;
+    const query = SQLQueries.USER_SESSIONS.UPDATE;
     const params = [
       updateData.refreshToken,
       updateData.expiresAt,
@@ -817,7 +817,7 @@ export class DatabaseService {
    * @returns Promise<void>
    */
   async deleteUserSession(id: string): Promise<void> {
-    const query = SQLQueries.USER_SESSIONS.DELETE_SESSION;
+    const query = SQLQueries.USER_SESSIONS.DELETE;
     await this.query(query, [id]);
     logger.businessEvent('session_deleted', 'session', id, 'system');
   }
@@ -827,7 +827,7 @@ export class DatabaseService {
    * @returns Promise<void>
    */
   async deleteExpiredSessions(): Promise<void> {
-    const query = SQLQueries.USER_SESSIONS.DELETE_EXPIRED_SESSIONS;
+    const query = SQLQueries.USER_SESSIONS.DELETE_EXPIRED;
     await this.query(query);
     logger.info('Expired sessions cleaned up');
   }

@@ -10,7 +10,7 @@ declare class CacheService {
     clear(): Promise<void>;
     getStats(): Promise<any>;
     private parseRedisInfo;
-    cache<T>(key: string, ttl?: number): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+    cache<T>(key: string, ttl?: number): (_target: any, _propertyName: string, descriptor: PropertyDescriptor) => void;
     invalidatePattern(pattern: string): Promise<void>;
     hset<T>(key: string, field: string, value: T, ttl?: number): Promise<void>;
     hget<T>(key: string, field: string): Promise<T | null>;

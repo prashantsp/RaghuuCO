@@ -119,16 +119,16 @@ export class PaymentService {
  * Handles Gmail and Outlook integrations
  */
 export class EmailService {
-  private gmailClientId: string;
-  private gmailClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private gmailClientId: string;
+  // private gmailClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
-    this.gmailClientId = (process as any).env.GMAIL_CLIENT_ID || '';
-    this.gmailClientSecret = (process as any).env.GMAIL_CLIENT_SECRET || '';
-    this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
-    this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
+    // this.gmailClientId = (process as any).env.GMAIL_CLIENT_ID || '';
+    // this.gmailClientSecret = (process as any).env.GMAIL_CLIENT_SECRET || '';
+    // this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    // this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**
@@ -389,16 +389,16 @@ export class SMSService {
  * Handles Google Calendar and Outlook Calendar integrations
  */
 export class CalendarService {
-  private googleClientId: string;
-  private googleClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private googleClientId: string;
+  // private googleClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
-    this.googleClientId = (process as any).env.GOOGLE_CLIENT_ID || '';
-    this.googleClientSecret = (process as any).env.GOOGLE_CLIENT_SECRET || '';
-    this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
-    this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
+    // this.googleClientId = (process as any).env.GOOGLE_CLIENT_ID || '';
+    // this.googleClientSecret = (process as any).env.GOOGLE_CLIENT_SECRET || '';
+    // this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    // this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**

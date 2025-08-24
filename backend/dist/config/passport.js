@@ -113,16 +113,16 @@ passport_1.default.use(new passport_local_1.Strategy({
     try {
         const user = await db.getUserByEmail(email);
         if (!user) {
-            logger_1.default.authEvent('local_login_failed', undefined, false, undefined, { email });
+            logger_1.default.authEvent('local_login_failed', '', false);
             return done(null, false, { message: 'Invalid email or password' });
         }
         if (!user.is_active) {
-            logger_1.default.authEvent('local_login_failed', user.id, false, undefined, { reason: 'inactive_user' });
+            logger_1.default.authEvent('local_login_failed', user.id, false);
             return done(null, false, { message: 'Account is disabled' });
         }
         const isValidPassword = await (0, auth_1.comparePassword)(password, user.password_hash);
         if (!isValidPassword) {
-            logger_1.default.authEvent('local_login_failed', user.id, false, undefined, { reason: 'invalid_password' });
+            logger_1.default.authEvent('local_login_failed', user.id, false);
             return done(null, false, { message: 'Invalid email or password' });
         }
         logger_1.default.authEvent('local_login_success', user.id, true);

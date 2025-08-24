@@ -225,7 +225,7 @@ class CacheService {
     for (const line of lines) {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
-        result[key] = value;
+        result[key as string] = value;
       }
     }
 
@@ -239,7 +239,7 @@ class CacheService {
    * @param ttl - Time to live in seconds
    */
   cache<T>(key: string, ttl: number = 3600) {
-    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+    return function (_target: any, _propertyName: string, descriptor: PropertyDescriptor) {
       const method = descriptor.value;
 
       descriptor.value = async function (...args: any[]): Promise<T> {

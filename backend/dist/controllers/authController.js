@@ -54,23 +54,21 @@ async function register(req, res) {
             passwordHash: hashedPassword,
             firstName,
             lastName,
-            role,
-            phone,
+            role: role,
+            ...(phone && { phone }),
             isActive: true,
             emailVerified: false
         };
         const user = await db.createUser(userData);
         const accessToken = await (0, auth_1.generateAccessToken)(user.id, user.email, user.role);
         const refreshToken = await (0, auth_1.generateRefreshToken)(user.id);
-        logger_1.default.authEvent('user_registered', user.id, true, req.ip);
+        logger_1.default.authEvent('user_registered', user.id, true);
         await db.createAuditLog({
             userId: user.id,
             action: 'USER_REGISTERED',
             resourceType: 'users',
             resourceId: user.id,
-            newValues: { email, firstName, lastName, role },
-            ipAddress: req.ip,
-            userAgent: req.get('User-Agent')
+            newValues: { email, firstName, lastName, role }
         });
         res.status(201).json({
             success: true,
@@ -115,7 +113,7 @@ async function login(req, res) {
         }
         const user = await db.getUserByEmail(email);
         if (!user) {
-            logger_1.default.authEvent('login_failed', undefined, false, req.ip, { email });
+            logger_1.default.authEvent('login_failed', '', false);
             res.status(401).json({
                 success: false,
                 error: {
@@ -126,7 +124,7 @@ async function login(req, res) {
             return;
         }
         if (!user.is_active) {
-            logger_1.default.authEvent('login_failed', user.id, false, req.ip, { reason: 'inactive_user' });
+            logger_1.default.authEvent('login_failed', user.id, false);
             res.status(401).json({
                 success: false,
                 error: {
@@ -138,7 +136,7 @@ async function login(req, res) {
         }
         const isValidPassword = await (0, auth_1.comparePassword)(password, user.password_hash);
         if (!isValidPassword) {
-            logger_1.default.authEvent('login_failed', user.id, false, req.ip, { reason: 'invalid_password' });
+            logger_1.default.authEvent('login_failed', user.id, false);
             res.status(401).json({
                 success: false,
                 error: {
@@ -151,14 +149,12 @@ async function login(req, res) {
         await db.updateLastLogin(user.id);
         const accessToken = await (0, auth_1.generateAccessToken)(user.id, user.email, user.role);
         const refreshToken = await (0, auth_1.generateRefreshToken)(user.id);
-        logger_1.default.authEvent('login_success', user.id, true, req.ip);
+        logger_1.default.authEvent('login_success', user.id, true);
         await db.createAuditLog({
             userId: user.id,
             action: 'USER_LOGIN',
             resourceType: 'users',
-            resourceId: user.id,
-            ipAddress: req.ip,
-            userAgent: req.get('User-Agent')
+            resourceId: user.id
         });
         res.status(200).json({
             success: true,
@@ -226,7 +222,7 @@ async function refreshToken(req, res) {
         const newAccessToken = await (0, auth_1.generateAccessToken)(user.id, user.email, user.role);
         const newRefreshToken = await (0, auth_1.generateRefreshToken)(user.id);
         await db.query('UPDATE user_sessions SET refresh_token = $1, expires_at = $2 WHERE refresh_token = $3', [newRefreshToken, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), refreshToken]);
-        logger_1.default.authEvent('token_refreshed', user.id, true, req.ip);
+        logger_1.default.authEvent('token_refreshed', user.id, true);
         res.status(200).json({
             success: true,
             data: {
@@ -262,14 +258,12 @@ async function logout(req, res) {
         }
         await db.query('UPDATE user_sessions SET is_active = false WHERE refresh_token = $1', [refreshToken]);
         if (userId) {
-            logger_1.default.authEvent('logout_success', userId, true, req.ip);
+            logger_1.default.authEvent('logout_success', userId, true);
             await db.createAuditLog({
                 userId,
                 action: 'USER_LOGOUT',
                 resourceType: 'users',
-                resourceId: userId,
-                ipAddress: req.ip,
-                userAgent: req.get('User-Agent')
+                resourceId: userId
             });
         }
         res.status(200).json({
@@ -372,9 +366,7 @@ async function updateProfile(req, res) {
             action: 'PROFILE_UPDATED',
             resourceType: 'users',
             resourceId: userId,
-            newValues: { firstName, lastName, phone },
-            ipAddress: req.ip,
-            userAgent: req.get('User-Agent')
+            newValues: { firstName, lastName, phone }
         });
         res.status(200).json({
             success: true,

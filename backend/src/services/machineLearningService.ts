@@ -456,11 +456,13 @@ class MachineLearningService {
   /**
    * Find similar users
    */
+  /*
   private async findSimilarUsers(_userId: string): Promise<string[]> {
     const result = await db.query(SQLQueries.ML.FIND_SIMILAR_USERS, [_userId]);
 
     return result.map((row: any) => row.id);
   }
+  */
 
   /**
    * Predict next action

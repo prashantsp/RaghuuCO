@@ -55,7 +55,7 @@ export class CalendarService {
         };
 
         this.outlookCalendar = Client.init({
-          authProvider: (done) => {
+          authProvider: (done: any) => {
             done(null, auth);
           }
         });
@@ -422,7 +422,7 @@ export class CalendarService {
           }
         } catch (error) {
           logger.error('Error syncing individual event', error as Error);
-          results.push({ success: false, error: error.message });
+          results.push({ success: false, error: (error as any).message });
         }
       }
 

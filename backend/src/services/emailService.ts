@@ -39,11 +39,11 @@ export class EmailService {
         );
 
         oauth2Client.setCredentials({
-          refresh_token: process.env["GMAIL_REFRESH_TOKEN"]
+          refresh_token: (process as any).env["GMAIL_REFRESH_TOKEN"] || null
         });
 
         this.gmailTransporter = nodemailer.createTransport({
-          service: 'gmail',
+          // service: 'gmail',
           auth: {
             type: 'OAuth2',
             user: process.env["GMAIL_USER"],
@@ -249,7 +249,7 @@ export class EmailService {
         subject: templateData.subject,
         html,
         text,
-        provider: templateData.provider
+        provider: templateData.provider || undefined
       });
     } catch (error) {
       logger.error('Error sending template email', error as Error);

@@ -10,23 +10,20 @@ const logger_1 = __importDefault(require("../utils/logger"));
 const database_1 = require("../config/database");
 class DatabaseService {
     constructor(config) {
-        this.isConnected = false;
         const dbConfig = config || database_1.defaultDatabaseConfig;
         this.pool = new pg_1.Pool(dbConfig);
         this.setupEventHandlers();
         logger_1.default.info('Database service initialized', { config: { ...dbConfig, password: '[HIDDEN]' } });
     }
     setupEventHandlers() {
-        this.pool.on('connect', (client) => {
-            this.isConnected = true;
+        this.pool.on('connect', (_client) => {
             logger_1.default.info('Database client connected');
         });
-        this.pool.on('error', (err, client) => {
-            this.isConnected = false;
-            logger_1.default.error('Database pool error', err, { clientId: client.processID });
+        this.pool.on('error', (err, _client) => {
+            logger_1.default.error('Database pool error', err);
         });
-        this.pool.on('remove', (client) => {
-            logger_1.default.info('Database client removed from pool', { clientId: client.processID });
+        this.pool.on('remove', (_client) => {
+            logger_1.default.info('Database client removed from pool');
         });
     }
     async query(query, params = []) {
@@ -332,11 +329,11 @@ class DatabaseService {
         return result;
     }
     async getSocialAccountByProvider(provider, providerId) {
-        const query = db_SQLQueries_1.default.SOCIAL_ACCOUNTS.GET_BY_PROVIDER;
+        const query = db_SQLQueries_1.default.SOCIAL_ACCOUNTS.GET_SOCIAL_ACCOUNT;
         return await this.queryOne(query, [provider, providerId]);
     }
     async getSocialAccountsByUserId(userId) {
-        const query = db_SQLQueries_1.default.SOCIAL_ACCOUNTS.GET_BY_USER_ID;
+        const query = db_SQLQueries_1.default.SOCIAL_ACCOUNTS.GET_SOCIAL_ACCOUNTS_BY_USER;
         return await this.query(query, [userId]);
     }
     async updateSocialAccount(id, updateData) {
@@ -359,7 +356,7 @@ class DatabaseService {
         logger_1.default.businessEvent('social_account_deleted', 'social_account', id, 'system');
     }
     async createUserSession(sessionData) {
-        const query = db_SQLQueries_1.default.USER_SESSIONS.CREATE_SESSION;
+        const query = db_SQLQueries_1.default.USER_SESSIONS.CREATE;
         const params = [
             sessionData.userId,
             sessionData.sessionToken,
@@ -381,7 +378,7 @@ class DatabaseService {
         return await this.query(query, [userId]);
     }
     async updateUserSession(id, updateData) {
-        const query = db_SQLQueries_1.default.USER_SESSIONS.UPDATE_SESSION;
+        const query = db_SQLQueries_1.default.USER_SESSIONS.UPDATE;
         const params = [
             updateData.refreshToken,
             updateData.expiresAt,
@@ -395,12 +392,12 @@ class DatabaseService {
         return result;
     }
     async deleteUserSession(id) {
-        const query = db_SQLQueries_1.default.USER_SESSIONS.DELETE_SESSION;
+        const query = db_SQLQueries_1.default.USER_SESSIONS.DELETE;
         await this.query(query, [id]);
         logger_1.default.businessEvent('session_deleted', 'session', id, 'system');
     }
     async deleteExpiredSessions() {
-        const query = db_SQLQueries_1.default.USER_SESSIONS.DELETE_EXPIRED_SESSIONS;
+        const query = db_SQLQueries_1.default.USER_SESSIONS.DELETE_EXPIRED;
         await this.query(query);
         logger_1.default.info('Expired sessions cleaned up');
     }
