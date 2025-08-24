@@ -11,6 +11,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import { UserRole, hasPermission, Permission } from '@/utils/roleAccess';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
@@ -529,7 +530,7 @@ export async function checkClientConflicts(req: Request, res: Response): Promise
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getClientStats(req: Request, res: Response): Promise<void> {
+export async function getClientStats(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     // Check permissions
     if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CLIENTS)) {

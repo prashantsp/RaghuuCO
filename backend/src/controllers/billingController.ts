@@ -10,6 +10,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
 import { taxService } from '@/services/taxService';
@@ -23,7 +24,7 @@ const db = new DatabaseService();
  * @route GET /api/v1/billing/invoices
  * @access Private
  */
-export const getInvoices = async (req: Request, res: Response) => {
+export const getInvoices = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const { page = 1, limit = 20, search, status, clientId, userId: filterUserId } = req.query;

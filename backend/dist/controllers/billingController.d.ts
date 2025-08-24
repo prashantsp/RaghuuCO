@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-export declare const getInvoices: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+import { AuthenticatedRequest } from '@/middleware/auth';
+export declare const getInvoices: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const getInvoiceById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const createInvoice: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const updateInvoice: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
@@ -8,7 +9,7 @@ export declare const getInvoiceStats: (req: Request, res: Response) => Promise<R
 export declare const getBillingRates: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 export declare const createBillingRate: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
 declare const _default: {
-    getInvoices: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+    getInvoices: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
     getInvoiceById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
     createInvoice: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
     updateInvoice: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;

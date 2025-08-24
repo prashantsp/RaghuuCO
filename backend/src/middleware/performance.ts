@@ -11,6 +11,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import compression from 'compression';
 import { logger } from '@/utils/logger';
 import cacheService from '@/services/cacheService';
@@ -115,7 +116,7 @@ export const etagMiddleware = (req: Request, res: Response, next: NextFunction) 
   }
   
   // Generate ETag based on request URL and user
-  const etag = `"${Buffer.from(`${req.originalUrl}:${req.user?.id || 'anonymous'}`).toString('base64')}"`;
+  const etag = `"${Buffer.from(`${req.originalUrl}:${(req as AuthenticatedRequest).user?.id || 'anonymous'}`).toString('base64')}"`;
   
   // Check if client has the same ETag
   if (req.headers['if-none-match'] === etag) {
@@ -320,7 +321,7 @@ export const cacheWarming = (req: Request, res: Response, next: NextFunction) =>
     // Warm dashboard cache in background
     setImmediate(async () => {
       try {
-        const cacheKey = `dashboard:${req.user?.id || 'anonymous'}`;
+        const cacheKey = `dashboard:${(req as AuthenticatedRequest).user?.id || 'anonymous'}`;
         const cached = await cacheService.get(cacheKey);
         if (!cached) {
           // Cache will be populated by the actual request

@@ -20,6 +20,7 @@
  */
 
 import { Router } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import passport from 'passport';
 import { 
   googleAuth, 
@@ -167,7 +168,7 @@ router.get('/microsoft/callback', async (req, res, next) => {
 router.post('/link-social', authenticateToken, async (req, res, next) => {
   try {
     logger.info('Social account linking attempt', { 
-      userId: req.user?.id, 
+      userId: (req as AuthenticatedRequest).user?.id, 
       provider: req.body.provider, 
       ip: req.ip 
     });
@@ -194,7 +195,7 @@ router.post('/link-social', authenticateToken, async (req, res, next) => {
 router.delete('/unlink-social/:provider', authenticateToken, async (req, res, next) => {
   try {
     logger.info('Social account unlinking attempt', { 
-      userId: req.user?.id, 
+      userId: (req as AuthenticatedRequest).user?.id, 
       provider: req.params.provider, 
       ip: req.ip 
     });

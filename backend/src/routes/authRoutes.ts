@@ -20,6 +20,7 @@
  */
 
 import { Router } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import { 
   register, 
   login, 
@@ -127,7 +128,7 @@ router.post('/refresh', async (req, res, next) => {
  */
 router.post('/logout', authenticateToken, async (req, res, next) => {
   try {
-    logger.info('User logout attempt', { userId: req.user?.id, ip: req.ip });
+    logger.info('User logout attempt', { userId: (req as AuthenticatedRequest).user?.id, ip: req.ip });
     await logout(req, res);
   } catch (error) {
     next(error);
@@ -148,7 +149,7 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
  */
 router.get('/profile', authenticateToken, async (req, res, next) => {
   try {
-    logger.info('Profile fetch attempt', { userId: req.user?.id, ip: req.ip });
+    logger.info('Profile fetch attempt', { userId: (req as AuthenticatedRequest).user?.id, ip: req.ip });
     await getProfile(req, res);
   } catch (error) {
     next(error);
@@ -174,7 +175,7 @@ router.get('/profile', authenticateToken, async (req, res, next) => {
  */
 router.put('/profile', authenticateToken, async (req, res, next) => {
   try {
-    logger.info('Profile update attempt', { userId: req.user?.id, ip: req.ip });
+    logger.info('Profile update attempt', { userId: (req as AuthenticatedRequest).user?.id, ip: req.ip });
     await updateProfile(req, res);
   } catch (error) {
     next(error);

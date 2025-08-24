@@ -10,6 +10,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import { expensesService } from '@/services/expensesService';
 import logger from '@/utils/logger';
 
@@ -19,7 +20,7 @@ import logger from '@/utils/logger';
  * @route POST /api/v1/expenses
  * @access Private
  */
-export const createExpense = async (req: Request, res: Response) => {
+export const createExpense = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const expenseData = {
@@ -267,7 +268,7 @@ export const deleteExpense = async (req: Request, res: Response) => {
  * @route POST /api/v1/expenses/:id/approve
  * @access Private
  */
-export const approveExpense = async (req: Request, res: Response) => {
+export const approveExpense = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
