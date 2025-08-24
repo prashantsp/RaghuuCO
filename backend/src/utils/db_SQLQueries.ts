@@ -2372,6 +2372,423 @@ export const SQLQueries = {
       SET is_active = false, updated_at = NOW() 
       WHERE id = $1
     `
+  },
+
+  /**
+   * Machine Learning Queries
+   * Contains all SQL operations related to machine learning models,
+   * training data, predictions, and analytics
+   */
+  ML: {
+    // Search Suggestions
+    GET_POPULAR_SEARCHES: `
+      SELECT
+        query,
+        COUNT(*) as frequency,
+        AVG(relevance_score) as relevance,
+        category,
+        MAX(created_at) as timestamp
+      FROM search_logs
+      WHERE query ILIKE $1
+      GROUP BY query, category
+      ORDER BY frequency DESC, relevance DESC
+      LIMIT $2
+    `,
+
+    GET_USER_SEARCH_HISTORY: `
+      SELECT
+        query,
+        COUNT(*) as frequency,
+        AVG(relevance_score) as relevance,
+        category,
+        MAX(created_at) as timestamp
+      FROM search_logs
+      WHERE user_id = $1 AND query ILIKE $2
+      GROUP BY query, category
+      ORDER BY frequency DESC, relevance DESC
+      LIMIT $3
+    `,
+
+    GET_CONTENT_BASED_SUGGESTIONS: `
+      SELECT
+        title as query,
+        1 as frequency,
+        ts_rank(to_tsvector('english', title), plainto_tsquery('english', $1)) as relevance,
+        'content' as category,
+        NOW() as timestamp
+      FROM (
+        SELECT title FROM cases WHERE title ILIKE $2
+        UNION
+        SELECT title FROM documents WHERE title ILIKE $2
+        UNION
+        SELECT CONCAT(first_name, ' ', last_name) as title FROM clients WHERE first_name ILIKE $2 OR last_name ILIKE $2
+      ) content_items
+      WHERE ts_rank(to_tsvector('english', title), plainto_tsquery('english', $1)) > 0.1
+      ORDER BY relevance DESC
+      LIMIT $3
+    `,
+
+    // User Behavior
+    GET_USER_RECENT_ACTIVITIES: `
+      SELECT
+        action,
+        entity_type,
+        created_at,
+        details
+      FROM audit_logs
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 100
+    `,
+
+    GET_USER_BEHAVIOR_PATTERNS: `
+      SELECT
+        action,
+        COUNT(*) as frequency,
+        AVG(EXTRACT(EPOCH FROM (created_at - LAG(created_at) OVER (ORDER BY created_at)))) as avg_interval,
+        COUNT(CASE WHEN action = 'login_failed' THEN 1 END) as failed_logins
+      FROM audit_logs
+      WHERE user_id = $1 AND created_at > NOW() - INTERVAL '30 days'
+      GROUP BY action
+    `,
+
+    FIND_SIMILAR_USERS: `
+      SELECT DISTINCT u2.id
+      FROM users u1
+      JOIN audit_logs al1 ON u1.id = al1.user_id
+      JOIN audit_logs al2 ON al1.action = al2.action AND al1.entity_type = al2.entity_type
+      JOIN users u2 ON al2.user_id = u2.id
+      WHERE u1.id = $1 AND u2.id != $1
+      GROUP BY u2.id
+      ORDER BY COUNT(*) DESC
+      LIMIT 10
+    `,
+
+    // Document Classification
+    STORE_DOCUMENT_CLASSIFICATION: `
+      INSERT INTO document_classifications (
+        document_id, predicted_category, confidence, tags, metadata, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6)
+    `,
+
+    // Case Recommendations
+    GET_SIMILAR_CASE_RECOMMENDATIONS: `
+      SELECT
+        c.id as case_id,
+        c.title,
+        c.description,
+        c.category,
+        0.8 as confidence,
+        'Similar case based on category and description' as reasoning
+      FROM cases c
+      WHERE c.assigned_to = $1 AND c.status = 'active'
+      ORDER BY c.created_at DESC
+      LIMIT $2
+    `,
+
+    GET_EXPERT_ASSIGNMENT_RECOMMENDATIONS: `
+      SELECT
+        c.id as case_id,
+        c.title,
+        u.first_name,
+        u.last_name,
+        0.9 as confidence,
+        'Expert assignment based on case complexity' as reasoning
+      FROM cases c
+      JOIN users u ON u.role = 'senior_associate'
+      WHERE c.assigned_to IS NULL AND c.status = 'active'
+      ORDER BY c.priority DESC, c.created_at DESC
+      LIMIT $2
+    `,
+
+    GET_RESOURCE_ALLOCATION_RECOMMENDATIONS: `
+      SELECT
+        c.id as case_id,
+        c.title,
+        c.priority,
+        0.7 as confidence,
+        'Resource allocation based on case priority and workload' as reasoning
+      FROM cases c
+      WHERE c.assigned_to = $1 AND c.status = 'active'
+      ORDER BY c.priority DESC, c.created_at DESC
+      LIMIT $2
+    `,
+
+    // Fraud Detection
+    LOG_SUSPICIOUS_ACTIVITY: `
+      INSERT INTO suspicious_activities (
+        user_id, activity_data, risk_score, reasons, recommendations, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6)
+    `,
+
+    // Model Training
+    GET_SEARCH_TRAINING_DATA: `
+      SELECT 
+        query,
+        COUNT(*) as frequency,
+        AVG(relevance_score) as avg_relevance,
+        category,
+        user_id
+      FROM search_logs
+      WHERE created_at > NOW() - INTERVAL '90 days'
+      GROUP BY query, category, user_id
+      HAVING COUNT(*) >= 3
+      ORDER BY frequency DESC
+    `,
+
+    GET_BEHAVIOR_TRAINING_DATA: `
+      SELECT 
+        user_id,
+        action,
+        entity_type,
+        COUNT(*) as frequency,
+        AVG(EXTRACT(EPOCH FROM (created_at - LAG(created_at) OVER (PARTITION BY user_id ORDER BY created_at)))) as avg_interval
+      FROM audit_logs
+      WHERE created_at > NOW() - INTERVAL '90 days'
+      GROUP BY user_id, action, entity_type
+      HAVING COUNT(*) >= 5
+    `,
+
+    GET_DOCUMENT_TRAINING_DATA: `
+      SELECT 
+        d.id,
+        d.title,
+        d.description,
+        d.file_type,
+        d.file_size,
+        d.category,
+        d.tags,
+        COUNT(dc.id) as classification_count
+      FROM documents d
+      LEFT JOIN document_classifications dc ON d.id = dc.document_id
+      WHERE d.created_at > NOW() - INTERVAL '90 days'
+      GROUP BY d.id, d.title, d.description, d.file_type, d.file_size, d.category, d.tags
+      HAVING COUNT(dc.id) >= 1
+    `,
+
+    GET_CASE_ASSIGNMENT_TRAINING_DATA: `
+      SELECT 
+        c.category,
+        c.priority,
+        c.complexity,
+        c.assigned_to,
+        u.role as user_role,
+        u.experience_level,
+        COUNT(*) as assignment_count,
+        AVG(c.resolution_time) as avg_resolution_time
+      FROM cases c
+      JOIN users u ON c.assigned_to = u.id
+      WHERE c.created_at > NOW() - INTERVAL '180 days'
+        AND c.status = 'closed'
+      GROUP BY c.category, c.priority, c.complexity, c.assigned_to, u.role, u.experience_level
+      HAVING COUNT(*) >= 3
+    `,
+
+    GET_FRAUD_TRAINING_DATA: `
+      SELECT 
+        user_id,
+        activity_type,
+        risk_factors,
+        risk_score,
+        is_confirmed_fraud,
+        created_at
+      FROM suspicious_activities
+      WHERE created_at > NOW() - INTERVAL '180 days'
+    `,
+
+    // Model Weights and Metrics
+    UPDATE_MODEL_WEIGHTS: `
+      INSERT INTO ml_model_weights (model_type, feature, weight, updated_at)
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (model_type, feature) 
+      DO UPDATE SET weight = EXCLUDED.weight, updated_at = NOW()
+    `,
+
+    UPDATE_MODEL_METRICS: `
+      INSERT INTO ml_model_metrics (model_type, accuracy, precision, recall, f1_score, training_date)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+      ON CONFLICT (model_type) 
+      DO UPDATE SET 
+        accuracy = EXCLUDED.accuracy,
+        precision = EXCLUDED.precision,
+        recall = EXCLUDED.recall,
+        f1_score = EXCLUDED.f1_score,
+        training_date = NOW()
+    `,
+
+    GET_MODEL_PERFORMANCE: `
+      SELECT
+        model_type,
+        accuracy,
+        precision,
+        recall,
+        f1_score,
+        training_date,
+        last_updated
+      FROM ml_model_metrics
+      ORDER BY last_updated DESC
+    `,
+
+    // User Behavior Patterns
+    STORE_USER_BEHAVIOR_PATTERNS: `
+      INSERT INTO user_behavior_patterns (user_id, patterns, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (user_id) 
+      DO UPDATE SET patterns = EXCLUDED.patterns, updated_at = NOW()
+    `,
+
+    // Classification Rules
+    STORE_CLASSIFICATION_RULES: `
+      INSERT INTO ml_classification_rules (model_type, rules, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (model_type) 
+      DO UPDATE SET rules = EXCLUDED.rules, updated_at = NOW()
+    `,
+
+    // Case Recommendation Patterns
+    STORE_CASE_RECOMMENDATION_PATTERNS: `
+      INSERT INTO case_recommendation_patterns (patterns, updated_at)
+      VALUES ($1, NOW())
+      ON CONFLICT (id) 
+      DO UPDATE SET patterns = EXCLUDED.patterns, updated_at = NOW()
+    `,
+
+    // Fraud Detection Rules
+    STORE_FRAUD_DETECTION_RULES: `
+      INSERT INTO fraud_detection_rules (risk_weights, threshold, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (id) 
+      DO UPDATE SET 
+        risk_weights = EXCLUDED.risk_weights,
+        threshold = EXCLUDED.threshold,
+        updated_at = NOW()
+    `
+  },
+
+  /**
+   * Role Access Control Queries
+   * Contains all SQL operations related to role-based access control
+   */
+  ROLE_ACCESS: {
+    CHECK_CLIENT_ACCESS: `
+      SELECT COUNT(*) as case_count
+      FROM cases
+      WHERE client_id = $1 AND assigned_to = $2 AND status != 'deleted'
+    `,
+
+    CHECK_CASE_ACCESS: `
+      SELECT assigned_to, status
+      FROM cases
+      WHERE id = $1 AND status != 'deleted'
+    `,
+
+    GET_USER_PERMISSIONS: `
+      SELECT p.permission_name
+      FROM role_permissions rp
+      JOIN permissions p ON rp.permission_id = p.id
+      WHERE rp.role_id = $1
+    `,
+
+    GET_ROLE_HIERARCHY: `
+      SELECT role_name, hierarchy_level
+      FROM roles
+      ORDER BY hierarchy_level ASC
+    `
+  },
+
+  /**
+   * Security Audit Queries
+   * Contains all SQL operations related to security auditing
+   */
+  SECURITY_AUDIT: {
+    LOG_SECURITY_AUDIT: `
+      INSERT INTO security_audits (
+        audit_type, findings, risk_level, recommendations, created_at
+      ) VALUES ($1, $2, $3, $4, NOW())
+    `,
+
+    LOG_SECURITY_INCIDENT: `
+      INSERT INTO security_incidents (
+        incident_type, description, severity, affected_users, resolution, created_at
+      ) VALUES ($1, $2, $3, $4, $5, NOW())
+    `,
+
+    GET_SECURITY_STATISTICS: `
+      SELECT 
+        COUNT(*) as total_audits,
+        COUNT(CASE WHEN risk_level = 'high' THEN 1 END) as high_risk_findings,
+        COUNT(CASE WHEN risk_level = 'medium' THEN 1 END) as medium_risk_findings,
+        COUNT(CASE WHEN risk_level = 'low' THEN 1 END) as low_risk_findings
+      FROM security_audits
+      WHERE created_at > NOW() - INTERVAL '30 days'
+    `,
+
+    GET_RECENT_INCIDENTS: `
+      SELECT *
+      FROM security_incidents
+      WHERE created_at > NOW() - INTERVAL '7 days'
+      ORDER BY created_at DESC
+      LIMIT 10
+    `
+  },
+
+  /**
+   * Analytics Queries
+   * Contains all SQL operations related to business analytics
+   */
+  ANALYTICS: {
+    GET_BUSINESS_ANALYTICS: `
+      SELECT 
+        COUNT(DISTINCT c.id) as total_cases,
+        COUNT(DISTINCT cl.id) as total_clients,
+        SUM(i.total_amount) as total_revenue,
+        AVG(c.resolution_time) as avg_resolution_time,
+        COUNT(DISTINCT u.id) as active_users
+      FROM cases c
+      LEFT JOIN clients cl ON c.client_id = cl.id
+      LEFT JOIN invoices i ON c.id = i.case_id
+      LEFT JOIN users u ON u.last_login > NOW() - INTERVAL '30 days'
+      WHERE c.created_at > NOW() - INTERVAL $1
+    `,
+
+    GET_USER_ACTIVITY: `
+      SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        COUNT(al.id) as activity_count,
+        MAX(al.created_at) as last_activity
+      FROM users u
+      LEFT JOIN audit_logs al ON u.id = al.user_id
+      WHERE al.created_at > NOW() - INTERVAL $1
+      GROUP BY u.id, u.first_name, u.last_name
+      ORDER BY activity_count DESC
+    `,
+
+    GET_DOCUMENT_ANALYTICS: `
+      SELECT 
+        COUNT(*) as total_documents,
+        COUNT(CASE WHEN file_type = 'pdf' THEN 1 END) as pdf_count,
+        COUNT(CASE WHEN file_type = 'doc' OR file_type = 'docx' THEN 1 END) as word_count,
+        AVG(file_size) as avg_file_size,
+        COUNT(DISTINCT uploaded_by) as unique_uploaders
+      FROM documents
+      WHERE created_at > NOW() - INTERVAL $1
+    `,
+
+    GET_TIME_TRACKING_ANALYTICS: `
+      SELECT 
+        u.first_name,
+        u.last_name,
+        SUM(te.duration) as total_hours,
+        COUNT(te.id) as entry_count,
+        AVG(te.duration) as avg_entry_duration
+      FROM time_entries te
+      JOIN users u ON te.user_id = u.id
+      WHERE te.created_at > NOW() - INTERVAL $1
+      GROUP BY u.id, u.first_name, u.last_name
+      ORDER BY total_hours DESC
+    `
   }
 };
 

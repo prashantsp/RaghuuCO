@@ -14,6 +14,7 @@ import { authenticator } from 'otplib';
 import crypto from 'crypto';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
+import { redisClient } from '@/utils/redis';
 
 const db = new DatabaseService();
 
@@ -292,6 +293,62 @@ export const securityAudit = (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
+/**
+ * Rate limiting middleware
+ * Implements sliding window rate limiting with Redis
+ */
+export const rateLimit = (options: {
+  windowMs: number;
+  maxRequests: number;
+  keyGenerator?: (req: Request) => string;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+}) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const key = options.keyGenerator ? options.keyGenerator(req) : req.ip;
+      const windowKey = `rate_limit:${key}:${Math.floor(Date.now() / options.windowMs)}`;
+      
+      // Get current request count
+      const currentCount = await redisClient.get(windowKey);
+      const count = currentCount ? parseInt(currentCount) : 0;
+      
+      if (count >= options.maxRequests) {
+        logger.warn('Rate limit exceeded', {
+          ip: req.ip,
+          key,
+          count,
+          maxRequests: options.maxRequests,
+          userAgent: req.get('User-Agent')
+        });
+        
+        return res.status(429).json({
+          error: 'Too many requests',
+          message: 'Rate limit exceeded. Please try again later.',
+          retryAfter: options.windowMs / 1000
+        });
+      }
+      
+      // Increment request count
+      await redisClient.incr(windowKey);
+      await redisClient.expire(windowKey, Math.ceil(options.windowMs / 1000));
+      
+      // Add rate limit headers
+      res.set({
+        'X-RateLimit-Limit': options.maxRequests.toString(),
+        'X-RateLimit-Remaining': Math.max(0, options.maxRequests - count - 1).toString(),
+        'X-RateLimit-Reset': new Date(Date.now() + options.windowMs).toISOString()
+      });
+      
+      next();
+    } catch (error) {
+      logger.error('Rate limiting error:', error as Error);
+      // Continue without rate limiting if Redis is unavailable
+      next();
+    }
+  };
+};
+
 export default {
   require2FA,
   ipWhitelist,
@@ -300,5 +357,6 @@ export default {
   sessionSecurity,
   securityHeaders,
   sensitiveOperationRateLimit,
-  securityAudit
+  securityAudit,
+  rateLimit
 };

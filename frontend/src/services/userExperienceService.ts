@@ -836,46 +836,52 @@ class UserExperienceService {
   // Server communication methods (stubs for implementation)
   private async sendEventToServer(event: UXEvent): Promise<void> {
     // Implementation would send event to analytics server
-    console.log('Sending UX event to server:', event.id);
+    logger.info('Sending UX event to server', { eventId: event.id, type: event.type });
   }
 
   private async sendFeedbackToServer(feedback: UserFeedback): Promise<void> {
     // Implementation would send feedback to server
-    console.log('Sending feedback to server:', feedback.id);
+    logger.info('Sending feedback to server', { feedbackId: feedback.id, type: feedback.type });
   }
 
   private async sendTestToServer(test: UsabilityTest): Promise<void> {
     // Implementation would send test to server
-    console.log('Sending usability test to server:', test.id);
+    logger.info('Sending usability test to server', { testId: test.id, name: test.name });
   }
 
   private async sendSessionToServer(session: any): Promise<void> {
     // Implementation would send session to server
-    console.log('Sending session to server:', session.sessionId);
+    logger.info('Sending session to server', { sessionId: session.sessionId });
   }
 
   private async sendTaskResultToServer(result: UsabilityTestResult): Promise<void> {
     // Implementation would send task result to server
-    console.log('Sending task result to server:', result.id);
+    logger.info('Sending task result to server', { resultId: result.id, testId: result.testId });
   }
 
   private async sendABTestToServer(test: ABTest): Promise<void> {
     // Implementation would send A/B test to server
-    console.log('Sending A/B test to server:', test.id);
+    logger.info('Sending A/B test to server', { testId: test.id, name: test.name });
   }
 
   private async getABTestFromServer(testId: string): Promise<ABTest | null> {
     // Implementation would get A/B test from server
+    logger.info('Getting A/B test from server', { testId });
     return null;
   }
 
   private async sendConversionToServer(conversion: any): Promise<void> {
     // Implementation would send conversion to server
-    console.log('Sending conversion to server:', conversion);
+    logger.info('Sending conversion to server', { 
+      testId: conversion.testId, 
+      variant: conversion.variant, 
+      conversionType: conversion.conversionType 
+    });
   }
 
   private async getAnalyticsFromServer(timeRange: string): Promise<any> {
     // Implementation would get analytics from server
+    logger.info('Getting analytics from server', { timeRange });
     return {
       totalEvents: this.events.length,
       uniqueUsers: 1,

@@ -20,6 +20,10 @@
  * ```
  */
 
+import { DatabaseService } from '@/services/DatabaseService';
+import { logger } from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
+
 /**
  * User roles enumeration defining all possible user types in the system
  * Each role has specific permissions and access levels
@@ -504,6 +508,61 @@ export function canManageUser(currentUserRole: UserRole, targetUserRole: UserRol
   return currentLevel > targetLevel;
 }
 
+/**
+ * Check if user has access to client data
+ * @param userRole - The user's role
+ * @param userId - The user's ID
+ * @param clientId - The client ID to check access for
+ * @returns True if user has access to client data
+ */
+export async function hasClientAccess(userRole: UserRole, userId: string, clientId: string): Promise<boolean> {
+  try {
+    // Super admin and partner have access to all clients
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.PARTNER) {
+      return true;
+    }
+
+    // Check if user is assigned to any cases for this client
+    const db = new DatabaseService();
+    const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CLIENT_ACCESS, [clientId, userId]);
+
+    return parseInt(result.rows[0].case_count) > 0;
+  } catch (error) {
+    logger.error('Error checking client access:', error as Error);
+    return false;
+  }
+}
+
+/**
+ * Check if user has access to case data
+ * @param userRole - The user's role
+ * @param userId - The user's ID
+ * @param caseId - The case ID to check access for
+ * @returns True if user has access to case data
+ */
+export async function hasCaseAccess(userRole: UserRole, userId: string, caseId: string): Promise<boolean> {
+  try {
+    // Super admin and partner have access to all cases
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.PARTNER) {
+      return true;
+    }
+
+    // Check if user is assigned to this case
+    const db = new DatabaseService();
+    const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CASE_ACCESS, [caseId]);
+
+    if (result.rows.length === 0) {
+      return false;
+    }
+
+    const caseData = result.rows[0];
+    return caseData.assigned_to === userId;
+  } catch (error) {
+    logger.error('Error checking case access:', error as Error);
+    return false;
+  }
+}
+
 export default {
   UserRole,
   Permission,
@@ -518,5 +577,7 @@ export default {
   getAssignableRoles,
   canAssignRole,
   getRoleHierarchyLevel,
-  canManageUser
+  canManageUser,
+  hasClientAccess,
+  hasCaseAccess
 };
