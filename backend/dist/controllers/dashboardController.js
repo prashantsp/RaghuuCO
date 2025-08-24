@@ -6,12 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardSummary = exports.getRecentActivities = exports.getDashboardStats = void 0;
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 const getDashboardStats = async (req, res) => {
     try {
         const userId = req.user?.id;
         logger_1.default.info('Fetching dashboard statistics', { userId });
-        const statsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
+        const statsResult = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
         const userStats = statsResult.rows[0];
         const stats = {
             cases: {
@@ -62,7 +63,7 @@ const getRecentActivities = async (req, res) => {
         const userId = req.user?.id;
         const limit = parseInt(req.query.limit) || 10;
         logger_1.default.info('Fetching recent activities', { userId, limit });
-        const activities = await db.query(SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
+        const activities = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
         const formattedActivities = activities.rows.map((activity) => ({
             id: activity.id,
             type: activity.resource_type,
@@ -96,7 +97,7 @@ const getDashboardSummary = async (req, res) => {
     try {
         const userId = req.user?.id;
         logger_1.default.info('Fetching dashboard summary', { userId });
-        const trendsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
+        const trendsResult = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
         const trends = trendsResult.rows[0];
         const summary = {
             activeCases: parseInt(trends.active_cases || '0'),

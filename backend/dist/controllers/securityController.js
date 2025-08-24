@@ -8,6 +8,7 @@ const otplib_1 = require("otplib");
 const crypto_1 = __importDefault(require("crypto"));
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 const setup2FA = async (req, res) => {
     try {
@@ -76,7 +77,7 @@ const verify2FA = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.SECURITY.UPDATE_2FA_SECRET, [tempSecret, userId]);
+        await db.query(db_SQLQueries_1.SQLQueries.SECURITY.UPDATE_2FA_SECRET, [tempSecret, userId]);
         delete req.session.temp2FASecret;
         logger_1.default.businessEvent('2fa_enabled', 'user', userId, userId);
         res.json({
@@ -109,7 +110,7 @@ const disable2FA = async (req, res) => {
                 }
             });
         }
-        const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_SECRET, [userId]);
+        const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_2FA_SECRET, [userId]);
         const user = userResult.rows[0];
         if (!user?.two_factor_secret) {
             return res.status(400).json({
@@ -134,7 +135,7 @@ const disable2FA = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.SECURITY.DISABLE_2FA, [userId]);
+        await db.query(db_SQLQueries_1.SQLQueries.SECURITY.DISABLE_2FA, [userId]);
         logger_1.default.businessEvent('2fa_disabled', 'user', userId, userId);
         res.json({
             success: true,
@@ -156,7 +157,7 @@ exports.disable2FA = disable2FA;
 const get2FAStatus = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_STATUS, [userId]);
+        const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_2FA_STATUS, [userId]);
         const user = userResult.rows[0];
         res.json({
             success: true,
@@ -182,7 +183,7 @@ const generateBackupCodes = async (req, res) => {
         const userId = req.user?.id;
         const backupCodes = Array.from({ length: 10 }, () => crypto_1.default.randomBytes(4).toString('hex').toUpperCase());
         const hashedCodes = backupCodes.map(code => crypto_1.default.createHash('sha256').update(code).digest('hex'));
-        await db.query(SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [hashedCodes, userId]);
+        await db.query(db_SQLQueries_1.SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [hashedCodes, userId]);
         logger_1.default.businessEvent('backup_codes_generated', 'user', userId, userId);
         res.json({
             success: true,
@@ -217,7 +218,7 @@ const verifyBackupCode = async (req, res) => {
                 }
             });
         }
-        const userResult = await db.query(SQLQueries.SECURITY.GET_BACKUP_CODES, [userId]);
+        const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_BACKUP_CODES, [userId]);
         const user = userResult.rows[0];
         if (!user?.backup_codes || user.backup_codes.length === 0) {
             return res.status(400).json({
@@ -241,7 +242,7 @@ const verifyBackupCode = async (req, res) => {
             });
         }
         const updatedCodes = user.backup_codes.filter((_, index) => index !== codeIndex);
-        await db.query(SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [updatedCodes, userId]);
+        await db.query(db_SQLQueries_1.SQLQueries.SECURITY.UPDATE_BACKUP_CODES, [updatedCodes, userId]);
         logger_1.default.businessEvent('backup_code_used', 'user', userId, userId);
         res.json({
             success: true,
@@ -263,7 +264,7 @@ exports.verifyBackupCode = verifyBackupCode;
 const getSecuritySettings = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const userResult = await db.query(SQLQueries.SECURITY.GET_USER_SECURITY_SETTINGS, [userId]);
+        const userResult = await db.query(db_SQLQueries_1.SQLQueries.SECURITY.GET_USER_SECURITY_SETTINGS, [userId]);
         const user = userResult.rows[0];
         res.json({
             success: true,

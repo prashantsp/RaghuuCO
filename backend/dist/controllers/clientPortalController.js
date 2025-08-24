@@ -8,12 +8,13 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const crypto_1 = __importDefault(require("crypto"));
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 const registerClientUser = async (req, res) => {
     try {
         const { clientId, email, password, firstName, lastName, phone } = req.body;
         logger_1.default.info('Client portal user registration', { email, clientId });
-        const existingUser = await db.query(SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
+        const existingUser = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
         if (existingUser.rows[0]) {
             return res.status(400).json({
                 success: false,
@@ -25,7 +26,7 @@ const registerClientUser = async (req, res) => {
         }
         const saltRounds = 12;
         const passwordHash = await bcrypt_1.default.hash(password, saltRounds);
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_USERS.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.CREATE, [
             clientId,
             email,
             passwordHash,
@@ -63,7 +64,7 @@ const loginClientUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         logger_1.default.info('Client portal user login attempt', { email });
-        const userResult = await db.query(SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
+        const userResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.GET_BY_EMAIL, [email]);
         const user = userResult.rows[0];
         if (!user) {
             return res.status(401).json({
@@ -87,7 +88,7 @@ const loginClientUser = async (req, res) => {
         if (!isValidPassword) {
             const failedAttempts = user.failed_login_attempts + 1;
             const lockUntil = failedAttempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null;
-            await db.query(SQLQueries.CLIENT_PORTAL_USERS.UPDATE_LOGIN_ATTEMPTS, [
+            await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.UPDATE_LOGIN_ATTEMPTS, [
                 user.id,
                 failedAttempts,
                 lockUntil,
@@ -101,7 +102,7 @@ const loginClientUser = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.CLIENT_PORTAL_USERS.UPDATE_LOGIN_ATTEMPTS, [
+        await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.UPDATE_LOGIN_ATTEMPTS, [
             user.id,
             0,
             null,
@@ -109,7 +110,7 @@ const loginClientUser = async (req, res) => {
         ]);
         const sessionToken = crypto_1.default.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        await db.query(SQLQueries.CLIENT_PORTAL_SESSIONS.CREATE, [
+        await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_SESSIONS.CREATE, [
             user.id,
             sessionToken,
             req.ip,
@@ -148,7 +149,7 @@ const logoutClientUser = async (req, res) => {
     try {
         const sessionToken = req.headers.authorization?.replace('Bearer ', '');
         if (sessionToken) {
-            await db.query(SQLQueries.CLIENT_PORTAL_SESSIONS.DELETE_BY_TOKEN, [sessionToken]);
+            await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_SESSIONS.DELETE_BY_TOKEN, [sessionToken]);
         }
         logger_1.default.info('Client portal user logged out');
         res.json({
@@ -172,7 +173,7 @@ const getClientCases = async (req, res) => {
     try {
         const clientId = req.clientUser?.client_id;
         logger_1.default.info('Fetching client cases', { clientId });
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_BY_CLIENT_ID, [clientId]);
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_BY_CLIENT_ID, [clientId]);
         const cases = result.rows;
         logger_1.default.info('Client cases fetched successfully', { clientId, count: cases.length });
         res.json({
@@ -197,7 +198,7 @@ const getClientCaseDetails = async (req, res) => {
         const { id } = req.params;
         const clientId = req.clientUser?.client_id;
         logger_1.default.info('Fetching client case details', { clientId, caseId: id });
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DETAILS, [id, clientId]);
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DETAILS, [id, clientId]);
         const caseDetails = result.rows[0];
         if (!caseDetails) {
             return res.status(404).json({
@@ -208,9 +209,9 @@ const getClientCaseDetails = async (req, res) => {
                 }
             });
         }
-        const documentsResult = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DOCUMENTS, [id]);
+        const documentsResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_DOCUMENTS, [id]);
         const documents = documentsResult.rows;
-        const updatesResult = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_UPDATES, [id]);
+        const updatesResult = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_CASES.GET_CASE_UPDATES, [id]);
         const updates = updatesResult.rows;
         logger_1.default.info('Client case details fetched successfully', { clientId, caseId: id });
         res.json({
@@ -238,7 +239,7 @@ const getClientMessages = async (req, res) => {
     try {
         const clientId = req.clientUser?.client_id;
         logger_1.default.info('Fetching client messages', { clientId });
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_MESSAGES.GET_CLIENT_MESSAGES, [clientId]);
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_MESSAGES.GET_CLIENT_MESSAGES, [clientId]);
         const messages = result.rows;
         logger_1.default.info('Client messages fetched successfully', { clientId, count: messages.length });
         res.json({
@@ -264,7 +265,7 @@ const sendClientMessage = async (req, res) => {
         const clientId = req.clientUser?.client_id;
         const { subject, content, caseId } = req.body;
         logger_1.default.info('Sending client message', { clientUserId, caseId });
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_MESSAGES.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_MESSAGES.CREATE, [
             subject,
             content,
             clientUserId,
@@ -297,7 +298,7 @@ const updateClientProfile = async (req, res) => {
         const clientUserId = req.clientUser?.id;
         const { firstName, lastName, phone } = req.body;
         logger_1.default.info('Updating client profile', { clientUserId });
-        const result = await db.query(SQLQueries.CLIENT_PORTAL_USERS.UPDATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.CLIENT_PORTAL_USERS.UPDATE, [
             clientUserId,
             firstName,
             lastName,

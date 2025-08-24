@@ -14,6 +14,7 @@ import { authenticator } from 'otplib';
 import crypto from 'crypto';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 

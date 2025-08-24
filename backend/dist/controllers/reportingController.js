@@ -7,6 +7,7 @@ exports.getBusinessMetrics = exports.recordBusinessMetric = exports.getPerforman
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const reportExecutionService_1 = require("@/services/reportExecutionService");
 const logger_1 = __importDefault(require("@/utils/logger"));
+const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 const getReports = async (req, res) => {
     try {
@@ -14,7 +15,7 @@ const getReports = async (req, res) => {
         const { page = 1, limit = 20, search, reportType, isActive } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         logger_1.default.info('Fetching reports', { userId, filters: req.query });
-        const result = await db.query(SQLQueries.REPORTS.SEARCH, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.SEARCH, [
             search || null,
             reportType || null,
             isActive !== undefined ? isActive : null,
@@ -45,7 +46,7 @@ const getReportById = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Fetching report by ID', { userId, reportId: id });
-        const result = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
+        const result = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
         const report = result.rows[0];
         if (!report) {
             return res.status(404).json({
@@ -79,7 +80,7 @@ const createReport = async (req, res) => {
         const userId = req.user?.id;
         const { name, description, reportType, parameters, scheduleCron } = req.body;
         logger_1.default.info('Creating new report', { userId, name, reportType });
-        const result = await db.query(SQLQueries.REPORTS.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.CREATE, [
             name,
             description,
             reportType,
@@ -112,7 +113,7 @@ const updateReport = async (req, res) => {
         const userId = req.user?.id;
         const { name, description, reportType, parameters, scheduleCron, isActive } = req.body;
         logger_1.default.info('Updating report', { userId, reportId: id });
-        const result = await db.query(SQLQueries.REPORTS.UPDATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.UPDATE, [
             id,
             name,
             description,
@@ -145,7 +146,7 @@ const deleteReport = async (req, res) => {
         const { id } = req.params;
         const userId = req.user?.id;
         logger_1.default.info('Deleting report', { userId, reportId: id });
-        const currentResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
+        const currentResult = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
         const report = currentResult.rows[0];
         if (!report) {
             return res.status(404).json({
@@ -156,7 +157,7 @@ const deleteReport = async (req, res) => {
                 }
             });
         }
-        await db.query(SQLQueries.REPORTS.DELETE, [id]);
+        await db.query(db_SQLQueries_1.SQLQueries.REPORTS.DELETE, [id]);
         logger_1.default.businessEvent('report_deleted', 'report', id, userId);
         res.json({
             success: true,
@@ -181,7 +182,7 @@ const executeReport = async (req, res) => {
         const userId = req.user?.id;
         const { parameters } = req.body;
         logger_1.default.info('Executing report', { userId, reportId: id });
-        const reportResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
+        const reportResult = await db.query(db_SQLQueries_1.SQLQueries.REPORTS.GET_BY_ID, [id]);
         const report = reportResult.rows[0];
         if (!report) {
             return res.status(404).json({
@@ -192,7 +193,7 @@ const executeReport = async (req, res) => {
                 }
             });
         }
-        const executionResult = await db.query(SQLQueries.REPORT_EXECUTIONS.CREATE, [
+        const executionResult = await db.query(db_SQLQueries_1.SQLQueries.REPORT_EXECUTIONS.CREATE, [
             id,
             userId,
             'running',
@@ -229,7 +230,7 @@ const getReportExecutions = async (req, res) => {
         const { page = 1, limit = 20 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         logger_1.default.info('Fetching report executions', { userId, reportId: id });
-        const result = await db.query(SQLQueries.REPORT_EXECUTIONS.SEARCH, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.REPORT_EXECUTIONS.SEARCH, [
             null,
             null,
             id,
@@ -260,7 +261,7 @@ const trackAnalyticsEvent = async (req, res) => {
         const userId = req.user?.id;
         const { eventType, sessionId, pageUrl, referrerUrl, userAgent, ipAddress, eventData } = req.body;
         logger_1.default.info('Tracking analytics event', { userId, eventType, pageUrl });
-        const result = await db.query(SQLQueries.ANALYTICS_EVENTS.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.ANALYTICS_EVENTS.CREATE, [
             eventType,
             userId,
             sessionId,
@@ -293,11 +294,11 @@ const getAnalyticsSummary = async (req, res) => {
         const userId = req.user?.id;
         const { startDate, endDate } = req.query;
         logger_1.default.info('Fetching analytics summary', { userId, startDate, endDate });
-        const pageViewsResult = await db.query(SQLQueries.ANALYTICS_EVENTS.GET_PAGE_VIEWS, [
+        const pageViewsResult = await db.query(db_SQLQueries_1.SQLQueries.ANALYTICS_EVENTS.GET_PAGE_VIEWS, [
             startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             endDate || new Date()
         ]);
-        const userActivityResult = await db.query(SQLQueries.ANALYTICS_EVENTS.GET_USER_ACTIVITY, [
+        const userActivityResult = await db.query(db_SQLQueries_1.SQLQueries.ANALYTICS_EVENTS.GET_USER_ACTIVITY, [
             startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             endDate || new Date()
         ]);
@@ -330,7 +331,7 @@ const recordPerformanceMetric = async (req, res) => {
         const userId = req.user?.id;
         const { metricName, metricValue, metricUnit, tags } = req.body;
         logger_1.default.info('Recording performance metric', { userId, metricName, metricValue });
-        const result = await db.query(SQLQueries.PERFORMANCE_METRICS.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.PERFORMANCE_METRICS.CREATE, [
             metricName,
             metricValue,
             metricUnit,
@@ -361,14 +362,14 @@ const getPerformanceMetrics = async (req, res) => {
         logger_1.default.info('Fetching performance metrics', { userId, metricName, startDate, endDate });
         let result;
         if (metricName) {
-            result = await db.query(SQLQueries.PERFORMANCE_METRICS.GET_BY_NAME, [
+            result = await db.query(db_SQLQueries_1.SQLQueries.PERFORMANCE_METRICS.GET_BY_NAME, [
                 metricName,
                 startDate || new Date(Date.now() - 24 * 60 * 60 * 1000),
                 endDate || new Date()
             ]);
         }
         else {
-            result = await db.query(SQLQueries.PERFORMANCE_METRICS.GET_METRICS_SUMMARY, [
+            result = await db.query(db_SQLQueries_1.SQLQueries.PERFORMANCE_METRICS.GET_METRICS_SUMMARY, [
                 startDate || new Date(Date.now() - 24 * 60 * 60 * 1000),
                 endDate || new Date()
             ]);
@@ -397,7 +398,7 @@ const recordBusinessMetric = async (req, res) => {
         const userId = req.user?.id;
         const { metricDate, metricType, metricValue, metricCount, additionalData } = req.body;
         logger_1.default.info('Recording business metric', { userId, metricType, metricValue });
-        const result = await db.query(SQLQueries.BUSINESS_METRICS.CREATE, [
+        const result = await db.query(db_SQLQueries_1.SQLQueries.BUSINESS_METRICS.CREATE, [
             metricDate || new Date(),
             metricType,
             metricValue,
@@ -429,14 +430,14 @@ const getBusinessMetrics = async (req, res) => {
         logger_1.default.info('Fetching business metrics', { userId, metricType, startDate, endDate });
         let result;
         if (metricType) {
-            result = await db.query(SQLQueries.BUSINESS_METRICS.GET_BY_TYPE, [
+            result = await db.query(db_SQLQueries_1.SQLQueries.BUSINESS_METRICS.GET_BY_TYPE, [
                 metricType,
                 startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
                 endDate || new Date()
             ]);
         }
         else {
-            result = await db.query(SQLQueries.BUSINESS_METRICS.GET_DAILY_SUMMARY, [
+            result = await db.query(db_SQLQueries_1.SQLQueries.BUSINESS_METRICS.GET_DAILY_SUMMARY, [
                 startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
                 endDate || new Date()
             ]);

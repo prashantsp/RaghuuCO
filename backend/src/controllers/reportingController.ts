@@ -15,6 +15,7 @@ import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import { reportExecutionService } from '@/services/reportExecutionService';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
