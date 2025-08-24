@@ -5,8 +5,8 @@ const DatabaseService_1 = require("@/services/DatabaseService");
 const logger_1 = require("@/utils/logger");
 const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
 const roleAccess_1 = require("@/utils/roleAccess");
-const emailService_1 = require("@/utils/emailService");
-const notificationService_1 = require("@/utils/notificationService");
+const emailService_1 = require("../utils/emailService");
+const notificationService_1 = require("../utils/notificationService");
 const db = new DatabaseService_1.DatabaseService();
 var TicketPriority;
 (function (TicketPriority) {
@@ -70,10 +70,10 @@ class SupportTicketService {
     async getTicketById(ticketId, userId) {
         try {
             const result = await db.query(db_SQLQueries_1.SQLQueries.SUPPORT.GET_TICKET_BY_ID, [ticketId]);
-            if (result.rows.length === 0) {
+            if (result.length === 0) {
                 return null;
             }
-            const ticket = this.mapTicketFromRow(result.rows[0]);
+            const ticket = this.mapTicketFromRow(result[0]);
             if (!this.canUserAccessTicket(ticket, userId)) {
                 logger_1.logger.warn('Unauthorized ticket access attempt', { ticketId, userId });
                 throw new Error('Unauthorized access to ticket');
@@ -111,7 +111,7 @@ class SupportTicketService {
                 params.push(filters.offset);
             }
             const result = await db.query(query, params);
-            return result.rows.map(row => this.mapTicketFromRow(row));
+            return result.map((row) => this.mapTicketFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error getting user tickets:', error);
@@ -151,7 +151,7 @@ class SupportTicketService {
                 params.push(filters.offset);
             }
             const result = await db.query(query, params);
-            return result.rows.map(row => this.mapTicketFromRow(row));
+            return result.map((row) => this.mapTicketFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error getting all tickets:', error);
@@ -253,7 +253,7 @@ class SupportTicketService {
                 filters?.endDate || new Date(),
                 filters?.category || null
             ]);
-            return this.mapStatisticsFromRow(result.rows[0]);
+            return this.mapStatisticsFromRow(result[0]);
         }
         catch (error) {
             logger_1.logger.error('Error getting ticket statistics:', error);

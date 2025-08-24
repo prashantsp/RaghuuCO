@@ -69,10 +69,10 @@ class UserFeedbackService {
     async getFeedbackById(feedbackId, userId) {
         try {
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEEDBACK_BY_ID, [feedbackId]);
-            if (result.rows.length === 0) {
+            if (result.length === 0) {
                 return null;
             }
-            const feedback = this.mapFeedbackFromRow(result.rows[0]);
+            const feedback = this.mapFeedbackFromRow(result[0]);
             if (!this.canUserAccessFeedback(feedback, userId)) {
                 logger_1.logger.warn('Unauthorized feedback access attempt', { feedbackId, userId });
                 throw new Error('Unauthorized access to feedback');
@@ -106,7 +106,7 @@ class UserFeedbackService {
                 params.push(filters.offset);
             }
             const result = await db.query(query, params);
-            return result.rows.map(row => this.mapFeedbackFromRow(row));
+            return result.map((row) => this.mapFeedbackFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error getting user feedback:', error);
@@ -142,7 +142,7 @@ class UserFeedbackService {
                 params.push(filters.offset);
             }
             const result = await db.query(query, params);
-            return result.rows.map(row => this.mapFeedbackFromRow(row));
+            return result.map((row) => this.mapFeedbackFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error getting all feedback:', error);
@@ -186,7 +186,7 @@ class UserFeedbackService {
                 filters?.endDate || new Date(),
                 filters?.category || null
             ]);
-            return this.mapStatisticsFromRow(result.rows[0]);
+            return this.mapStatisticsFromRow(result[0]);
         }
         catch (error) {
             logger_1.logger.error('Error getting feedback statistics:', error);
@@ -199,7 +199,7 @@ class UserFeedbackService {
                 throw new Error('Unauthorized to search feedback');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.SEARCH_FEEDBACK, [`%${searchTerm}%`]);
-            return result.rows.map(row => this.mapFeedbackFromRow(row));
+            return result.map((row) => this.mapFeedbackFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error searching feedback:', error);
@@ -224,7 +224,7 @@ class UserFeedbackService {
     async getFeatureFeedback(feature, userId) {
         try {
             const result = await db.query(db_SQLQueries_1.SQLQueries.FEEDBACK.GET_FEATURE_FEEDBACK, [feature]);
-            return result.rows.map(row => this.mapFeedbackFromRow(row));
+            return result.map((row) => this.mapFeedbackFromRow(row));
         }
         catch (error) {
             logger_1.logger.error('Error getting feature feedback:', error);

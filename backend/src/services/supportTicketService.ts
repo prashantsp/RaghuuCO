@@ -229,7 +229,7 @@ class SupportTicketService {
       }
 
       const result = await db.query(query, params);
-      return result.rows.map(row => this.mapTicketFromRow(row));
+      return result.map((row: any) => this.mapTicketFromRow(row));
     } catch (error) {
       logger.error('Error getting user tickets:', error as Error);
       throw error;
@@ -292,7 +292,7 @@ class SupportTicketService {
       }
 
       const result = await db.query(query, params);
-      return result.rows.map(row => this.mapTicketFromRow(row));
+      return result.map((row: any) => this.mapTicketFromRow(row));
     } catch (error) {
       logger.error('Error getting all tickets:', error as Error);
       throw error;
@@ -451,7 +451,7 @@ class SupportTicketService {
         filters?.category || null
       ]);
 
-      return this.mapStatisticsFromRow(result.rows[0]);
+      return this.mapStatisticsFromRow(result[0]);
     } catch (error) {
       logger.error('Error getting ticket statistics:', error as Error);
       throw error;

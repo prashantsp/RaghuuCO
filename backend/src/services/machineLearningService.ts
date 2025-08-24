@@ -446,7 +446,7 @@ class MachineLearningService {
   private async analyzeBehaviorPatterns(userId: string): Promise<any> {
     const result = await db.query(SQLQueries.ML.GET_USER_BEHAVIOR_PATTERNS, [userId]);
 
-    return result.rows.reduce((acc, row) => {
+    return result.reduce((acc, row) => {
       acc[row.action] = {
         frequency: parseInt(row.frequency),
         avgInterval: parseFloat(row.avg_interval),

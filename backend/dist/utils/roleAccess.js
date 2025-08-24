@@ -113,6 +113,16 @@ var Permission;
     Permission["EXPORT_REPORTS"] = "EXPORT_REPORTS";
     Permission["USE_GLOBAL_SEARCH"] = "USE_GLOBAL_SEARCH";
     Permission["VIEW_SEARCH_STATISTICS"] = "VIEW_SEARCH_STATISTICS";
+    Permission["SUPPORT_READ_ALL"] = "support:read_all";
+    Permission["SUPPORT_ASSIGN"] = "support:assign";
+    Permission["SUPPORT_UPDATE"] = "support:update";
+    Permission["SUPPORT_VIEW_STATS"] = "support:view_stats";
+    Permission["FEEDBACK_READ_ALL"] = "feedback:read_all";
+    Permission["FEEDBACK_UPDATE"] = "feedback:update";
+    Permission["FEEDBACK_VIEW_STATS"] = "feedback:view_stats";
+    Permission["FEEDBACK_SEARCH"] = "feedback:search";
+    Permission["FEEDBACK_VIEW_TRENDS"] = "feedback:view_trends";
+    Permission["FEEDBACK_VIEW_ANALYTICS"] = "feedback:view_analytics";
 })(Permission || (exports.Permission = Permission = {}));
 exports.ROLE_PERMISSIONS = {
     [UserRole.SUPER_ADMIN]: [
@@ -135,7 +145,9 @@ exports.ROLE_PERMISSIONS = {
         Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
         Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
         Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+        Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+        Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
     ],
     [UserRole.PARTNER]: [
         Permission.VIEW_USERS, Permission.CREATE_USERS, Permission.UPDATE_USERS, Permission.MANAGE_USER_ROLES,
@@ -157,7 +169,9 @@ exports.ROLE_PERMISSIONS = {
         Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
         Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
         Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+        Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+        Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
     ],
     [UserRole.SENIOR_ASSOCIATE]: [
         Permission.VIEW_USERS,
@@ -178,7 +192,9 @@ exports.ROLE_PERMISSIONS = {
         Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
         Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
         Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+        Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+        Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+        Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
     ],
     [UserRole.ASSOCIATE]: [
         Permission.VIEW_USERS,

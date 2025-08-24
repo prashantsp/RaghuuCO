@@ -517,9 +517,6 @@ ${JSON.stringify(result.data.slice(0, 5), null, 2)}
    * Log execution error
    */
   async logExecutionError(executionId: string, templateId: string, userId: string, error: string): Promise<void> {
-    // Implementation for logging execution errors
-    logger.error('Report execution error', { executionId, templateId, userId, error });
-  }
     try {
       await db.query(`
         UPDATE report_executions 

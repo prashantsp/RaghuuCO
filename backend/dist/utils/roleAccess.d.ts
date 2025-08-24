@@ -88,7 +88,17 @@ export declare enum Permission {
     DELETE_REPORTS = "DELETE_REPORTS",
     EXPORT_REPORTS = "EXPORT_REPORTS",
     USE_GLOBAL_SEARCH = "USE_GLOBAL_SEARCH",
-    VIEW_SEARCH_STATISTICS = "VIEW_SEARCH_STATISTICS"
+    VIEW_SEARCH_STATISTICS = "VIEW_SEARCH_STATISTICS",
+    SUPPORT_READ_ALL = "support:read_all",
+    SUPPORT_ASSIGN = "support:assign",
+    SUPPORT_UPDATE = "support:update",
+    SUPPORT_VIEW_STATS = "support:view_stats",
+    FEEDBACK_READ_ALL = "feedback:read_all",
+    FEEDBACK_UPDATE = "feedback:update",
+    FEEDBACK_VIEW_STATS = "feedback:view_stats",
+    FEEDBACK_SEARCH = "feedback:search",
+    FEEDBACK_VIEW_TRENDS = "feedback:view_trends",
+    FEEDBACK_VIEW_ANALYTICS = "feedback:view_analytics"
 }
 export declare const ROLE_PERMISSIONS: Record<UserRole, Permission[]>;
 export declare function hasPermission(userRole: UserRole, permission: Permission): boolean;

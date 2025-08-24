@@ -149,11 +149,11 @@ class UserFeedbackService {
     try {
       const result = await db.query(SQLQueries.FEEDBACK.GET_FEEDBACK_BY_ID, [feedbackId]);
       
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
 
-      const feedback = this.mapFeedbackFromRow(result.rows[0]);
+      const feedback = this.mapFeedbackFromRow(result[0]);
       
       // Check if user has permission to view this feedback
       if (!this.canUserAccessFeedback(feedback, userId)) {
@@ -207,7 +207,7 @@ class UserFeedbackService {
       }
 
       const result = await db.query(query, params);
-      return result.rows.map(row => this.mapFeedbackFromRow(row));
+      return result.map((row: any) => this.mapFeedbackFromRow(row));
     } catch (error) {
       logger.error('Error getting user feedback:', error as Error);
       throw error;
@@ -264,7 +264,7 @@ class UserFeedbackService {
       }
 
       const result = await db.query(query, params);
-      return result.rows.map(row => this.mapFeedbackFromRow(row));
+      return result.map((row: any) => this.mapFeedbackFromRow(row));
     } catch (error) {
       logger.error('Error getting all feedback:', error as Error);
       throw error;
@@ -336,7 +336,7 @@ class UserFeedbackService {
         filters?.category || null
       ]);
 
-      return this.mapStatisticsFromRow(result.rows[0]);
+      return this.mapStatisticsFromRow(result[0]);
     } catch (error) {
       logger.error('Error getting feedback statistics:', error as Error);
       throw error;
@@ -357,7 +357,7 @@ class UserFeedbackService {
       }
 
       const result = await db.query(SQLQueries.FEEDBACK.SEARCH_FEEDBACK, [`%${searchTerm}%`]);
-      return result.rows.map(row => this.mapFeedbackFromRow(row));
+      return result.map((row: any) => this.mapFeedbackFromRow(row));
     } catch (error) {
       logger.error('Error searching feedback:', error as Error);
       throw error;
@@ -397,7 +397,7 @@ class UserFeedbackService {
   async getFeatureFeedback(feature: string, userId: string): Promise<UserFeedback[]> {
     try {
       const result = await db.query(SQLQueries.FEEDBACK.GET_FEATURE_FEEDBACK, [feature]);
-      return result.rows.map(row => this.mapFeedbackFromRow(row));
+      return result.map((row: any) => this.mapFeedbackFromRow(row));
     } catch (error) {
       logger.error('Error getting feature feedback:', error as Error);
       throw error;
