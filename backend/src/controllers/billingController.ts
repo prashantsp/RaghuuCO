@@ -9,7 +9,8 @@
  * @description Controller for billing management including invoices, payments, and billing rates
  */
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
 import { taxService } from '@/services/taxService';
@@ -23,9 +24,9 @@ const db = new DatabaseService();
  * @route GET /api/v1/billing/invoices
  * @access Private
  */
-export const getInvoices = async (req: Request, res: Response) => {
+export const getInvoices = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = req.user?.id;
     const { page = 1, limit = 20, search, status, clientId, userId: filterUserId } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
@@ -90,7 +91,7 @@ export const getInvoices = async (req: Request, res: Response) => {
  * @route GET /api/v1/billing/invoices/:id
  * @access Private
  */
-export const getInvoiceById = async (req: Request, res: Response) => {
+export const getInvoiceById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
@@ -148,7 +149,7 @@ export const getInvoiceById = async (req: Request, res: Response) => {
  * @route POST /api/v1/billing/invoices
  * @access Private
  */
-export const createInvoice = async (req: Request, res: Response) => {
+export const createInvoice = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
     const {
@@ -247,7 +248,7 @@ export const createInvoice = async (req: Request, res: Response) => {
  * @route PUT /api/v1/billing/invoices/:id
  * @access Private
  */
-export const updateInvoice = async (req: Request, res: Response) => {
+export const updateInvoice = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
@@ -357,7 +358,7 @@ export const updateInvoice = async (req: Request, res: Response) => {
  * @route DELETE /api/v1/billing/invoices/:id
  * @access Private
  */
-export const deleteInvoice = async (req: Request, res: Response) => {
+export const deleteInvoice = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
@@ -416,7 +417,7 @@ export const deleteInvoice = async (req: Request, res: Response) => {
  * @route GET /api/v1/billing/invoices/stats
  * @access Private
  */
-export const getInvoiceStats = async (req: Request, res: Response) => {
+export const getInvoiceStats = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
     const { clientId } = req.query;
@@ -450,7 +451,7 @@ export const getInvoiceStats = async (req: Request, res: Response) => {
  * @route GET /api/v1/billing/rates
  * @access Private
  */
-export const getBillingRates = async (req: Request, res: Response) => {
+export const getBillingRates = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
     const { search, caseType, page = 1, limit = 20 } = req.query;
@@ -491,7 +492,7 @@ export const getBillingRates = async (req: Request, res: Response) => {
  * @route POST /api/v1/billing/rates
  * @access Private
  */
-export const createBillingRate = async (req: Request, res: Response) => {
+export const createBillingRate = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = (req.user as any)?.id;
     const {
