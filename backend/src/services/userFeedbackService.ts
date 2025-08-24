@@ -13,9 +13,9 @@
 import { DatabaseService } from '@/services/DatabaseService';
 import { logger } from '@/utils/logger';
 import { SQLQueries } from '@/utils/db_SQLQueries';
-import { UserRole, hasPermission } from '@/utils/roleAccess';
+import { UserRole, hasPermission, Permission } from '../utils/roleAccess';
 import { sendEmail } from '@/utils/emailService';
-import { sendNotification } from '@/utils/notificationService';
+import { sendNotification, NotificationType, NotificationPriority } from '../utils/notificationService';
 
 const db = new DatabaseService();
 
@@ -220,7 +220,7 @@ class UserFeedbackService {
    * @param filters - Optional filters
    * @returns Promise<UserFeedback[]>
    */
-  async getAllFeedback(userId: string, filters?: {
+  async getAllFeedback(_userId: string, filters?: {
     category?: FeedbackCategory;
     status?: FeedbackStatus;
     priority?: string;
@@ -319,7 +319,7 @@ class UserFeedbackService {
    * @param filters - Optional filters
    * @returns Promise<FeedbackStatistics>
    */
-  async getFeedbackStatistics(userId: string, filters?: {
+  async getFeedbackStatistics(_userId: string, filters?: {
     startDate?: Date;
     endDate?: Date;
     category?: FeedbackCategory;
@@ -381,7 +381,7 @@ class UserFeedbackService {
         new Date(Date.now() - days * 24 * 60 * 60 * 1000)
       ]);
 
-      return result.rows;
+      return result;
     } catch (error) {
       logger.error('Error getting feedback trends:', error as Error);
       throw error;
@@ -427,7 +427,7 @@ class UserFeedbackService {
         filters?.category || null
       ]);
 
-      return result.rows;
+      return result;
     } catch (error) {
       logger.error('Error getting feedback analytics:', error as Error);
       throw error;
@@ -530,7 +530,7 @@ class UserFeedbackService {
         to: feedback.userId,
         subject: 'Feedback Received - Thank You',
         html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`,
-        data: { feedback }
+        html: `Thank you for your feedback on ${feedback.feature}. We appreciate your input!`
       });
     } catch (error) {
       logger.error('Error sending feedback confirmation:', error as Error);

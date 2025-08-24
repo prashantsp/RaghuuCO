@@ -35,7 +35,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.cases = casesResult.rows;
+                results.cases = casesResult[0];
             }
             if (entityTypes.length === 0 || entityTypes.includes('clients')) {
                 const clientsResult = await db.query(`
@@ -52,7 +52,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.clients = clientsResult.rows;
+                results.clients = clientsResult[0];
             }
             if (entityTypes.length === 0 || entityTypes.includes('documents')) {
                 const documentsResult = await db.query(`
@@ -69,7 +69,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.documents = documentsResult.rows;
+                results.documents = documentsResult[0];
             }
             if (entityTypes.length === 0 || entityTypes.includes('users')) {
                 const usersResult = await db.query(`
@@ -86,7 +86,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.users = usersResult.rows;
+                results.users = usersResult[0];
             }
             if (entityTypes.length === 0 || entityTypes.includes('expenses')) {
                 const expensesResult = await db.query(`
@@ -103,7 +103,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.expenses = expensesResult.rows;
+                results.expenses = expensesResult[0];
             }
             if (entityTypes.length === 0 || entityTypes.includes('articles')) {
                 const articlesResult = await db.query(`
@@ -120,7 +120,7 @@ class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-                results.articles = articlesResult.rows;
+                results.articles = articlesResult[0];
             }
             results.totalResults = results.cases.length + results.clients.length +
                 results.documents.length + results.users.length +
@@ -158,7 +158,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.cases = casesResult.rows;
+            suggestions.cases = casesResult[0];
             const clientsResult = await db.query(`
         SELECT DISTINCT name, email
         FROM clients 
@@ -166,7 +166,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.clients = clientsResult.rows;
+            suggestions.clients = clientsResult[0];
             const documentsResult = await db.query(`
         SELECT DISTINCT title, file_name
         FROM documents 
@@ -174,7 +174,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.documents = documentsResult.rows;
+            suggestions.documents = documentsResult[0];
             const usersResult = await db.query(`
         SELECT DISTINCT CONCAT(first_name, ' ', last_name) as full_name, email
         FROM users 
@@ -182,7 +182,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.users = usersResult.rows;
+            suggestions.users = usersResult[0];
             const expensesResult = await db.query(`
         SELECT DISTINCT description, category
         FROM expenses 
@@ -190,7 +190,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.expenses = expensesResult.rows;
+            suggestions.expenses = expensesResult[0];
             const articlesResult = await db.query(`
         SELECT DISTINCT title, excerpt
         FROM articles 
@@ -198,7 +198,7 @@ class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-            suggestions.articles = articlesResult.rows;
+            suggestions.articles = articlesResult[0];
             logger_1.default.info('Search suggestions fetched successfully', { query, limit });
             return {
                 success: true,
@@ -222,7 +222,7 @@ class GlobalSearchService {
           (SELECT COUNT(*) FROM expenses) as total_expenses,
           (SELECT COUNT(*) FROM articles) as total_articles
       `);
-            const stats = statsResult.rows[0];
+            const stats = statsResult[0][0];
             logger_1.default.info('Search statistics fetched successfully');
             return {
                 success: true,

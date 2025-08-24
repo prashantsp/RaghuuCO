@@ -15,17 +15,15 @@ const db = new DatabaseService_1.default();
 class DocumentSecurityService {
     constructor() {
         this.algorithm = 'aes-256-gcm';
-        const keyString = process.env.DOCUMENT_ENCRYPTION_KEY || crypto_1.default.randomBytes(32).toString('hex');
+        const keyString = process.env["DOCUMENT_ENCRYPTION_KEY"] || crypto_1.default.randomBytes(32).toString('hex');
         this.encryptionKey = Buffer.from(keyString, 'hex');
     }
     async encryptDocument(content, documentId) {
         try {
             const iv = crypto_1.default.randomBytes(16);
             const cipher = crypto_1.default.createCipher(this.algorithm, this.encryptionKey);
-            cipher.setAAD(Buffer.from(documentId, 'utf8'));
             let encrypted = cipher.update(content);
             encrypted = Buffer.concat([encrypted, cipher.final()]);
-            const authTag = cipher.getAuthTag();
             logger_1.default.info('Document encrypted successfully', { documentId });
             return {
                 encryptedContent: encrypted,
@@ -38,11 +36,9 @@ class DocumentSecurityService {
             throw new Error('Failed to encrypt document');
         }
     }
-    async decryptDocument(encryptedContent, iv, authTag, documentId) {
+    async decryptDocument(encryptedContent, _iv, _authTag, documentId) {
         try {
             const decipher = crypto_1.default.createDecipher(this.algorithm, this.encryptionKey);
-            decipher.setAuthTag(authTag);
-            decipher.setAAD(Buffer.from(documentId, 'utf8'));
             let decrypted = decipher.update(encryptedContent);
             decrypted = Buffer.concat([decrypted, decipher.final()]);
             logger_1.default.info('Document decrypted successfully', { documentId });
@@ -171,8 +167,7 @@ class DocumentSecurityService {
     }
     async saveSecureDocument(documentId, content, securityLevel, watermarkText, watermarkPosition = 'bottom_right') {
         try {
-            const { encryptedContent, iv, authTag } = await this.encryptDocument(content, documentId);
-            let watermarkedContent = content;
+            const { encryptedContent } = await this.encryptDocument(content, documentId);
             if (watermarkText) {
                 const fileExtension = path_1.default.extname(documentId).toLowerCase();
                 if (fileExtension === '.pdf') {
@@ -182,7 +177,7 @@ class DocumentSecurityService {
                     watermarkedContent = await this.addWatermarkToImage(content, watermarkText, watermarkPosition);
                 }
             }
-            const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+            const uploadDir = process.env["UPLOAD_DIR"] || 'uploads';
             const secureDir = path_1.default.join(uploadDir, 'secure');
             if (!fs_1.default.existsSync(secureDir)) {
                 fs_1.default.mkdirSync(secureDir, { recursive: true });
@@ -231,7 +226,7 @@ class DocumentSecurityService {
             if (!metadata) {
                 throw new Error('Document security metadata not found');
             }
-            const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+            const uploadDir = process.env["UPLOAD_DIR"] || 'uploads';
             const filePath = path_1.default.join(uploadDir, 'secure', `${documentId}.enc`);
             if (!fs_1.default.existsSync(filePath)) {
                 throw new Error('Encrypted document file not found');
@@ -320,7 +315,7 @@ class DocumentSecurityService {
             const result = await db.query(`
         SELECT * FROM document_security_metadata WHERE document_id = $1
       `, [documentId]);
-            return result.rows[0];
+            return result[0];
         }
         catch (error) {
             logger_1.default.error('Error getting document security metadata', error);

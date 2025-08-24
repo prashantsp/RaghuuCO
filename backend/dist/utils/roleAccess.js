@@ -294,7 +294,7 @@ function canAccessResource(userRole, resourceType, action) {
     const permission = `${resourceType}:${action}`;
     return hasPermission(userRole, permission);
 }
-function canAccessCase(userRole, caseData) {
+function canAccessCase(userRole, userId, caseData) {
     if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.PARTNER) {
         return true;
     }
@@ -311,7 +311,7 @@ function canAccessCase(userRole, caseData) {
     }
     return false;
 }
-function canAccessDocument(userRole, documentData) {
+function canAccessDocument(userRole, userId, documentData) {
     if (userRole === UserRole.SUPER_ADMIN) {
         return true;
     }

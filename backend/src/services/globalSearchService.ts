@@ -52,7 +52,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.cases = casesResult.rows;
+        results.cases = casesResult[0];
       }
 
       // Search clients
@@ -71,7 +71,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.clients = clientsResult.rows;
+        results.clients = clientsResult[0];
       }
 
       // Search documents
@@ -90,7 +90,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.documents = documentsResult.rows;
+        results.documents = documentsResult[0];
       }
 
       // Search users
@@ -109,7 +109,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.users = usersResult.rows;
+        results.users = usersResult[0];
       }
 
       // Search expenses
@@ -128,7 +128,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.expenses = expensesResult.rows;
+        results.expenses = expensesResult[0];
       }
 
       // Search articles
@@ -147,7 +147,7 @@ export class GlobalSearchService {
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
         `, [`%${query}%`, limit, offset]);
-        results.articles = articlesResult.rows;
+        results.articles = articlesResult[0];
       }
 
       // Calculate total results
@@ -195,7 +195,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.cases = casesResult.rows;
+      suggestions.cases = casesResult[0];
 
       // Get client suggestions
       const clientsResult = await db.query(`
@@ -205,7 +205,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.clients = clientsResult.rows;
+      suggestions.clients = clientsResult[0];
 
       // Get document suggestions
       const documentsResult = await db.query(`
@@ -215,7 +215,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.documents = documentsResult.rows;
+      suggestions.documents = documentsResult[0];
 
       // Get user suggestions
       const usersResult = await db.query(`
@@ -225,7 +225,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.users = usersResult.rows;
+      suggestions.users = usersResult[0];
 
       // Get expense suggestions
       const expensesResult = await db.query(`
@@ -235,7 +235,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.expenses = expensesResult.rows;
+      suggestions.expenses = expensesResult[0];
 
       // Get article suggestions
       const articlesResult = await db.query(`
@@ -245,7 +245,7 @@ export class GlobalSearchService {
         ORDER BY created_at DESC
         LIMIT $2
       `, [`%${query}%`, limit]);
-      suggestions.articles = articlesResult.rows;
+      suggestions.articles = articlesResult[0];
 
       logger.info('Search suggestions fetched successfully', { query, limit });
 
@@ -276,7 +276,7 @@ export class GlobalSearchService {
           (SELECT COUNT(*) FROM articles) as total_articles
       `);
 
-      const stats = statsResult.rows[0];
+      const stats = statsResult[0][0];
 
       logger.info('Search statistics fetched successfully');
 

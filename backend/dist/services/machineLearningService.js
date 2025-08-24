@@ -57,7 +57,7 @@ class MachineLearningService {
             const recentActivities = await this.getUserRecentActivities(userId);
             const behaviorPatterns = await this.analyzeBehaviorPatterns(userId);
             const similarUsers = await this.findSimilarUsers(userId);
-            const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns, similarUsers);
+            const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns);
             const nextBestAction = await this.getNextBestAction(userId, predictedAction);
             const recommendations = await this.generateRecommendations(userId, predictedAction);
             const prediction = {
@@ -198,7 +198,7 @@ class MachineLearningService {
     async getModelPerformance() {
         try {
             const metrics = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_MODEL_PERFORMANCE);
-            return metrics.rows;
+            return metrics;
         }
         catch (error) {
             logger_1.logger.error('Error getting model performance:', error);
@@ -248,7 +248,7 @@ class MachineLearningService {
     }
     async getUserRecentActivities(userId) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_USER_RECENT_ACTIVITIES, [userId]);
-        return result.rows;
+        return result;
     }
     async analyzeBehaviorPatterns(userId) {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_USER_BEHAVIOR_PATTERNS, [userId]);
@@ -265,7 +265,7 @@ class MachineLearningService {
         const result = await db.query(db_SQLQueries_1.SQLQueries.ML.FIND_SIMILAR_USERS, [userId]);
         return result.map((row) => row.id);
     }
-    async predictNextAction(recentActivities, behaviorPatterns) {
+    async predictNextAction(recentActivities, _behaviorPatterns) {
         const actionCounts = recentActivities.reduce((acc, activity) => {
             acc[activity.action] = (acc[activity.action] || 0) + 1;
             return acc;
@@ -489,7 +489,7 @@ class MachineLearningService {
         try {
             logger_1.logger.info('Training search suggestion model...');
             const trainingData = await db.query(db_SQLQueries_1.SQLQueries.ML.GET_SEARCH_TRAINING_DATA);
-            const processedData = trainingData.rows.map((row) => ({
+            const processedData = trainingData.map((row) => ({
                 query: row.query.toLowerCase(),
                 frequency: parseInt(row.frequency),
                 relevance: parseFloat(row.avg_relevance),

@@ -4,7 +4,7 @@ exports.TicketCategory = exports.TicketStatus = exports.TicketPriority = void 0;
 const DatabaseService_1 = require("@/services/DatabaseService");
 const logger_1 = require("@/utils/logger");
 const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
-const roleAccess_1 = require("@/utils/roleAccess");
+const roleAccess_1 = require("../utils/roleAccess");
 const emailService_1 = require("../utils/emailService");
 const notificationService_1 = require("../utils/notificationService");
 const db = new DatabaseService_1.DatabaseService();
@@ -120,7 +120,7 @@ class SupportTicketService {
     }
     async getAllTickets(_userId, filters) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.SUPPORT_READ_ALL)) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, roleAccess_1.Permission.SUPPORT_READ_ALL)) {
                 throw new Error('Unauthorized access to all tickets');
             }
             let query = db_SQLQueries_1.SQLQueries.SUPPORT.GET_ALL_TICKETS;
@@ -193,7 +193,7 @@ class SupportTicketService {
             if (!ticket) {
                 throw new Error('Ticket not found');
             }
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.SUPPORT_ASSIGN)) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, roleAccess_1.Permission.SUPPORT_ASSIGN)) {
                 throw new Error('Unauthorized to assign tickets');
             }
             await db.query(db_SQLQueries_1.SQLQueries.SUPPORT.ASSIGN_TICKET, [
@@ -245,7 +245,7 @@ class SupportTicketService {
     }
     async getTicketStatistics(_userId, filters) {
         try {
-            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.SUPPORT_VIEW_STATS)) {
+            if (!(0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, roleAccess_1.Permission.SUPPORT_VIEW_STATS)) {
                 throw new Error('Unauthorized to view ticket statistics');
             }
             const result = await db.query(db_SQLQueries_1.SQLQueries.SUPPORT.GET_TICKET_STATISTICS, [
@@ -318,11 +318,11 @@ class SupportTicketService {
     canUserAccessTicket(ticket, userId) {
         return ticket.userId === userId ||
             ticket.assignedTo === userId ||
-            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.SUPPORT_READ_ALL);
+            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, roleAccess_1.Permission.SUPPORT_READ_ALL);
     }
     canUserUpdateTicket(ticket, userId) {
         return ticket.assignedTo === userId ||
-            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, Permission.SUPPORT_UPDATE);
+            (0, roleAccess_1.hasPermission)(roleAccess_1.UserRole.SUPER_ADMIN, roleAccess_1.Permission.SUPPORT_UPDATE);
     }
     mapTicketFromRow(row) {
         return {
@@ -360,7 +360,7 @@ class SupportTicketService {
     }
     async notifySupportTeam(ticket) {
         try {
-            await (0, notificationService_1.sendNotification)('support-team', NotificationType.INFO, NotificationPriority.HIGH, 'New Support Ticket', `New ${ticket.priority} priority ticket: ${ticket.subject}`, { ticketId: ticket.id });
+            await (0, notificationService_1.sendNotification)('support-team', notificationService_1.NotificationType.INFO, notificationService_1.NotificationPriority.HIGH, 'New Support Ticket', `New ${ticket.priority} priority ticket: ${ticket.subject}`, { ticketId: ticket.id });
         }
         catch (error) {
             logger_1.logger.error('Error notifying support team:', error);
@@ -372,7 +372,7 @@ class SupportTicketService {
                 to: ticket.userId,
                 subject: `Support Ticket Created - ${ticket.id}`,
                 html: `Your ticket "${ticket.subject}" has been created successfully.`,
-                data: { ticket }
+                html: `Your ticket "${ticket.subject}" has been created successfully.`
             });
         }
         catch (error) {
@@ -381,7 +381,7 @@ class SupportTicketService {
     }
     async notifyUserOfStatusChange(ticket, status) {
         try {
-            await (0, notificationService_1.sendNotification)(ticket.userId, NotificationType.INFO, NotificationPriority.MEDIUM, 'Ticket Status Updated', `Your ticket ${ticket.id} status has been updated to ${status}`, { ticketId: ticket.id, status });
+            await (0, notificationService_1.sendNotification)(ticket.userId, notificationService_1.NotificationType.INFO, notificationService_1.NotificationPriority.MEDIUM, 'Ticket Status Updated', `Your ticket ${ticket.id} status has been updated to ${status}`, { ticketId: ticket.id, status });
         }
         catch (error) {
             logger_1.logger.error('Error notifying user of status change:', error);
@@ -389,7 +389,7 @@ class SupportTicketService {
     }
     async notifyAssignedUser(ticket, assignedTo) {
         try {
-            await (0, notificationService_1.sendNotification)(assignedTo, NotificationType.INFO, NotificationPriority.MEDIUM, 'Ticket Assigned', `You have been assigned ticket ${ticket.id}: ${ticket.subject}`, { ticketId: ticket.id });
+            await (0, notificationService_1.sendNotification)(assignedTo, notificationService_1.NotificationType.INFO, notificationService_1.NotificationPriority.MEDIUM, 'Ticket Assigned', `You have been assigned ticket ${ticket.id}: ${ticket.subject}`, { ticketId: ticket.id });
         }
         catch (error) {
             logger_1.logger.error('Error notifying assigned user:', error);
@@ -402,7 +402,7 @@ class SupportTicketService {
                 recipients.push(ticket.assignedTo);
             }
             for (const recipient of recipients) {
-                await (0, notificationService_1.sendNotification)(recipient, NotificationType.INFO, NotificationPriority.MEDIUM, 'New Comment on Ticket', `New comment added to ticket ${ticket.id}`, { ticketId: ticket.id, commentId: comment.id });
+                await (0, notificationService_1.sendNotification)(recipient, notificationService_1.NotificationType.INFO, notificationService_1.NotificationPriority.MEDIUM, 'New Comment on Ticket', `New comment added to ticket ${ticket.id}`, { ticketId: ticket.id, commentId: comment.id });
             }
         }
         catch (error) {
@@ -415,7 +415,7 @@ class SupportTicketService {
                 to: ticket.userId,
                 subject: `Ticket Resolved - ${ticket.id}`,
                 html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`,
-                data: { ticket, resolution }
+                html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`
             });
         }
         catch (error) {

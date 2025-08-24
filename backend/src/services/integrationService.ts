@@ -20,7 +20,7 @@ import logger from '@/utils/logger';
 export class PaymentService {
   private razorpayKeyId: string;
   private razorpayKeySecret: string;
-  private payuMerchantId: string;
+  // private payuMerchantId: string;
   private payuMerchantKey: string;
   private payuMerchantSalt: string;
 
@@ -120,10 +120,10 @@ export class PaymentService {
  * Handles Gmail and Outlook integrations
  */
 export class EmailService {
-  private gmailClientId: string;
-  private gmailClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private gmailClientId: string;
+  // private gmailClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
     this.gmailClientId = process.env["GMAIL_CLIENT_ID"] || '';
@@ -390,10 +390,10 @@ export class SMSService {
  * Handles Google Calendar and Outlook Calendar integrations
  */
 export class CalendarService {
-  private googleClientId: string;
-  private googleClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private googleClientId: string;
+  // private googleClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
     this.googleClientId = process.env["GOOGLE_CLIENT_ID"] || '';

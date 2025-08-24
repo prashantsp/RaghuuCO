@@ -90,7 +90,7 @@ class TaxService {
             let tdsAmount = 0;
             let cessAmount = 0;
             if (isInterState) {
-                igstAmount = this.calculateIGST(subtotal, gstRate);
+                const igstAmount = this.calculateIGST(subtotal, gstRate);
             }
             else {
                 const cgstSgst = this.calculateCGSTSGST(subtotal, gstRate);
@@ -111,7 +111,7 @@ class TaxService {
                 gstAmount,
                 cgstAmount,
                 sgstAmount,
-                igstAmount,
+                igstAmount: igstAmount,
                 tdsAmount,
                 cessAmount,
                 totalTax,

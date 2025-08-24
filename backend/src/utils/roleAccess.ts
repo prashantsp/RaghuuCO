@@ -413,7 +413,7 @@ export function canAccessResource(
  */
 export function canAccessCase(
   userRole: UserRole,
-  // userId: string,
+  userId: string,
   caseData: {
     assigned_partner?: string;
     assigned_associates?: string[];
@@ -456,7 +456,7 @@ export function canAccessCase(
  */
 export function canAccessDocument(
   userRole: UserRole,
-  // userId: string,
+  userId: string,
   documentData: {
     case_id?: string;
     uploaded_by?: string;

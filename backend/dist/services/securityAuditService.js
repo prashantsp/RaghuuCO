@@ -358,9 +358,9 @@ class SecurityAuditService {
                 type,
                 severity,
                 description,
-                userId,
-                ipAddress,
-                userAgent,
+                userId: userId || '',
+                ipAddress: ipAddress || '',
+                userAgent: userAgent || '',
                 metadata,
                 status: 'open',
                 createdAt: new Date().toISOString()

@@ -9,8 +9,9 @@
  * @description Service for managing expenses, including creation, tracking, and reporting
  */
 
-import DatabaseService from '@/services/DatabaseService';
-import logger from '@/utils/logger';
+import DatabaseService from './DatabaseService';
+import logger from '../utils/logger';
+import { SQLQueries } from '../utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -52,7 +53,7 @@ export class ExpensesService {
         isBillable || false
       ]);
 
-      const expense = result.rows[0];
+      const expense = result[0];
 
       logger.businessEvent('expense_created', 'expense', expense.id, createdBy);
 
@@ -74,7 +75,7 @@ export class ExpensesService {
       logger.info('Getting expense by ID', { expenseId });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_BY_ID, [expenseId]);
-      const expense = result.rows[0];
+      const expense = result[0];
 
       if (!expense) {
         throw new Error('Expense not found');
@@ -111,7 +112,7 @@ export class ExpensesService {
         offset
       ]);
 
-      const expenses = result.rows;
+      const expenses = result;
 
       logger.info('Expenses fetched successfully', { count: expenses.length });
 
@@ -133,7 +134,7 @@ export class ExpensesService {
       logger.info('Getting expenses by case', { caseId });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_BY_CASE, [caseId]);
-      const expenses = result.rows;
+      const expenses = result;
 
       logger.info('Case expenses fetched successfully', { caseId, count: expenses.length });
 
@@ -155,7 +156,7 @@ export class ExpensesService {
       logger.info('Getting expenses by client', { clientId });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_BY_CLIENT, [clientId]);
-      const expenses = result.rows;
+      const expenses = result;
 
       logger.info('Client expenses fetched successfully', { clientId, count: expenses.length });
 
@@ -201,13 +202,13 @@ export class ExpensesService {
         isBillable || false
       ]);
 
-      const expense = result.rows[0];
+      const expense = result[0];
 
       if (!expense) {
         throw new Error('Expense not found');
       }
 
-      logger.businessEvent('expense_updated', 'expense', expenseId, null);
+      logger.businessEvent('expense_updated', 'expense', expenseId, '');
 
       return {
         success: true,
@@ -228,11 +229,11 @@ export class ExpensesService {
 
       const result = await db.query(SQLQueries.EXPENSES.DELETE, [expenseId]);
 
-      if (result.rowCount === 0) {
+      if (result.length === 0) {
         throw new Error('Expense not found');
       }
 
-      logger.businessEvent('expense_deleted', 'expense', expenseId, null);
+      logger.businessEvent('expense_deleted', 'expense', expenseId, '');
 
       return {
         success: true,
@@ -252,7 +253,7 @@ export class ExpensesService {
       logger.info('Approving expense', { expenseId, approvedBy });
 
       const result = await db.query(SQLQueries.EXPENSES.APPROVE, [expenseId, approvedBy]);
-      const expense = result.rows[0];
+      const expense = result[0];
 
       if (!expense) {
         throw new Error('Expense not found');
@@ -278,7 +279,7 @@ export class ExpensesService {
       logger.info('Getting expense categories');
 
       const result = await db.query(SQLQueries.EXPENSES.GET_CATEGORIES);
-      const categories = result.rows;
+      const categories = result;
 
       logger.info('Expense categories fetched successfully', { count: categories.length });
 
@@ -300,7 +301,7 @@ export class ExpensesService {
       logger.info('Getting monthly expense totals', { startDate, endDate });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_MONTHLY_TOTALS, [startDate, endDate]);
-      const totals = result.rows;
+      const totals = result;
 
       logger.info('Monthly expense totals fetched successfully', { count: totals.length });
 
@@ -322,7 +323,7 @@ export class ExpensesService {
       logger.info('Getting case expense totals', { caseId });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_CASE_TOTALS, [caseId]);
-      const totals = result.rows[0];
+      const totals = result[0];
 
       logger.info('Case expense totals fetched successfully', { caseId });
 
@@ -344,7 +345,7 @@ export class ExpensesService {
       logger.info('Getting client expense totals', { clientId });
 
       const result = await db.query(SQLQueries.EXPENSES.GET_CLIENT_TOTALS, [clientId]);
-      const totals = result.rows[0];
+      const totals = result[0];
 
       logger.info('Client expense totals fetched successfully', { clientId });
 
@@ -371,7 +372,7 @@ export class ExpensesService {
         offset
       ]);
 
-      const expenses = result.rows;
+      const expenses = result;
 
       logger.info('Expense search completed successfully', { query, count: expenses.length });
 

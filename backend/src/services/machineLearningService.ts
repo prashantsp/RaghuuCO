@@ -146,7 +146,7 @@ class MachineLearningService {
       const similarUsers = await this.findSimilarUsers(userId);
 
       // Predict next action based on patterns
-      const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns, similarUsers);
+      const predictedAction = await this.predictNextAction(recentActivities, behaviorPatterns);
       const nextBestAction = await this.getNextBestAction(userId, predictedAction);
       const recommendations = await this.generateRecommendations(userId, predictedAction);
 
@@ -361,7 +361,7 @@ class MachineLearningService {
     try {
       const metrics = await db.query(SQLQueries.ML.GET_MODEL_PERFORMANCE);
 
-      return metrics.rows;
+      return metrics;
     } catch (error) {
       logger.error('Error getting model performance:', error as Error);
       throw error;
@@ -436,7 +436,7 @@ class MachineLearningService {
   private async getUserRecentActivities(userId: string): Promise<any[]> {
     const result = await db.query(SQLQueries.ML.GET_USER_RECENT_ACTIVITIES, [userId]);
 
-    return result.rows;
+    return result;
   }
 
   /**
@@ -469,7 +469,7 @@ class MachineLearningService {
    */
   private async predictNextAction(
     recentActivities: any[],
-    behaviorPatterns: any,
+    _behaviorPatterns: any,
     // similarUsers: string[]
   ): Promise<string> {
     // Simple prediction based on most common actions
@@ -797,7 +797,7 @@ class MachineLearningService {
       const trainingData = await db.query(SQLQueries.ML.GET_SEARCH_TRAINING_DATA);
 
       // Process training data
-      const processedData = trainingData.rows.map((row: any) => ({
+      const processedData = trainingData.map((row: any) => ({
         query: row.query.toLowerCase(),
         frequency: parseInt(row.frequency),
         relevance: parseFloat(row.avg_relevance),

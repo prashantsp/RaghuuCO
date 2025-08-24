@@ -7,7 +7,7 @@ export declare class DocumentSecurityService {
         iv: Buffer;
         authTag: Buffer;
     }>;
-    decryptDocument(encryptedContent: Buffer, iv: Buffer, authTag: Buffer, documentId: string): Promise<Buffer>;
+    decryptDocument(encryptedContent: Buffer, _iv: Buffer, _authTag: Buffer, documentId: string): Promise<Buffer>;
     addWatermarkToPDF(pdfBuffer: Buffer, watermarkText: string, position?: string): Promise<Buffer>;
     addWatermarkToImage(imageBuffer: Buffer, watermarkText: string, position?: string): Promise<Buffer>;
     saveSecureDocument(documentId: string, content: Buffer, securityLevel: string, watermarkText?: string, watermarkPosition?: string): Promise<void>;

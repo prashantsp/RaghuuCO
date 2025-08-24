@@ -63,7 +63,7 @@ declare class UserFeedbackService {
         limit?: number;
         offset?: number;
     }): Promise<UserFeedback[]>;
-    getAllFeedback(userId: string, filters?: {
+    getAllFeedback(_userId: string, filters?: {
         category?: FeedbackCategory;
         status?: FeedbackStatus;
         priority?: string;
@@ -71,7 +71,7 @@ declare class UserFeedbackService {
         offset?: number;
     }): Promise<UserFeedback[]>;
     updateFeedbackStatus(feedbackId: string, status: FeedbackStatus, userId: string, response?: string): Promise<UserFeedback>;
-    getFeedbackStatistics(userId: string, filters?: {
+    getFeedbackStatistics(_userId: string, filters?: {
         startDate?: Date;
         endDate?: Date;
         category?: FeedbackCategory;

@@ -4,15 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.expensesService = exports.ExpensesService = void 0;
-const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
-const logger_1 = __importDefault(require("@/utils/logger"));
+const DatabaseService_1 = __importDefault(require("./DatabaseService"));
+const logger_1 = __importDefault(require("../utils/logger"));
+const db_SQLQueries_1 = require("../utils/db_SQLQueries");
 const db = new DatabaseService_1.default();
 class ExpensesService {
     async createExpense(expenseData) {
         try {
             const { description, amount, category, expenseDate, caseId, clientId, createdBy, notes, receiptUrl, isBillable } = expenseData;
             logger_1.default.info('Creating expense', { description, amount, category, createdBy });
-            const result = await db.query(SQLQueries.EXPENSES.CREATE, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.CREATE, [
                 description,
                 amount,
                 category,
@@ -24,7 +25,7 @@ class ExpensesService {
                 receiptUrl || null,
                 isBillable || false
             ]);
-            const expense = result.rows[0];
+            const expense = result[0];
             logger_1.default.businessEvent('expense_created', 'expense', expense.id, createdBy);
             return {
                 success: true,
@@ -39,8 +40,8 @@ class ExpensesService {
     async getExpenseById(expenseId) {
         try {
             logger_1.default.info('Getting expense by ID', { expenseId });
-            const result = await db.query(SQLQueries.EXPENSES.GET_BY_ID, [expenseId]);
-            const expense = result.rows[0];
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_BY_ID, [expenseId]);
+            const expense = result[0];
             if (!expense) {
                 throw new Error('Expense not found');
             }
@@ -59,7 +60,7 @@ class ExpensesService {
         try {
             const { caseId, clientId, category, isBillable, isApproved } = filters;
             logger_1.default.info('Getting expenses', { filters, limit, offset });
-            const result = await db.query(SQLQueries.EXPENSES.GET_ALL, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_ALL, [
                 caseId || null,
                 clientId || null,
                 category || null,
@@ -68,7 +69,7 @@ class ExpensesService {
                 limit,
                 offset
             ]);
-            const expenses = result.rows;
+            const expenses = result;
             logger_1.default.info('Expenses fetched successfully', { count: expenses.length });
             return {
                 success: true,
@@ -83,8 +84,8 @@ class ExpensesService {
     async getExpensesByCase(caseId) {
         try {
             logger_1.default.info('Getting expenses by case', { caseId });
-            const result = await db.query(SQLQueries.EXPENSES.GET_BY_CASE, [caseId]);
-            const expenses = result.rows;
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_BY_CASE, [caseId]);
+            const expenses = result;
             logger_1.default.info('Case expenses fetched successfully', { caseId, count: expenses.length });
             return {
                 success: true,
@@ -99,8 +100,8 @@ class ExpensesService {
     async getExpensesByClient(clientId) {
         try {
             logger_1.default.info('Getting expenses by client', { clientId });
-            const result = await db.query(SQLQueries.EXPENSES.GET_BY_CLIENT, [clientId]);
-            const expenses = result.rows;
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_BY_CLIENT, [clientId]);
+            const expenses = result;
             logger_1.default.info('Client expenses fetched successfully', { clientId, count: expenses.length });
             return {
                 success: true,
@@ -116,7 +117,7 @@ class ExpensesService {
         try {
             const { description, amount, category, expenseDate, caseId, clientId, notes, receiptUrl, isBillable } = expenseData;
             logger_1.default.info('Updating expense', { expenseId });
-            const result = await db.query(SQLQueries.EXPENSES.UPDATE, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.UPDATE, [
                 expenseId,
                 description,
                 amount,
@@ -128,11 +129,11 @@ class ExpensesService {
                 receiptUrl || null,
                 isBillable || false
             ]);
-            const expense = result.rows[0];
+            const expense = result[0];
             if (!expense) {
                 throw new Error('Expense not found');
             }
-            logger_1.default.businessEvent('expense_updated', 'expense', expenseId, null);
+            logger_1.default.businessEvent('expense_updated', 'expense', expenseId, '');
             return {
                 success: true,
                 data: { expense }
@@ -146,11 +147,11 @@ class ExpensesService {
     async deleteExpense(expenseId) {
         try {
             logger_1.default.info('Deleting expense', { expenseId });
-            const result = await db.query(SQLQueries.EXPENSES.DELETE, [expenseId]);
-            if (result.rowCount === 0) {
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.DELETE, [expenseId]);
+            if (result.length === 0) {
                 throw new Error('Expense not found');
             }
-            logger_1.default.businessEvent('expense_deleted', 'expense', expenseId, null);
+            logger_1.default.businessEvent('expense_deleted', 'expense', expenseId, '');
             return {
                 success: true,
                 message: 'Expense deleted successfully'
@@ -164,8 +165,8 @@ class ExpensesService {
     async approveExpense(expenseId, approvedBy) {
         try {
             logger_1.default.info('Approving expense', { expenseId, approvedBy });
-            const result = await db.query(SQLQueries.EXPENSES.APPROVE, [expenseId, approvedBy]);
-            const expense = result.rows[0];
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.APPROVE, [expenseId, approvedBy]);
+            const expense = result[0];
             if (!expense) {
                 throw new Error('Expense not found');
             }
@@ -183,8 +184,8 @@ class ExpensesService {
     async getExpenseCategories() {
         try {
             logger_1.default.info('Getting expense categories');
-            const result = await db.query(SQLQueries.EXPENSES.GET_CATEGORIES);
-            const categories = result.rows;
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_CATEGORIES);
+            const categories = result;
             logger_1.default.info('Expense categories fetched successfully', { count: categories.length });
             return {
                 success: true,
@@ -199,8 +200,8 @@ class ExpensesService {
     async getMonthlyExpenseTotals(startDate, endDate) {
         try {
             logger_1.default.info('Getting monthly expense totals', { startDate, endDate });
-            const result = await db.query(SQLQueries.EXPENSES.GET_MONTHLY_TOTALS, [startDate, endDate]);
-            const totals = result.rows;
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_MONTHLY_TOTALS, [startDate, endDate]);
+            const totals = result;
             logger_1.default.info('Monthly expense totals fetched successfully', { count: totals.length });
             return {
                 success: true,
@@ -215,8 +216,8 @@ class ExpensesService {
     async getCaseExpenseTotals(caseId) {
         try {
             logger_1.default.info('Getting case expense totals', { caseId });
-            const result = await db.query(SQLQueries.EXPENSES.GET_CASE_TOTALS, [caseId]);
-            const totals = result.rows[0];
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_CASE_TOTALS, [caseId]);
+            const totals = result[0];
             logger_1.default.info('Case expense totals fetched successfully', { caseId });
             return {
                 success: true,
@@ -231,8 +232,8 @@ class ExpensesService {
     async getClientExpenseTotals(clientId) {
         try {
             logger_1.default.info('Getting client expense totals', { clientId });
-            const result = await db.query(SQLQueries.EXPENSES.GET_CLIENT_TOTALS, [clientId]);
-            const totals = result.rows[0];
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.GET_CLIENT_TOTALS, [clientId]);
+            const totals = result[0];
             logger_1.default.info('Client expense totals fetched successfully', { clientId });
             return {
                 success: true,
@@ -247,12 +248,12 @@ class ExpensesService {
     async searchExpenses(query, limit = 20, offset = 0) {
         try {
             logger_1.default.info('Searching expenses', { query, limit, offset });
-            const result = await db.query(SQLQueries.EXPENSES.SEARCH, [
+            const result = await db.query(db_SQLQueries_1.SQLQueries.EXPENSES.SEARCH, [
                 `%${query}%`,
                 limit,
                 offset
             ]);
-            const expenses = result.rows;
+            const expenses = result;
             logger_1.default.info('Expense search completed successfully', { query, count: expenses.length });
             return {
                 success: true,

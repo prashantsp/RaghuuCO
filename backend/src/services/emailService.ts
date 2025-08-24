@@ -31,25 +31,25 @@ export class EmailService {
   private async initializeTransporters() {
     try {
       // Initialize Gmail transporter
-      if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET) {
+              if (process.env["GMAIL_CLIENT_ID"] && process.env["GMAIL_CLIENT_SECRET"]) {
         const oauth2Client = new google.auth.OAuth2(
-          process.env.GMAIL_CLIENT_ID,
-          process.env.GMAIL_CLIENT_SECRET,
-          process.env.GMAIL_REDIRECT_URI
+          process.env["GMAIL_CLIENT_ID"],
+          process.env["GMAIL_CLIENT_SECRET"],
+          process.env["GMAIL_REDIRECT_URI"]
         );
 
         oauth2Client.setCredentials({
-          refresh_token: process.env.GMAIL_REFRESH_TOKEN
+          refresh_token: process.env["GMAIL_REFRESH_TOKEN"]
         });
 
-        this.gmailTransporter = nodemailer.createTransporter({
+        this.gmailTransporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             type: 'OAuth2',
-            user: process.env.GMAIL_USER,
-            clientId: process.env.GMAIL_CLIENT_ID,
-            clientSecret: process.env.GMAIL_CLIENT_SECRET,
-            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+            user: process.env["GMAIL_USER"],
+            clientId: process.env["GMAIL_CLIENT_ID"],
+            clientSecret: process.env["GMAIL_CLIENT_SECRET"],
+            refreshToken: process.env["GMAIL_REFRESH_TOKEN"],
             accessToken: await oauth2Client.getAccessToken()
           }
         });
@@ -58,14 +58,14 @@ export class EmailService {
       }
 
       // Initialize Outlook transporter
-      if (process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
-        this.outlookTransporter = nodemailer.createTransporter({
+      if (process.env["OUTLOOK_USER"] && process.env["OUTLOOK_PASSWORD"]) {
+        this.outlookTransporter = nodemailer.createTransport({
           host: 'smtp-mail.outlook.com',
           port: 587,
           secure: false,
           auth: {
-            user: process.env.OUTLOOK_USER,
-            pass: process.env.OUTLOOK_PASSWORD
+            user: process.env["OUTLOOK_USER"],
+            pass: process.env["OUTLOOK_PASSWORD"]
           }
         });
 
@@ -101,7 +101,7 @@ export class EmailService {
       });
 
       const mailOptions = {
-        from: process.env.GMAIL_USER,
+        from: process.env["GMAIL_USER"],
         to: Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to,
         subject: emailData.subject,
         html: emailData.html,
@@ -155,7 +155,7 @@ export class EmailService {
       });
 
       const mailOptions = {
-        from: process.env.OUTLOOK_USER,
+        from: process.env["OUTLOOK_USER"],
         to: Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to,
         subject: emailData.subject,
         html: emailData.html,

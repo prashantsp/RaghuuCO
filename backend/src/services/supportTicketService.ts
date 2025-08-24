@@ -14,9 +14,9 @@
 import { DatabaseService } from '@/services/DatabaseService';
 import { logger } from '@/utils/logger';
 import { SQLQueries } from '@/utils/db_SQLQueries';
-import { UserRole, hasPermission } from '@/utils/roleAccess';
+import { UserRole, hasPermission, Permission } from '../utils/roleAccess';
 import { sendEmail } from '../utils/emailService';
-import { sendNotification } from '../utils/notificationService';
+import { sendNotification, NotificationType, NotificationPriority } from '../utils/notificationService';
 
 const db = new DatabaseService();
 
@@ -593,7 +593,7 @@ class SupportTicketService {
       resolution: row.resolution,
       attachments: row.attachments ? JSON.parse(row.attachments) : undefined,
       tags: row.tags ? JSON.parse(row.tags) : undefined,
-      estimatedResolutionTime: row.estimated_resolution_time ? new Date(row.estimated_resolution_time) : undefined,
+              estimatedResolutionTime: row.estimated_resolution_time ? new Date(row.estimated_resolution_time) : undefined as any,
       actualResolutionTime: row.actual_resolution_time ? new Date(row.actual_resolution_time) : undefined,
       userSatisfaction: row.user_satisfaction,
       internalNotes: row.internal_notes
@@ -647,7 +647,7 @@ class SupportTicketService {
         to: ticket.userId,
         subject: `Support Ticket Created - ${ticket.id}`,
         html: `Your ticket "${ticket.subject}" has been created successfully.`,
-        data: { ticket }
+        html: `Your ticket "${ticket.subject}" has been created successfully.`
       });
     } catch (error) {
       logger.error('Error sending ticket confirmation:', error as Error);
@@ -732,7 +732,7 @@ class SupportTicketService {
         to: ticket.userId,
         subject: `Ticket Resolved - ${ticket.id}`,
         html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`,
-        data: { ticket, resolution }
+        html: `Your ticket "${ticket.subject}" has been resolved: ${resolution}`
       });
     } catch (error) {
       logger.error('Error sending resolution notification:', error as Error);
