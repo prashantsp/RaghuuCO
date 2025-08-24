@@ -4,7 +4,7 @@
  *
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  *
  * @description This component provides comprehensive help documentation,
  * role-based guides, and context-specific help for different user roles.
@@ -482,7 +482,7 @@ export const HelpGuide: React.FC = () => {
           videoUrl: 'https://example.com/videos/case-management.mp4',
           tags: ['cases', 'documents', 'timeline', 'management'],
           difficulty: 'beginner',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Legal Team',
           rating: 4.8,
           views: 1250,
@@ -516,7 +516,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['clients', 'communication', 'relationships'],
           difficulty: 'beginner',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Legal Team',
           rating: 4.6,
           views: 980,
@@ -549,7 +549,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['billing', 'invoicing', 'time-tracking'],
           difficulty: 'intermediate',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Legal Team',
           rating: 4.7,
           views: 1100,
@@ -624,7 +624,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['documents', 'templates', 'organization'],
           difficulty: 'beginner',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Legal Team',
           rating: 4.5,
           views: 850,
@@ -697,7 +697,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['users', 'roles', 'permissions', 'administration'],
           difficulty: 'intermediate',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'System Admin',
           rating: 4.9,
           views: 650,
@@ -768,7 +768,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['portal', 'access', 'communication'],
           difficulty: 'beginner',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Client Support',
           rating: 4.4,
           views: 1200,
@@ -840,7 +840,7 @@ export const HelpGuide: React.FC = () => {
           `,
           tags: ['troubleshooting', 'support', 'issues'],
           difficulty: 'intermediate',
-          lastUpdated: new Date('2025-01-15'),
+          lastUpdated: new Date('2025-08-24'),
           author: 'Support Team',
           rating: 4.6,
           views: 750,

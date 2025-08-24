@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description This module provides comprehensive authentication and authorization middleware
  * for the legal practice management system. It includes JWT token validation, role-based

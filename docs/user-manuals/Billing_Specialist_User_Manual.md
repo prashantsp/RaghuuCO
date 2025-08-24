@@ -2,7 +2,7 @@
 ## RAGHUU CO Legal Practice Management System
 
 **Version:** 1.0.0  
-**Date:** January 15, 2025  
+**Date:** August 24, 2025  
 **Role:** Billing Specialist  
 **Author:** RAGHUU CO Development Team
 
@@ -720,7 +720,7 @@ For additional support or questions, please contact the support team or refer to
 
 **Document Control:**
 - **Version:** 1.0.0
-- **Last Updated:** January 15, 2025
-- **Next Review:** April 15, 2025
+- **Last Updated:** August 24, 2025
+- **Next Review:** November 24, 2025
 - **Approved By:** Finance Team
 - **Distribution:** Billing Specialists, Finance Staff

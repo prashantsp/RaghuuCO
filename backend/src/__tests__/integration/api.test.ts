@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description Integration tests for API endpoints
  */
@@ -384,7 +384,7 @@ describe('API Integration Tests', () => {
           amount: 1500,
           category: 'Travel',
           caseId: testCaseId,
-          expenseDate: '2025-01-15',
+          expenseDate: '2025-08-24',
           notes: 'Test notes'
         };
 

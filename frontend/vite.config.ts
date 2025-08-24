@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description This configuration sets up Vite for React 18 with TypeScript support,
  * including development server, build optimization, and testing configuration.

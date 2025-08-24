@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description This controller provides OAuth 2.0 authentication integration with
  * Google, LinkedIn, and Microsoft 365. It handles user authentication, account

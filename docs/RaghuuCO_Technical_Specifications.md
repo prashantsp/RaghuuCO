@@ -232,7 +232,7 @@ const mobileGridConfig = {
           "id": "uuid",
           "name": "Raghuu Rao"
         },
-        "startDate": "2025-01-15",
+        "startDate": "2025-08-24",
         "nextHearing": "2025-09-15T10:00:00Z"
       }
     ],

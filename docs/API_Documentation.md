@@ -2,7 +2,7 @@
 ## RAGHUU CO Legal Practice Management System
 
 ### Document Version: 1.0
-### Date: January 15, 2025
+### Date: August 24, 2025
 ### Base URL: `https://api.raghuuco.com/v1`
 
 ---
@@ -121,7 +121,7 @@ curl -X POST https://api.raghuuco.com/v1/auth/refresh \
       "field": "email",
       "reason": "Invalid email format"
     },
-    "timestamp": "2025-01-15T10:30:00Z",
+    "timestamp": "2025-08-24T10:30:00Z",
     "requestId": "req_123456789"
   }
 }
@@ -324,7 +324,7 @@ Authorization: Bearer <jwt_token>
       }
     },
     "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-15T10:30:00Z"
+    "updatedAt": "2025-08-24T10:30:00Z"
   }
 }
 ```
@@ -486,7 +486,7 @@ Authorization: Bearer <jwt_token>
         "billingRate": 500,
         "totalBilled": 12500,
         "createdAt": "2025-01-01T00:00:00Z",
-        "updatedAt": "2025-01-15T10:30:00Z"
+        "updatedAt": "2025-08-24T10:30:00Z"
       }
     ],
     "pagination": {
@@ -566,7 +566,7 @@ Authorization: Bearer <jwt_token>
       }
     ],
     "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-15T10:30:00Z"
+    "updatedAt": "2025-08-24T10:30:00Z"
   }
 }
 ```
@@ -895,7 +895,7 @@ Authorization: Bearer <jwt_token>
 **Request Body:**
 ```json
 {
-  "paymentDate": "2025-01-15T00:00:00Z",
+  "paymentDate": "2025-08-24T00:00:00Z",
   "paymentMethod": "bank_transfer",
   "reference": "TXN123456"
 }
@@ -923,7 +923,7 @@ Authorization: Bearer <jwt_token>
   "caseId": "case_123",
   "description": "Case research and analysis",
   "hours": 2.5,
-  "date": "2025-01-15T00:00:00Z",
+  "date": "2025-08-24T00:00:00Z",
   "billable": true,
   "rate": 500
 }
@@ -1552,7 +1552,7 @@ curl -X POST https://api.raghuuco.com/v1/billing/invoices/invoice_123/send \
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: January 15, 2025  
+**Last Updated**: August 24, 2025  
 **Next Review**: February 15, 2025
 
 **API Version**: v1  

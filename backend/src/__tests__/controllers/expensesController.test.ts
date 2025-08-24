@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description Unit tests for expenses controller functionality
  */
@@ -22,7 +22,7 @@ describe('Expenses Controller', () => {
     description: 'Test Expense',
     amount: 1000,
     category: 'Office Supplies',
-    expense_date: '2025-01-15',
+    expense_date: '2025-08-24',
     case_id: 'test-case-id',
     client_id: 'test-client-id',
     created_by: 'test-user-id',
@@ -30,8 +30,8 @@ describe('Expenses Controller', () => {
     receipt_url: 'https://example.com/receipt.pdf',
     is_billable: true,
     is_approved: false,
-    created_at: '2025-01-15T10:00:00Z',
-    updated_at: '2025-01-15T10:00:00Z'
+    created_at: '2025-08-24T10:00:00Z',
+    updated_at: '2025-08-24T10:00:00Z'
   };
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('Expenses Controller', () => {
         description: 'Test Expense',
         amount: 1000,
         category: 'Office Supplies',
-        expenseDate: '2025-01-15',
+        expenseDate: '2025-08-24',
         caseId: 'test-case-id',
         clientId: 'test-client-id',
         notes: 'Test notes',
@@ -81,7 +81,7 @@ describe('Expenses Controller', () => {
           description: 'Test Expense',
           amount: 1000,
           category: 'Office Supplies',
-          expenseDate: '2025-01-15'
+          expenseDate: '2025-08-24'
         })
         .expect(500);
 

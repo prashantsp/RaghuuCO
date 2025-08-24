@@ -2,7 +2,7 @@
 ## User Training Manual
 
 ### Document Version: 1.0
-### Date: January 15, 2025
+### Date: August 24, 2025
 ### Target Audience: Legal Professionals, Support Staff, Administrators
 
 ---
@@ -568,7 +568,7 @@ Each case has its own dashboard with:
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: January 15, 2025  
+**Last Updated**: August 24, 2025  
 **Next Review**: February 15, 2025
 
 For the most current version of this manual, please visit: https://raghuuco.com/docs/user-manual

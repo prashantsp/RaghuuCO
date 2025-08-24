@@ -4,7 +4,7 @@
  * 
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  * 
  * @description This controller provides comprehensive authentication functionality including
  * user registration, login, logout, password reset, and social authentication integration.
@@ -550,7 +550,7 @@ export async function logout(req: AuthenticatedRequest, res: Response): Promise<
  *       "lastName": "Doe",
  *       "role": "junior_associate",
  *       "phone": "+91-9876543210",
- *       "lastLogin": "2025-01-15T10:30:00Z"
+ *       "lastLogin": "2025-08-24T10:30:00Z"
  *     }
  *   }
  * }

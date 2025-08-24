@@ -4,7 +4,7 @@
  *
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  *
  * @description This component provides Progressive Web App (PWA) features
  * including offline functionality, push notifications, app installation,

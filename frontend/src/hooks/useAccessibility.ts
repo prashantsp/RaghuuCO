@@ -4,7 +4,7 @@
  *
  * @author RAGHUU CO Development Team
  * @version 1.0.0
- * @since 2025-01-15
+ * @since 2025-08-24
  *
  * @description This hook provides comprehensive accessibility features
  * including screen reader support, keyboard navigation, high contrast,
