@@ -9,8 +9,7 @@
  * @description Controller for expenses management functionality including creation, tracking, and reporting
  */
 
-import { Response } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import { Request, Response } from 'express';
 import { expensesService } from '@/services/expensesService';
 import logger from '@/utils/logger';
 
@@ -20,7 +19,7 @@ import logger from '@/utils/logger';
  * @route POST /api/v1/expenses
  * @access Private
  */
-export const createExpense = async (req: AuthenticatedRequest, res: Response) => {
+export const createExpense = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     const expenseData = {
@@ -51,7 +50,7 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response) =>
  * @route GET /api/v1/expenses/:id
  * @access Private
  */
-export const getExpenseById = async (req: AuthenticatedRequest, res: Response) => {
+export const getExpenseById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -88,7 +87,7 @@ export const getExpenseById = async (req: AuthenticatedRequest, res: Response) =
  * @route GET /api/v1/expenses
  * @access Private
  */
-export const getExpenses = async (req: AuthenticatedRequest, res: Response) => {
+export const getExpenses = async (req: Request, res: Response) => {
   try {
     const { caseId, clientId, category, isBillable, isApproved, limit = 20, offset = 0 } = req.query;
 
@@ -119,7 +118,7 @@ export const getExpenses = async (req: AuthenticatedRequest, res: Response) => {
  * @route GET /api/v1/expenses/case/:caseId
  * @access Private
  */
-export const getExpensesByCase = async (req: AuthenticatedRequest, res: Response) => {
+export const getExpensesByCase = async (req: Request, res: Response) => {
   try {
     const { caseId } = req.params;
 
@@ -156,7 +155,7 @@ export const getExpensesByCase = async (req: AuthenticatedRequest, res: Response
  * @route GET /api/v1/expenses/client/:clientId
  * @access Private
  */
-export const getExpensesByClient = async (req: AuthenticatedRequest, res: Response) => {
+export const getExpensesByClient = async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
 
@@ -193,7 +192,7 @@ export const getExpensesByClient = async (req: AuthenticatedRequest, res: Respon
  * @route PUT /api/v1/expenses/:id
  * @access Private
  */
-export const updateExpense = async (req: AuthenticatedRequest, res: Response) => {
+export const updateExpense = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const expenseData = req.body;
@@ -231,7 +230,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response) =>
  * @route DELETE /api/v1/expenses/:id
  * @access Private
  */
-export const deleteExpense = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteExpense = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -268,7 +267,7 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response) =>
  * @route POST /api/v1/expenses/:id/approve
  * @access Private
  */
-export const approveExpense = async (req: AuthenticatedRequest, res: Response) => {
+export const approveExpense = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
@@ -316,7 +315,7 @@ export const approveExpense = async (req: AuthenticatedRequest, res: Response) =
  * @route GET /api/v1/expenses/categories
  * @access Private
  */
-export const getExpenseCategories = async (req: AuthenticatedRequest, res: Response) => {
+export const getExpenseCategories = async (req: Request, res: Response) => {
   try {
     logger.info('Getting expense categories');
 
@@ -341,7 +340,7 @@ export const getExpenseCategories = async (req: AuthenticatedRequest, res: Respo
  * @route GET /api/v1/expenses/totals/monthly
  * @access Private
  */
-export const getMonthlyExpenseTotals = async (req: AuthenticatedRequest, res: Response) => {
+export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -414,7 +413,7 @@ export const getMonthlyExpenseTotals = async (req: AuthenticatedRequest, res: Re
  * @route GET /api/v1/expenses/totals/case/:caseId
  * @access Private
  */
-export const getCaseExpenseTotals = async (req: AuthenticatedRequest, res: Response) => {
+export const getCaseExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { caseId } = req.params;
 
@@ -451,7 +450,7 @@ export const getCaseExpenseTotals = async (req: AuthenticatedRequest, res: Respo
  * @route GET /api/v1/expenses/totals/client/:clientId
  * @access Private
  */
-export const getClientExpenseTotals = async (req: AuthenticatedRequest, res: Response) => {
+export const getClientExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
 
@@ -488,7 +487,7 @@ export const getClientExpenseTotals = async (req: AuthenticatedRequest, res: Res
  * @route GET /api/v1/expenses/search
  * @access Private
  */
-export const searchExpenses = async (req: AuthenticatedRequest, res: Response) => {
+export const searchExpenses = async (req: Request, res: Response) => {
   try {
     const { q, limit = 20, offset = 0 } = req.query;
 

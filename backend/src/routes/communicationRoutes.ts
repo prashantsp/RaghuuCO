@@ -10,9 +10,19 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import communicationController from '@/controllers/communicationController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getInternalMessages,
+  getReceivedMessages,
+  getInternalMessageById,
+  createInternalMessage,
+  updateInternalMessage,
+  deleteInternalMessage,
+  updateMessageStatus,
+  getEmailTemplates,
+  createEmailTemplate,
+  updateEmailTemplate
+} from '@/controllers/communicationController';
 
 const router = Router();
 
