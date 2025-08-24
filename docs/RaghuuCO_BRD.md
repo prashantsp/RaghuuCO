@@ -43,16 +43,144 @@ The system will serve as the central hub for case management, client communicati
 - **External Partners**: Other law firms, experts, investigators
 - **IT Support**: System maintenance and technical support
 
+## User Roles & Access Control
+
+### Role-Based Access Control (RBAC) System
+
+#### 1. Super Admin
+**Primary Responsibilities**: System administration, user management, security oversight
+**Key Features**:
+- Complete system access and configuration
+- User account creation, modification, and deletion
+- Role assignment and permission management
+- System-wide audit log access and monitoring
+- Security settings configuration
+- Backup and recovery management
+- System performance monitoring
+- Compliance reporting and oversight
+
+#### 2. Partner
+**Primary Responsibilities**: Strategic case management, client relationships, business oversight
+**Key Features**:
+- Full case management capabilities
+- Client relationship management
+- Financial oversight and billing management
+- Team assignment and supervision
+- Strategic case planning and review
+- Client communication and updates
+- Performance analytics and reporting
+- Conflict checking and resolution
+- Document review and approval
+- Calendar and scheduling management
+- **Content Management**: Article creation, editing, and publishing
+- **Thought Leadership**: Legal insights and expert commentary
+- **Client Engagement**: Newsletter and content strategy
+- **Content Approval**: Review and approve team content
+
+#### 3. Senior Associate
+**Primary Responsibilities**: Case strategy, client consultations, court representations
+**Key Features**:
+- Case creation and management
+- Client consultation and communication
+- Document preparation and review
+- Court date management
+- Time tracking and billing
+- Case strategy development
+- Team collaboration and mentoring
+- Client portal access management
+- Document version control
+- Case analytics and reporting
+- **Content Creation**: Legal articles and blog posts
+- **Expert Commentary**: Legal analysis and insights
+- **Client Education**: Educational content creation
+- **Content Collaboration**: Team content development
+
+#### 4. Junior Associate
+**Primary Responsibilities**: Research, document preparation, case support
+**Key Features**:
+- Case research and analysis
+- Document preparation and drafting
+- Time tracking and billing
+- Case file management
+- Client communication support
+- Calendar and deadline tracking
+- Document search and retrieval
+- Basic reporting access
+- Team collaboration tools
+- Learning and training resources
+- **Content Research**: Legal research for articles
+- **Draft Content**: Initial content drafting
+- **Content Review**: Review and feedback on content
+- **Learning Resources**: Access to educational content
+
+#### 5. Paralegal
+**Primary Responsibilities**: Administrative support, document management, case coordination
+**Key Features**:
+- Document filing and organization
+- Case file management
+- Client communication support
+- Calendar and scheduling assistance
+- Document preparation support
+- Time tracking assistance
+- Basic case information access
+- Administrative reporting
+- File organization and indexing
+- Client intake support
+
+#### 6. Client
+**Primary Responsibilities**: Case monitoring, communication, document access
+**Key Features**:
+- Personal case information access
+- Document viewing and download
+- Communication with legal team
+- Case status updates and notifications
+- Calendar and appointment viewing
+- Payment and billing information
+- Document upload and sharing
+- Secure messaging with legal team
+- Case timeline and milestone tracking
+- Profile and contact information management
+- **Content Access**: Legal articles and educational materials
+- **Newsletter Subscription**: Legal updates and insights
+- **Content Engagement**: Comment and feedback on articles
+- **Knowledge Base**: Access to legal resources and FAQs
+
+#### 7. Guest
+**Primary Responsibilities**: Limited access for external collaborators
+**Key Features**:
+- Restricted document access (by invitation)
+- Limited case information viewing
+- Secure communication channels
+- Temporary access management
+- Audit trail for all activities
+- Time-limited access permissions
+- Document sharing capabilities
+- Basic profile management
+- **Public Content Access**: Legal articles and insights
+- **Newsletter Subscription**: Legal updates and newsletters
+- **Content Engagement**: Comment on public articles
+- **Lead Generation**: Contact forms and engagement tracking
+
+### Security Features for All Roles
+- **Session Timeout**: Configurable idle timeouts (default: 30 minutes)
+- **Multi-Factor Authentication**: TOTP support for enhanced security
+- **Activity Monitoring**: Comprehensive audit logging
+- **Access Control**: Principle of least privilege
+- **Data Encryption**: AES-256 encryption for sensitive data
+- **Compliance Reporting**: Automated compliance monitoring
+
 ## Business Requirements
 
 ### Functional Requirements
 
 #### 1. User Management & Authentication
-- **Multi-role user system** with role-based access control
+- **Multi-role user system** with role-based access control (RBAC)
 - **Secure authentication** with two-factor authentication (2FA)
+- **Session timeout management** with configurable idle timeouts
 - **User roles**: Super Admin, Partner, Senior Associate, Junior Associate, Paralegal, Client, Guest
 - **Profile management** with photo, contact details, specialization areas
 - **Activity logging** and audit trails for compliance
+- **Login attempt monitoring** and account lockout protection
 
 #### 2. Client Management
 - **Client onboarding** with digital intake forms
@@ -100,10 +228,23 @@ The system will serve as the central hub for case management, client communicati
 - **Client portal** announcements and updates
 - **Communication logs** for compliance and reference
 
-#### 8. Reporting & Analytics
+#### 8. Content Management & Client Engagement
+- **Article/Blog Management**: Create, edit, and publish legal articles
+- **Content Categories**: Organize content by legal practice areas
+- **Client Portal Content**: Educational materials and legal updates
+- **Newsletter System**: Automated client communication
+- **Content Analytics**: Track engagement and readership metrics
+- **SEO Optimization**: Meta tags, keywords, and search optimization
+- **Social Media Integration**: Share content across platforms
+- **Comment System**: Client feedback and engagement
+- **Content Scheduling**: Plan and schedule content publication
+- **Multimedia Support**: Images, videos, and document attachments
+
+#### 9. Reporting & Analytics
 - **Financial reports**: Revenue, profitability, billing analysis
 - **Productivity reports**: Time utilization, case completion rates
 - **Client reports**: Case status, billing summaries
+- **Content analytics**: Article performance and engagement metrics
 - **Business intelligence** dashboard for key metrics
 - **Customizable reports** for different user roles
 
