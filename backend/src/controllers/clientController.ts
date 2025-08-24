@@ -11,12 +11,11 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
-import { UserRole, hasPermission } from '@/utils/roleAccess';
+import { UserRole, hasPermission, Permission } from '@/utils/roleAccess';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
 
-const db = new DatabaseService(databaseConfig);
+const db = new DatabaseService();
 
 /**
  * Get all clients with pagination and filtering
@@ -24,12 +23,12 @@ const db = new DatabaseService(databaseConfig);
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getClients(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getClients(req: Request, res: Response): Promise<void> {
   try {
     const { page = 1, limit = 20, search, isActive, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -57,7 +56,7 @@ export async function getClients(req: AuthenticatedRequest, res: Response): Prom
     }
 
     const whereClause = searchConditions.length > 0 ? `WHERE ${searchConditions.join(' AND ')}` : '';
-    const orderClause = `ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
+    const orderClause = `ORDER BY ${sortBy} ${(sortOrder as string).toUpperCase()}`;
     
     // Get clients with pagination
     const clients = await db.query(`
@@ -80,7 +79,7 @@ export async function getClients(req: AuthenticatedRequest, res: Response): Prom
 
     const total = parseInt(countResult[0].total);
 
-    logger.businessEvent('clients_retrieved', 'client', 'multiple', req.user?.id || 'system', {
+    logger.businessEvent('clients_retrieved', 'client', 'multiple', (req.user as any)?.id || 'system', {
       page: Number(page),
       limit: Number(limit),
       total,
@@ -117,12 +116,12 @@ export async function getClients(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getClientById(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getClientById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -133,7 +132,7 @@ export async function getClientById(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const client = await db.getClientById(id);
+    const client = await db.getClientById(id || '');
     
     if (!client) {
       res.status(404).json({
@@ -165,7 +164,7 @@ export async function getClientById(req: AuthenticatedRequest, res: Response): P
       LIMIT 10
     `, [id]);
 
-    logger.businessEvent('client_retrieved', 'client', id, req.user?.id || 'system');
+    logger.businessEvent('client_retrieved', 'client', id || '', (req.user as any)?.id || 'system');
 
     res.json({
       success: true,
@@ -193,12 +192,12 @@ export async function getClientById(req: AuthenticatedRequest, res: Response): P
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function createClient(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function createClient(req: Request, res: Response): Promise<void> {
   try {
     const { firstName, lastName, email, phone, company, address } = req.body;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:create')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.CREATE_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -224,18 +223,19 @@ export async function createClient(req: AuthenticatedRequest, res: Response): Pr
 
     // Create client
     const client = await db.createClient({
+      clientType: 'individual',
       firstName,
       lastName,
       email,
       phone,
-      company,
+      companyName: company,
       address
-    }, req.user?.id || 'system');
+    }, (req.user as any)?.id || 'system');
 
-    logger.businessEvent('client_created', 'client', client.id, req.user?.id || 'system', {
+    logger.businessEvent('client_created', 'client', client.id, (req.user as any)?.id || 'system', {
       email,
       company,
-      createdBy: req.user?.id
+      createdBy: (req.user as any)?.id
     });
 
     res.status(201).json({
@@ -260,13 +260,13 @@ export async function createClient(req: AuthenticatedRequest, res: Response): Pr
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function updateClient(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function updateClient(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { firstName, lastName, email, phone, company, address, isActive } = req.body;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:update')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.UPDATE_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -278,7 +278,7 @@ export async function updateClient(req: AuthenticatedRequest, res: Response): Pr
     }
 
     // Get existing client
-    const existingClient = await db.getClientById(id);
+    const existingClient = await db.getClientById(id || '');
     if (!existingClient) {
       res.status(404).json({
         success: false,
@@ -315,11 +315,34 @@ export async function updateClient(req: AuthenticatedRequest, res: Response): Pr
     if (address) updateData.address = address;
     if (isActive !== undefined) updateData.isActive = isActive;
 
-    const client = await db.updateClient(id, updateData);
+    const result = await db.query(`
+      UPDATE clients 
+      SET 
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        email = COALESCE($3, email),
+        phone = COALESCE($4, phone),
+        company = COALESCE($5, company),
+        address = COALESCE($6, address),
+        is_active = COALESCE($7, is_active),
+        updated_at = NOW()
+      WHERE id = $8
+      RETURNING *
+    `, [
+      updateData.firstName,
+      updateData.lastName,
+      updateData.email,
+      updateData.phone,
+      updateData.company,
+      updateData.address,
+      updateData.isActive,
+      id
+    ]);
+    const client = result[0];
 
-    logger.businessEvent('client_updated', 'client', id, req.user?.id || 'system', {
+    logger.businessEvent('client_updated', 'client', id || '', (req.user as any)?.id || 'system', {
       updatedFields: Object.keys(updateData),
-      updatedBy: req.user?.id
+      updatedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -344,12 +367,12 @@ export async function updateClient(req: AuthenticatedRequest, res: Response): Pr
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function deleteClient(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function deleteClient(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:delete')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.DELETE_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -361,7 +384,7 @@ export async function deleteClient(req: AuthenticatedRequest, res: Response): Pr
     }
 
     // Get existing client
-    const existingClient = await db.getClientById(id);
+    const existingClient = await db.getClientById(id || '');
     if (!existingClient) {
       res.status(404).json({
         success: false,
@@ -389,9 +412,9 @@ export async function deleteClient(req: AuthenticatedRequest, res: Response): Pr
     // Soft delete client
     await db.query('UPDATE clients SET is_active = false, updated_at = NOW() WHERE id = $1', [id]);
 
-    logger.businessEvent('client_deleted', 'client', id, req.user?.id || 'system', {
+    logger.businessEvent('client_deleted', 'client', id || '', (req.user as any)?.id || 'system', {
       deletedClient: existingClient.email,
-      deletedBy: req.user?.id
+      deletedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -416,12 +439,12 @@ export async function deleteClient(req: AuthenticatedRequest, res: Response): Pr
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function checkClientConflicts(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function checkClientConflicts(req: Request, res: Response): Promise<void> {
   try {
     const { firstName, lastName, email, phone } = req.query;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {
@@ -476,7 +499,7 @@ export async function checkClientConflicts(req: AuthenticatedRequest, res: Respo
       }
     }
 
-    logger.businessEvent('client_conflicts_checked', 'client', 'conflict_check', req.user?.id || 'system', {
+    logger.businessEvent('client_conflicts_checked', 'client', 'conflict_check', (req.user as any)?.id || 'system', {
       checks: { firstName, lastName, email, phone },
       conflictsFound: conflicts.length
     });
@@ -506,10 +529,10 @@ export async function checkClientConflicts(req: AuthenticatedRequest, res: Respo
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getClientStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getClientStats(req: Request, res: Response): Promise<void> {
   try {
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'client:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CLIENTS)) {
       res.status(403).json({
         success: false,
         error: {

@@ -3,8 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const userController_1 = require("@/controllers/userController");
 const auth_1 = require("@/middleware/auth");
+const roleAccess_1 = require("@/utils/roleAccess");
 const router = (0, express_1.Router)();
-router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)(Permission.VIEW_USERS), async (req, res, next) => {
+router.get('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.VIEW_USERS), async (req, res, next) => {
     try {
         await (0, userController_1.getUsers)(req, res);
     }
@@ -36,7 +37,7 @@ router.get('/:id/activity', auth_1.authenticateToken, async (req, res, next) => 
         next(error);
     }
 });
-router.post('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)(Permission.CREATE_USERS), async (req, res, next) => {
+router.post('/', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.CREATE_USERS), async (req, res, next) => {
     try {
         await (0, userController_1.createUser)(req, res);
     }
@@ -52,7 +53,7 @@ router.put('/:id', auth_1.authenticateToken, async (req, res, next) => {
         next(error);
     }
 });
-router.delete('/:id', auth_1.authenticateToken, (0, auth_1.authorizePermission)(Permission.DELETE_USERS), async (req, res, next) => {
+router.delete('/:id', auth_1.authenticateToken, (0, auth_1.authorizePermission)(roleAccess_1.Permission.DELETE_USERS), async (req, res, next) => {
     try {
         await (0, userController_1.deleteUser)(req, res);
     }

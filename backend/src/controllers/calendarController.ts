@@ -164,7 +164,7 @@ export const getCalendarEventById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching calendar event', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CALENDAR_EVENT_FETCH_ERROR',
@@ -282,7 +282,7 @@ export const createCalendarEvent = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error creating calendar event', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CALENDAR_EVENT_CREATE_ERROR',
@@ -415,7 +415,7 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
       }
     }
 
-    logger.businessEvent('calendar_event_updated', 'calendar_event', id, userId);
+    logger.businessEvent('calendar_event_updated', 'calendar_event', id || '', userId || '');
 
     res.json({
       success: true,
@@ -423,7 +423,7 @@ export const updateCalendarEvent = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error updating calendar event', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CALENDAR_EVENT_UPDATE_ERROR',
@@ -448,7 +448,7 @@ export const deleteCalendarEvent = async (req: Request, res: Response) => {
 
     // Check if event exists
     const currentResult = await db.query(SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-    const event = currentResult.rows[0];
+    const event = currentResult[0];
 
     if (!event) {
       return res.status(404).json({
@@ -463,7 +463,7 @@ export const deleteCalendarEvent = async (req: Request, res: Response) => {
     // Delete event (cascade will delete attendees and reminders)
     await db.query(SQLQueries.CALENDAR_EVENTS.DELETE, [id]);
 
-    logger.businessEvent('calendar_event_deleted', 'calendar_event', id, userId);
+    logger.businessEvent('calendar_event_deleted', 'calendar_event', id || '', userId || '');
 
     res.json({
       success: true,
@@ -471,7 +471,7 @@ export const deleteCalendarEvent = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error deleting calendar event', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CALENDAR_EVENT_DELETE_ERROR',
@@ -499,7 +499,7 @@ export const getUpcomingEvents = async (req: Request, res: Response) => {
       parseInt(limit as string)
     ]);
 
-    const events = result.rows;
+    const events = result;
 
     logger.info('Upcoming events fetched successfully', { userId, count: events.length });
 
@@ -509,7 +509,7 @@ export const getUpcomingEvents = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching upcoming events', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'UPCOMING_EVENTS_FETCH_ERROR',
@@ -549,7 +549,7 @@ export const checkSchedulingConflicts = async (req: Request, res: Response) => {
       eventId || null
     ]);
 
-    const conflicts = result.rows;
+    const conflicts = result;
 
     logger.info('Scheduling conflicts checked', { userId, conflictsCount: conflicts.length });
 
@@ -562,7 +562,7 @@ export const checkSchedulingConflicts = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error checking scheduling conflicts', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CONFLICT_CHECK_ERROR',

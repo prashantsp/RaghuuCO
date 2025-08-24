@@ -12,11 +12,11 @@ exports.getCaseStats = getCaseStats;
 const roleAccess_1 = require("@/utils/roleAccess");
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
-const db = new DatabaseService_1.default(databaseConfig);
+const db = new DatabaseService_1.default();
 async function getCases(req, res) {
     try {
         const { page = 1, limit = 20, search, status, priority, assignedTo, clientId, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -106,7 +106,7 @@ async function getCases(req, res) {
 async function getCaseById(req, res) {
     try {
         const { id } = req.params;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -116,7 +116,7 @@ async function getCaseById(req, res) {
             });
             return;
         }
-        const caseData = await db.getCaseById(id);
+        const caseData = await db.getCaseById(id || '');
         if (!caseData) {
             res.status(404).json({
                 success: false,
@@ -149,7 +149,7 @@ async function getCaseById(req, res) {
       ORDER BY created_at DESC
       LIMIT 50
     `, [id]);
-        logger_1.default.businessEvent('case_retrieved', 'case', id, req.user?.id || 'system');
+        logger_1.default.businessEvent('case_retrieved', 'case', id || '', req.user?.id || 'system');
         res.json({
             success: true,
             data: {
@@ -173,8 +173,8 @@ async function getCaseById(req, res) {
 }
 async function createCase(req, res) {
     try {
-        const { title, description, clientId, assignedTo, priority, dueDate, tags, category, estimatedHours, billingRate } = req.body;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:create')) {
+        const { title, description, clientId, assignedTo, priority, dueDate, category } = req.body;
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.CREATE_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -212,17 +212,13 @@ async function createCase(req, res) {
         const caseData = await db.createCase({
             caseNumber,
             title,
+            caseType: category || 'general',
             description,
             clientId,
-            assignedTo: assignedTo || req.user?.id,
-            assignedBy: req.user?.id || 'system',
-            priority: priority || 'medium',
-            dueDate,
-            tags: tags || [],
-            category: category || 'general',
-            estimatedHours,
-            billingRate
-        });
+            assignedPartner: assignedTo || req.user?.id,
+            startDate: dueDate || new Date().toISOString(),
+            priority: priority || 'medium'
+        }, req.user?.id || 'system');
         logger_1.default.businessEvent('case_created', 'case', caseData.id, req.user?.id || 'system', {
             caseNumber,
             clientId,
@@ -248,8 +244,8 @@ async function createCase(req, res) {
 async function updateCase(req, res) {
     try {
         const { id } = req.params;
-        const { title, description, assignedTo, status, priority, dueDate, tags, category, estimatedHours, actualHours, billingRate } = req.body;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:update')) {
+        const { title, description, assignedTo, status, priority, dueDate, category, estimatedHours, actualHours } = req.body;
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.UPDATE_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -259,7 +255,7 @@ async function updateCase(req, res) {
             });
             return;
         }
-        const existingCase = await db.getCaseById(id);
+        const existingCase = await db.getCaseById(id || '');
         if (!existingCase) {
             res.status(404).json({
                 success: false,
@@ -296,18 +292,14 @@ async function updateCase(req, res) {
             updateData.priority = priority;
         if (dueDate)
             updateData.dueDate = dueDate;
-        if (tags)
-            updateData.tags = tags;
         if (category)
             updateData.category = category;
         if (estimatedHours !== undefined)
             updateData.estimatedHours = estimatedHours;
         if (actualHours !== undefined)
             updateData.actualHours = actualHours;
-        if (billingRate !== undefined)
-            updateData.billingRate = billingRate;
-        const caseData = await db.updateCase(id, updateData);
-        logger_1.default.businessEvent('case_updated', 'case', id, req.user?.id || 'system', {
+        const caseData = await db.updateCase(id || '', updateData);
+        logger_1.default.businessEvent('case_updated', 'case', id || '', req.user?.id || 'system', {
             updatedFields: Object.keys(updateData),
             updatedBy: req.user?.id
         });
@@ -330,7 +322,7 @@ async function updateCase(req, res) {
 async function deleteCase(req, res) {
     try {
         const { id } = req.params;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:delete')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.DELETE_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -340,7 +332,7 @@ async function deleteCase(req, res) {
             });
             return;
         }
-        const existingCase = await db.getCaseById(id);
+        const existingCase = await db.getCaseById(id || '');
         if (!existingCase) {
             res.status(404).json({
                 success: false,
@@ -361,8 +353,8 @@ async function deleteCase(req, res) {
             });
             return;
         }
-        await db.query('UPDATE cases SET status = $1, updated_at = NOW() WHERE id = $2', ['deleted', id]);
-        logger_1.default.businessEvent('case_deleted', 'case', id, req.user?.id || 'system', {
+        await db.query('UPDATE cases SET status = $1, updated_at = NOW() WHERE id = $2', ['deleted', id || '']);
+        logger_1.default.businessEvent('case_deleted', 'case', id || '', req.user?.id || 'system', {
             deletedCase: existingCase.case_number,
             deletedBy: req.user?.id
         });
@@ -384,7 +376,7 @@ async function deleteCase(req, res) {
 }
 async function getCaseStats(req, res) {
     try {
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'case:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CASES)) {
             res.status(403).json({
                 success: false,
                 error: {

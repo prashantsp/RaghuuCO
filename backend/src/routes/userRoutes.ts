@@ -21,7 +21,7 @@ import {
   getAssignableRoles
 } from '@/controllers/userController';
 import { authenticateToken, authorizePermission } from '@/middleware/auth';
-
+import { Permission } from '@/utils/roleAccess';
 
 const router = Router();
 

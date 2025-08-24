@@ -74,7 +74,7 @@ export const getInvoices = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching invoices', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICES_FETCH_ERROR',
@@ -132,7 +132,7 @@ export const getInvoiceById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching invoice', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICE_FETCH_ERROR',
@@ -231,7 +231,7 @@ export const createInvoice = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error creating invoice', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICE_CREATE_ERROR',
@@ -341,7 +341,7 @@ export const updateInvoice = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error updating invoice', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICE_UPDATE_ERROR',
@@ -400,7 +400,7 @@ export const deleteInvoice = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error deleting invoice', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICE_DELETE_ERROR',
@@ -434,7 +434,7 @@ export const getInvoiceStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching invoice statistics', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INVOICE_STATS_ERROR',
@@ -475,7 +475,7 @@ export const getBillingRates = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching billing rates', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'BILLING_RATES_FETCH_ERROR',
@@ -525,7 +525,7 @@ export const createBillingRate = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error creating billing rate', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'BILLING_RATE_CREATE_ERROR',

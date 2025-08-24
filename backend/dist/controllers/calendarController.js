@@ -115,7 +115,7 @@ const getCalendarEventById = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching calendar event', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CALENDAR_EVENT_FETCH_ERROR',
@@ -199,7 +199,7 @@ const createCalendarEvent = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error creating calendar event', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CALENDAR_EVENT_CREATE_ERROR',
@@ -289,7 +289,7 @@ const updateCalendarEvent = async (req, res) => {
                 ]);
             }
         }
-        logger_1.default.businessEvent('calendar_event_updated', 'calendar_event', id, userId);
+        logger_1.default.businessEvent('calendar_event_updated', 'calendar_event', id || '', userId || '');
         res.json({
             success: true,
             data: { event: updatedEvent }
@@ -297,7 +297,7 @@ const updateCalendarEvent = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error updating calendar event', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CALENDAR_EVENT_UPDATE_ERROR',
@@ -313,7 +313,7 @@ const deleteCalendarEvent = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Deleting calendar event', { userId, eventId: id });
         const currentResult = await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.GET_BY_ID, [id]);
-        const event = currentResult.rows[0];
+        const event = currentResult[0];
         if (!event) {
             return res.status(404).json({
                 success: false,
@@ -324,7 +324,7 @@ const deleteCalendarEvent = async (req, res) => {
             });
         }
         await db.query(db_SQLQueries_1.SQLQueries.CALENDAR_EVENTS.DELETE, [id]);
-        logger_1.default.businessEvent('calendar_event_deleted', 'calendar_event', id, userId);
+        logger_1.default.businessEvent('calendar_event_deleted', 'calendar_event', id || '', userId || '');
         res.json({
             success: true,
             message: 'Calendar event deleted successfully'
@@ -332,7 +332,7 @@ const deleteCalendarEvent = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error deleting calendar event', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CALENDAR_EVENT_DELETE_ERROR',
@@ -351,7 +351,7 @@ const getUpcomingEvents = async (req, res) => {
             assignedTo || null,
             parseInt(limit)
         ]);
-        const events = result.rows;
+        const events = result;
         logger_1.default.info('Upcoming events fetched successfully', { userId, count: events.length });
         res.json({
             success: true,
@@ -360,7 +360,7 @@ const getUpcomingEvents = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching upcoming events', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'UPCOMING_EVENTS_FETCH_ERROR',
@@ -390,7 +390,7 @@ const checkSchedulingConflicts = async (req, res) => {
             endDatetime,
             eventId || null
         ]);
-        const conflicts = result.rows;
+        const conflicts = result;
         logger_1.default.info('Scheduling conflicts checked', { userId, conflictsCount: conflicts.length });
         res.json({
             success: true,
@@ -402,7 +402,7 @@ const checkSchedulingConflicts = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error checking scheduling conflicts', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CONFLICT_CHECK_ERROR',

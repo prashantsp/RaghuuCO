@@ -13,11 +13,11 @@ exports.getClientStats = getClientStats;
 const roleAccess_1 = require("@/utils/roleAccess");
 const DatabaseService_1 = __importDefault(require("@/services/DatabaseService"));
 const logger_1 = __importDefault(require("@/utils/logger"));
-const db = new DatabaseService_1.default(databaseConfig);
+const db = new DatabaseService_1.default();
 async function getClients(req, res) {
     try {
         const { page = 1, limit = 20, search, isActive, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -89,7 +89,7 @@ async function getClients(req, res) {
 async function getClientById(req, res) {
     try {
         const { id } = req.params;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -99,7 +99,7 @@ async function getClientById(req, res) {
             });
             return;
         }
-        const client = await db.getClientById(id);
+        const client = await db.getClientById(id || '');
         if (!client) {
             res.status(404).json({
                 success: false,
@@ -125,7 +125,7 @@ async function getClientById(req, res) {
       ORDER BY created_at DESC
       LIMIT 10
     `, [id]);
-        logger_1.default.businessEvent('client_retrieved', 'client', id, req.user?.id || 'system');
+        logger_1.default.businessEvent('client_retrieved', 'client', id || '', req.user?.id || 'system');
         res.json({
             success: true,
             data: {
@@ -149,7 +149,7 @@ async function getClientById(req, res) {
 async function createClient(req, res) {
     try {
         const { firstName, lastName, email, phone, company, address } = req.body;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:create')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.CREATE_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -171,11 +171,12 @@ async function createClient(req, res) {
             return;
         }
         const client = await db.createClient({
+            clientType: 'individual',
             firstName,
             lastName,
             email,
             phone,
-            company,
+            companyName: company,
             address
         }, req.user?.id || 'system');
         logger_1.default.businessEvent('client_created', 'client', client.id, req.user?.id || 'system', {
@@ -203,7 +204,7 @@ async function updateClient(req, res) {
     try {
         const { id } = req.params;
         const { firstName, lastName, email, phone, company, address, isActive } = req.body;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:update')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.UPDATE_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -213,7 +214,7 @@ async function updateClient(req, res) {
             });
             return;
         }
-        const existingClient = await db.getClientById(id);
+        const existingClient = await db.getClientById(id || '');
         if (!existingClient) {
             res.status(404).json({
                 success: false,
@@ -252,8 +253,31 @@ async function updateClient(req, res) {
             updateData.address = address;
         if (isActive !== undefined)
             updateData.isActive = isActive;
-        const client = await db.updateClient(id, updateData);
-        logger_1.default.businessEvent('client_updated', 'client', id, req.user?.id || 'system', {
+        const result = await db.query(`
+      UPDATE clients 
+      SET 
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        email = COALESCE($3, email),
+        phone = COALESCE($4, phone),
+        company = COALESCE($5, company),
+        address = COALESCE($6, address),
+        is_active = COALESCE($7, is_active),
+        updated_at = NOW()
+      WHERE id = $8
+      RETURNING *
+    `, [
+            updateData.firstName,
+            updateData.lastName,
+            updateData.email,
+            updateData.phone,
+            updateData.company,
+            updateData.address,
+            updateData.isActive,
+            id
+        ]);
+        const client = result[0];
+        logger_1.default.businessEvent('client_updated', 'client', id || '', req.user?.id || 'system', {
             updatedFields: Object.keys(updateData),
             updatedBy: req.user?.id
         });
@@ -276,7 +300,7 @@ async function updateClient(req, res) {
 async function deleteClient(req, res) {
     try {
         const { id } = req.params;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:delete')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.DELETE_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -286,7 +310,7 @@ async function deleteClient(req, res) {
             });
             return;
         }
-        const existingClient = await db.getClientById(id);
+        const existingClient = await db.getClientById(id || '');
         if (!existingClient) {
             res.status(404).json({
                 success: false,
@@ -309,7 +333,7 @@ async function deleteClient(req, res) {
             return;
         }
         await db.query('UPDATE clients SET is_active = false, updated_at = NOW() WHERE id = $1', [id]);
-        logger_1.default.businessEvent('client_deleted', 'client', id, req.user?.id || 'system', {
+        logger_1.default.businessEvent('client_deleted', 'client', id || '', req.user?.id || 'system', {
             deletedClient: existingClient.email,
             deletedBy: req.user?.id
         });
@@ -332,7 +356,7 @@ async function deleteClient(req, res) {
 async function checkClientConflicts(req, res) {
     try {
         const { firstName, lastName, email, phone } = req.query;
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {
@@ -401,7 +425,7 @@ async function checkClientConflicts(req, res) {
 }
 async function getClientStats(req, res) {
     try {
-        if (!(0, roleAccess_1.hasPermission)(req.user?.role, 'client:read')) {
+        if (!(0, roleAccess_1.hasPermission)(req.user?.role, roleAccess_1.Permission.VIEW_CLIENTS)) {
             res.status(403).json({
                 success: false,
                 error: {

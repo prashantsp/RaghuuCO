@@ -1,11 +1,10 @@
-import { Response } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
-export declare function getCases(req: AuthenticatedRequest, res: Response): Promise<void>;
-export declare function getCaseById(req: AuthenticatedRequest, res: Response): Promise<void>;
-export declare function createCase(req: AuthenticatedRequest, res: Response): Promise<void>;
-export declare function updateCase(req: AuthenticatedRequest, res: Response): Promise<void>;
-export declare function deleteCase(req: AuthenticatedRequest, res: Response): Promise<void>;
-export declare function getCaseStats(req: AuthenticatedRequest, res: Response): Promise<void>;
+import { Request, Response } from 'express';
+export declare function getCases(req: Request, res: Response): Promise<void>;
+export declare function getCaseById(req: Request, res: Response): Promise<void>;
+export declare function createCase(req: Request, res: Response): Promise<void>;
+export declare function updateCase(req: Request, res: Response): Promise<void>;
+export declare function deleteCase(req: Request, res: Response): Promise<void>;
+export declare function getCaseStats(req: Request, res: Response): Promise<void>;
 declare const _default: {
     getCases: typeof getCases;
     getCaseById: typeof getCaseById;
