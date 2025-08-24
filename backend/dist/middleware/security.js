@@ -49,11 +49,11 @@ const require2FA = async (req, res, next) => {
             });
         }
         logger_1.default.info('2FA validation successful', { userId });
-        next();
+        return next();
     }
     catch (error) {
         logger_1.default.error('Error in 2FA middleware', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TOTP_VALIDATION_ERROR',
@@ -85,7 +85,7 @@ const ipWhitelist = async (req, res, next) => {
     }
     catch (error) {
         logger_1.default.error('Error in IP whitelist middleware', error);
-        next();
+        return next();
     }
 };
 exports.ipWhitelist = ipWhitelist;
@@ -250,7 +250,7 @@ const rateLimit = (options) => {
         }
         catch (error) {
             logger_1.default.error('Rate limiting error:', error);
-            next();
+            return next();
         }
     };
 };

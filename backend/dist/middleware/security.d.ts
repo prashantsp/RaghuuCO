@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-export declare const require2FA: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
-export declare const ipWhitelist: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const require2FA: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+export declare const ipWhitelist: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
 export declare const decryptRequest: (req: Request, res: Response, next: NextFunction) => void;
 export declare const encryptResponse: (req: Request, res: Response, next: NextFunction) => void;
 export declare const sessionSecurity: (req: Request, res: Response, next: NextFunction) => void;
@@ -13,10 +13,10 @@ export declare const rateLimit: (options: {
     keyGenerator?: (req: Request) => string;
     skipSuccessfulRequests?: boolean;
     skipFailedRequests?: boolean;
-}) => (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+}) => (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
 declare const _default: {
-    require2FA: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
-    ipWhitelist: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    require2FA: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+    ipWhitelist: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
     decryptRequest: (req: Request, res: Response, next: NextFunction) => void;
     encryptResponse: (req: Request, res: Response, next: NextFunction) => void;
     sessionSecurity: (req: Request, res: Response, next: NextFunction) => void;
@@ -29,7 +29,7 @@ declare const _default: {
         keyGenerator?: (req: Request) => string;
         skipSuccessfulRequests?: boolean;
         skipFailedRequests?: boolean;
-    }) => (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+    }) => (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
 };
 export default _default;
 //# sourceMappingURL=security.d.ts.map

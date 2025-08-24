@@ -69,10 +69,10 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
     }
 
     logger.info('2FA validation successful', { userId });
-    next();
+    return next();
   } catch (error) {
     logger.error('Error in 2FA middleware', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TOTP_VALIDATION_ERROR',
@@ -112,7 +112,7 @@ export const ipWhitelist = async (req: Request, res: Response, next: NextFunctio
     next();
   } catch (error) {
     logger.error('Error in IP whitelist middleware', error as Error);
-    next();
+    return next();
   }
 };
 
@@ -344,7 +344,7 @@ export const rateLimit = (options: {
     } catch (error) {
       logger.error('Rate limiting error:', error as Error);
       // Continue without rate limiting if Redis is unavailable
-      next();
+      return next();
     }
   };
 };

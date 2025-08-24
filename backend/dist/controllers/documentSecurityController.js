@@ -43,14 +43,14 @@ const uploadSecureDocument = async (req, res) => {
         ]);
         const document = result.rows[0];
         logger_1.default.businessEvent('secure_document_uploaded', 'document', document.id, userId);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: { document }
         });
     }
     catch (error) {
         logger_1.default.error('Error uploading secure document', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'SECURE_DOCUMENT_UPLOAD_ERROR',
@@ -84,10 +84,11 @@ const downloadSecureDocument = async (req, res) => {
         res.setHeader('Content-Length', documentContent.length);
         res.send(documentContent);
         logger_1.default.businessEvent('secure_document_downloaded', 'document', id, userId);
+        return;
     }
     catch (error) {
         logger_1.default.error('Error downloading secure document', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'SECURE_DOCUMENT_DOWNLOAD_ERROR',
@@ -122,14 +123,14 @@ const updateDocumentSecurity = async (req, res) => {
       WHERE id = $1
     `, [id, securityLevel]);
         logger_1.default.businessEvent('document_security_updated', 'document', id, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Document security settings updated successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error updating document security', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'DOCUMENT_SECURITY_UPDATE_ERROR',
@@ -158,7 +159,7 @@ const getDocumentSecurityMetadata = async (req, res) => {
             });
         }
         const securityMetadata = await documentSecurityService_1.documentSecurityService.getDocumentSecurityMetadata(id);
-        res.json({
+        return res.json({
             success: true,
             data: {
                 document,
@@ -168,7 +169,7 @@ const getDocumentSecurityMetadata = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error getting document security metadata', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'DOCUMENT_SECURITY_METADATA_ERROR',
@@ -184,11 +185,11 @@ const getDocumentAuditLog = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Getting document audit log', { documentId: id, userId });
         const result = await documentSecurityService_1.documentSecurityService.getDocumentAuditLog(id);
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error getting document audit log', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'DOCUMENT_AUDIT_LOG_ERROR',
@@ -204,11 +205,11 @@ const checkDocumentAccess = async (req, res) => {
         const userId = req.user?.id;
         logger_1.default.info('Checking document access permissions', { documentId: id, userId });
         const result = await documentSecurityService_1.documentSecurityService.checkDocumentAccess(id, userId);
-        res.json(result);
+        return res.json(result);
     }
     catch (error) {
         logger_1.default.error('Error checking document access', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'DOCUMENT_ACCESS_CHECK_ERROR',

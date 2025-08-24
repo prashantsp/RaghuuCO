@@ -43,7 +43,7 @@ const getTasks = async (req, res) => {
         const total = parseInt(countResult[0]?.total || '0');
         const totalPages = Math.ceil(total / parseInt(limit));
         logger_1.default.info('Tasks fetched successfully', { userId, count: tasks.length });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 tasks,
@@ -58,7 +58,7 @@ const getTasks = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching tasks', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASKS_FETCH_ERROR',
@@ -89,7 +89,7 @@ const getTaskById = async (req, res) => {
         const timeEntriesResult = await db.query(db_SQLQueries_1.SQLQueries.TASK_TIME_ENTRIES.GET_BY_TASK_ID, [id]);
         const timeEntries = timeEntriesResult;
         logger_1.default.info('Task fetched successfully', { userId, taskId: id });
-        res.json({
+        return res.json({
             success: true,
             data: {
                 task: {
@@ -102,7 +102,7 @@ const getTaskById = async (req, res) => {
     }
     catch (error) {
         logger_1.default.error('Error fetching task', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_FETCH_ERROR',
@@ -143,14 +143,14 @@ const createTask = async (req, res) => {
             }
         }
         logger_1.default.businessEvent('task_created', 'task', task.id, userId);
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: { task }
         });
     }
     catch (error) {
         logger_1.default.error('Error creating task', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_CREATE_ERROR',
@@ -196,14 +196,14 @@ const updateTask = async (req, res) => {
         ]);
         const updatedTask = result[0];
         logger_1.default.businessEvent('task_updated', 'task', id, userId);
-        res.json({
+        return res.json({
             success: true,
             data: { task: updatedTask }
         });
     }
     catch (error) {
         logger_1.default.error('Error updating task', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_UPDATE_ERROR',
@@ -232,14 +232,14 @@ const deleteTask = async (req, res) => {
         await db.query(db_SQLQueries_1.SQLQueries.TASK_DEPENDENCIES.DELETE_BY_TASK_ID, [id]);
         await db.query(db_SQLQueries_1.SQLQueries.TASKS.DELETE, [id]);
         logger_1.default.businessEvent('task_deleted', 'task', id, userId);
-        res.json({
+        return res.json({
             success: true,
             message: 'Task deleted successfully'
         });
     }
     catch (error) {
         logger_1.default.error('Error deleting task', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_DELETE_ERROR',
@@ -260,14 +260,14 @@ const getTaskStats = async (req, res) => {
         ]);
         const stats = result[0];
         logger_1.default.info('Task statistics fetched successfully', { userId });
-        res.json({
+        return res.json({
             success: true,
             data: { stats }
         });
     }
     catch (error) {
         logger_1.default.error('Error fetching task statistics', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_STATS_ERROR',
@@ -306,14 +306,14 @@ const startTaskTimer = async (req, res) => {
         ]);
         const timeEntry = result[0];
         logger_1.default.businessEvent('task_timer_started', 'task_time_entry', timeEntry.id, userId);
-        res.json({
+        return res.json({
             success: true,
             data: { timeEntry }
         });
     }
     catch (error) {
         logger_1.default.error('Error starting task timer', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_TIMER_START_ERROR',
@@ -352,14 +352,14 @@ const stopTaskTimer = async (req, res) => {
         ]);
         const timeEntry = result[0];
         logger_1.default.businessEvent('task_timer_stopped', 'task_time_entry', timeEntry.id, userId);
-        res.json({
+        return res.json({
             success: true,
             data: { timeEntry }
         });
     }
     catch (error) {
         logger_1.default.error('Error stopping task timer', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'TASK_TIMER_STOP_ERROR',

@@ -62,11 +62,11 @@ const authenticateClientUser = async (req, res, next) => {
             clientId: clientUser.client_id,
             ip: req.ip
         });
-        next();
+        return next();
     }
     catch (error) {
         logger_1.default.error('Error authenticating client user', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CLIENT_AUTHENTICATION_ERROR',
@@ -109,7 +109,7 @@ const optionalClientAuth = async (req, res, next) => {
     }
     catch (error) {
         logger_1.default.warn('Optional client authentication failed', error);
-        next();
+        return next();
     }
 };
 exports.optionalClientAuth = optionalClientAuth;
@@ -140,7 +140,7 @@ const clientPortalRateLimit = (req, res, next) => {
             }
         });
     }
-    next();
+    return next();
 };
 exports.clientPortalRateLimit = clientPortalRateLimit;
 const validateCaseAccess = async (req, res, next) => {
@@ -168,11 +168,11 @@ const validateCaseAccess = async (req, res, next) => {
                 }
             });
         }
-        next();
+        return next();
     }
     catch (error) {
         logger_1.default.error('Error validating case access', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'CASE_ACCESS_VALIDATION_ERROR',
@@ -209,11 +209,11 @@ const validateDocumentAccess = async (req, res, next) => {
                 }
             });
         }
-        next();
+        return next();
     }
     catch (error) {
         logger_1.default.error('Error validating document access', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'DOCUMENT_ACCESS_VALIDATION_ERROR',
