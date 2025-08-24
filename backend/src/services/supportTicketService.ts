@@ -15,8 +15,8 @@ import { DatabaseService } from '@/services/DatabaseService';
 import { logger } from '@/utils/logger';
 import { SQLQueries } from '@/utils/db_SQLQueries';
 import { UserRole, hasPermission } from '@/utils/roleAccess';
-import { sendEmail } from '@/utils/emailService';
-import { sendNotification } from '@/utils/notificationService';
+import { sendEmail } from '../utils/emailService';
+import { sendNotification } from '../utils/notificationService';
 
 const db = new DatabaseService();
 
@@ -165,11 +165,11 @@ class SupportTicketService {
     try {
       const result = await db.query(SQLQueries.SUPPORT.GET_TICKET_BY_ID, [ticketId]);
       
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
 
-      const ticket = this.mapTicketFromRow(result.rows[0]);
+      const ticket = this.mapTicketFromRow(result[0]);
       
       // Check if user has permission to view this ticket
       if (!this.canUserAccessTicket(ticket, userId)) {

@@ -237,7 +237,7 @@ class SearchService {
     const params = [query, includeArchived, userId, filters.status, filters.priority].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.CASES,
       title: row.title,
@@ -300,7 +300,7 @@ class SearchService {
     const params = [query, includeArchived, userId, filters.clientType].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.CLIENTS,
       title: `${row.first_name} ${row.last_name}`.trim() || row.company_name,
@@ -362,7 +362,7 @@ class SearchService {
     const params = [query, includeArchived, userId, filters.fileType, filters.caseId].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.DOCUMENTS,
       title: row.title || row.file_name,
@@ -418,7 +418,7 @@ class SearchService {
     const params = [query, filters.role].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.USERS,
       title: `${row.first_name} ${row.last_name}`,
@@ -479,7 +479,7 @@ class SearchService {
     const params = [query, userId, filters.category, filters.isApproved].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.EXPENSES,
       title: row.description,
@@ -541,7 +541,7 @@ class SearchService {
     const params = [query, includeArchived, filters.status, filters.categoryId].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.ARTICLES,
       title: row.title,
@@ -600,7 +600,7 @@ class SearchService {
     const params = [query, userId, filters.status, filters.priority].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.TASKS,
       title: row.title,
@@ -664,7 +664,7 @@ class SearchService {
     const params = [query, userId, filters.status].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.INVOICES,
       title: `Invoice ${row.invoice_number}`,
@@ -727,7 +727,7 @@ class SearchService {
     const params = [query, userId, filters.dateFrom, filters.dateTo].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.TIME_ENTRIES,
       title: row.description,
@@ -782,7 +782,7 @@ class SearchService {
       `;
       
       const historyResult = await db.query(historySql, [`%${query}%`]);
-      suggestions.push(...historyResult.rows.map(row => row.query));
+      suggestions.push(...historyResult.map((row: any) => row.query));
 
       // Get suggestions from popular terms
       const popularSql = `
@@ -795,7 +795,7 @@ class SearchService {
       `;
       
       const popularResult = await db.query(popularSql, [`%${query}%`]);
-      suggestions.push(...popularResult.rows.map(row => row.term));
+      suggestions.push(...popularResult.map((row: any) => row.term));
 
       // Remove duplicates and limit results
       const uniqueSuggestions = [...new Set(suggestions)].slice(0, 10);
@@ -831,7 +831,7 @@ class SearchService {
       `;
       
       const result = await db.query(sql);
-      const terms = result.rows.map(row => row.term);
+      const terms = result.map((row: any) => row.term);
 
       // Cache for 1 hour
       await cacheService.set(cacheKey, terms, 3600);
@@ -892,7 +892,7 @@ class SearchService {
         WHERE created_at > NOW() - INTERVAL '30 days'
       `);
 
-      const result = stats.rows[0];
+      const result = stats[0];
 
       // Cache for 1 hour
       await cacheService.set(cacheKey, result, 3600);

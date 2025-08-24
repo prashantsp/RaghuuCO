@@ -15,8 +15,8 @@ import logger from '../utils/logger';
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || ''
+  key_id: (process as any).env.RAZORPAY_KEY_ID || '',
+  key_secret: (process as any).env.RAZORPAY_KEY_SECRET || ''
 });
 
 /**
@@ -78,7 +78,7 @@ export class PaymentService {
 
       const text = `${paymentData.razorpay_order_id}|${paymentData.razorpay_payment_id}`;
       const signature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+        .createHmac('sha256', (process as any).env.RAZORPAY_KEY_SECRET || '')
         .update(text)
         .digest('hex');
 
@@ -124,11 +124,11 @@ export class PaymentService {
     try {
       logger.info('Creating PayU order', { amount: orderData.amount, txnid: orderData.txnid });
 
-      const hashString = `${process.env.PAYU_MERCHANT_KEY}|${orderData.txnid}|${orderData.amount}|${orderData.productinfo}|${orderData.firstname}|${orderData.email}|||||||||||${process.env.PAYU_SALT}`;
+      const hashString = `${(process as any).env.PAYU_MERCHANT_KEY}|${orderData.txnid}|${orderData.amount}|${orderData.productinfo}|${orderData.firstname}|${orderData.email}|||||||||||${(process as any).env.PAYU_SALT}`;
       const hash = crypto.createHash('sha512').update(hashString).digest('hex');
 
       const payuData = {
-        key: process.env.PAYU_MERCHANT_KEY,
+        key: (process as any).env.PAYU_MERCHANT_KEY,
         txnid: orderData.txnid,
         amount: orderData.amount,
         productinfo: orderData.productinfo,
@@ -171,7 +171,7 @@ export class PaymentService {
     try {
       logger.info('Verifying PayU payment', { txnid: paymentData.txnid, status: paymentData.status });
 
-      const hashString = `${process.env.PAYU_SALT}|${paymentData.status}|||||||||||${paymentData.email}|${paymentData.firstname}|${paymentData.productinfo}|${paymentData.amount}|${paymentData.txnid}|${process.env.PAYU_MERCHANT_KEY}`;
+      const hashString = `${(process as any).env.PAYU_SALT}|${paymentData.status}|||||||||||${paymentData.email}|${paymentData.firstname}|${paymentData.productinfo}|${paymentData.amount}|${paymentData.txnid}|${(process as any).env.PAYU_MERCHANT_KEY}`;
       const calculatedHash = crypto.createHash('sha512').update(hashString).digest('hex');
 
       const isValid = calculatedHash === paymentData.hash;
