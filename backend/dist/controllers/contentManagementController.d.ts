@@ -6,7 +6,7 @@ export declare const createArticle: (req: Request, res: Response) => Promise<voi
 export declare const getArticleById: (req: Request, res: Response) => Promise<void>;
 export declare const getArticleBySlug: (req: Request, res: Response) => Promise<void>;
 export declare const getPublishedArticles: (req: Request, res: Response) => Promise<void>;
-export declare const searchArticles: (req: Request, res: Response) => Promise<any>;
+export declare const searchArticles: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getFeaturedArticles: (req: Request, res: Response) => Promise<void>;
 export declare const createComment: (req: Request, res: Response) => Promise<void>;
 export declare const getArticleComments: (req: Request, res: Response) => Promise<void>;
@@ -25,7 +25,7 @@ declare const _default: {
     getArticleById: (req: Request, res: Response) => Promise<void>;
     getArticleBySlug: (req: Request, res: Response) => Promise<void>;
     getPublishedArticles: (req: Request, res: Response) => Promise<void>;
-    searchArticles: (req: Request, res: Response) => Promise<any>;
+    searchArticles: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getFeaturedArticles: (req: Request, res: Response) => Promise<void>;
     createComment: (req: Request, res: Response) => Promise<void>;
     getArticleComments: (req: Request, res: Response) => Promise<void>;

@@ -20,9 +20,9 @@
  * ```
  */
 
-import { DatabaseService } from '@/services/DatabaseService';
-import { logger } from '@/utils/logger';
-import { SQLQueries } from '@/utils/db_SQLQueries';
+import { DatabaseService } from '../services/DatabaseService';
+import logger from '../utils/logger';
+import { SQLQueries } from '../utils/db_SQLQueries';
 
 /**
  * User roles enumeration defining all possible user types in the system
@@ -35,6 +35,8 @@ export enum UserRole {
   PARTNER = 'partner', 
   /** Senior Associate - Case strategy and client consultations */
   SENIOR_ASSOCIATE = 'senior_associate',
+  /** Associate - General case work and client interactions */
+  ASSOCIATE = 'associate',
   /** Junior Associate - Research and document preparation */
   JUNIOR_ASSOCIATE = 'junior_associate',
   /** Paralegal - Administrative support and case coordination */
@@ -72,6 +74,7 @@ export enum Permission {
   UPDATE_DOCUMENTS = 'update_documents',
   DELETE_DOCUMENTS = 'delete_documents',
   DOWNLOAD_DOCUMENTS = 'download_documents',
+  DOCUMENT_READ = 'document_read',
 
   // Time tracking
   VIEW_TIME_ENTRIES = 'view_time_entries',
@@ -384,13 +387,13 @@ export function canAccessCase(
 
   // Senior associate can access cases they're assigned to
   if (userRole === UserRole.SENIOR_ASSOCIATE) {
-    return caseData.assigned_partner === userId || 
+    return (caseData.assigned_partner === userId) || 
            (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
   }
 
   // Junior associate and paralegal can access cases they're assigned to
   if (userRole === UserRole.JUNIOR_ASSOCIATE || userRole === UserRole.PARALEGAL) {
-    return caseData.assigned_partner === userId || 
+    return (caseData.assigned_partner === userId) || 
            (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
   }
 
@@ -486,10 +489,11 @@ export function getRoleHierarchyLevel(role: UserRole): number {
     [UserRole.SUPER_ADMIN]: 7,
     [UserRole.PARTNER]: 6,
     [UserRole.SENIOR_ASSOCIATE]: 5,
-    [UserRole.JUNIOR_ASSOCIATE]: 4,
-    [UserRole.PARALEGAL]: 3,
-    [UserRole.CLIENT]: 2,
-    [UserRole.GUEST]: 1
+    [UserRole.ASSOCIATE]: 4,
+    [UserRole.JUNIOR_ASSOCIATE]: 3,
+    [UserRole.PARALEGAL]: 2,
+    [UserRole.CLIENT]: 1,
+    [UserRole.GUEST]: 0
   };
   
   return hierarchy[role] || 0;
@@ -526,7 +530,7 @@ export async function hasClientAccess(userRole: UserRole, userId: string, client
     const db = new DatabaseService();
     const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CLIENT_ACCESS, [clientId, userId]);
 
-    return parseInt(result.rows[0].case_count) > 0;
+    return result.length > 0 && parseInt(result[0].case_count) > 0;
   } catch (error) {
     logger.error('Error checking client access:', error as Error);
     return false;
@@ -551,11 +555,11 @@ export async function hasCaseAccess(userRole: UserRole, userId: string, caseId: 
     const db = new DatabaseService();
     const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CASE_ACCESS, [caseId]);
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return false;
     }
 
-    const caseData = result.rows[0];
+    const caseData = result[0];
     return caseData.assigned_to === userId;
   } catch (error) {
     logger.error('Error checking case access:', error as Error);

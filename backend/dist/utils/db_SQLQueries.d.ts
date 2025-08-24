@@ -22,31 +22,56 @@ export declare const SQLQueries: {
         DELETE_SOCIAL_ACCOUNT: string;
     };
     CLIENTS: {
+        CREATE_CLIENT: string;
+        GET_CLIENT_BY_ID: string;
+        GET_CLIENT_BY_EMAIL: string;
+        GET_ALL_CLIENTS: string;
+        GET_CLIENTS_WITH_PAGINATION: string;
+        GET_CLIENTS_BY_TYPE: string;
+        SEARCH_CLIENTS: string;
+        UPDATE_CLIENT: string;
+        DEACTIVATE_CLIENT: string;
+        GET_CLIENTS_COUNT: string;
+        CHECK_CLIENT_CONFLICT: string;
         GET_CLIENT_TYPE: string;
         CHECK_EMAIL_EXISTS: string;
         CHECK_EMAIL_EXISTS_EXCLUDE: string;
         GET_ACTIVE_CASES_COUNT: string;
-        DEACTIVATE_CLIENT: string;
         GET_EMAIL_CONFLICTS: string;
         GET_PHONE_CONFLICTS: string;
         GET_NAME_CONFLICTS: string;
         GET_TOTAL_CLIENTS: string;
     };
     CASES: {
-        GET_TOTAL_CASES: string;
-        SOFT_DELETE: string;
+        CREATE_CASE: string;
+        GET_CASE_BY_ID: string;
+        GET_CASE_BY_NUMBER: string;
+        GET_ALL_CASES: string;
+        GET_CASES_WITH_PAGINATION: string;
         GET_CASES_BY_STATUS: string;
-        GET_CASES_BY_PRIORITY: string;
-        GET_CASES_BY_USER: string;
-        GET_RECENT_CASES: string;
+        GET_CASES_BY_TYPE: string;
+        GET_CASES_BY_CLIENT: string;
+        GET_CASES_BY_PARTNER: string;
+        SEARCH_CASES: string;
+        UPDATE_CASE: string;
+        UPDATE_CASE_STATUS: string;
+        COMPLETE_CASE: string;
+        GET_CASES_COUNT: string;
+        GET_CASES_COUNT_BY_STATUS: string;
+        GET_CASES_COUNT_BY_TYPE: string;
+        GENERATE_CASE_NUMBER: string;
     };
     DOCUMENTS: {
-        GET_TOTAL_DOCUMENTS: string;
-        SOFT_DELETE: string;
-        GET_DOCUMENTS_BY_CATEGORY: string;
+        CREATE_DOCUMENT: string;
+        GET_DOCUMENT_BY_ID: string;
+        GET_DOCUMENTS_BY_CASE: string;
         GET_DOCUMENTS_BY_TYPE: string;
-        GET_TOTAL_STORAGE: string;
-        GET_RECENT_UPLOADS: string;
+        SEARCH_DOCUMENTS: string;
+        UPDATE_DOCUMENT: string;
+        DELETE_DOCUMENT: string;
+        GET_DOCUMENT_VERSIONS: string;
+        GET_DOCUMENTS_COUNT: string;
+        GET_DOCUMENTS_COUNT_BY_TYPE: string;
     };
     TIME_ENTRIES: {
         CREATE_TIME_ENTRY: string;
@@ -70,9 +95,12 @@ export declare const SQLQueries: {
         GET_AUDIT_LOGS_COUNT: string;
     };
     USER_SESSIONS: {
-        GET_SESSION_BY_REFRESH_TOKEN: string;
-        UPDATE_REFRESH_TOKEN: string;
-        DEACTIVATE_SESSION: string;
+        CREATE: string;
+        GET_BY_TOKEN: string;
+        GET_BY_USER_ID: string;
+        UPDATE: string;
+        DELETE: string;
+        DELETE_EXPIRED: string;
     };
     BILLING_RATES: {
         CREATE: string;

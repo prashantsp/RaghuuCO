@@ -22,8 +22,8 @@
  * ```
  */
 
-import winston from 'winston';
-import path from 'path';
+import * as winston from 'winston';
+import * as path from 'path';
 
 // Define log levels
 const logLevels = {
@@ -51,13 +51,13 @@ const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
   winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
+    (info: any) => `${info.timestamp} ${info.level}: ${info.message}`,
   ),
 );
 
 // Define which level to log based on environment
 const level = () => {
-  const env = process.env.NODE_ENV || 'development';
+  const env = (process as any).env.NODE_ENV || 'development';
   const isDevelopment = env === 'development';
   return isDevelopment ? 'debug' : 'warn';
 };

@@ -17,7 +17,7 @@ export declare class PaymentService {
         phone: string;
         surl: string;
         furl: string;
-        hash: any;
+        hash: string;
     }>;
 }
 export declare class EmailService {

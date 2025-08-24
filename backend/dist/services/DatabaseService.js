@@ -5,14 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseService = void 0;
 const pg_1 = require("pg");
-const db_SQLQueries_1 = __importDefault(require("@/utils/db_SQLQueries"));
-const logger_1 = __importDefault(require("@/utils/logger"));
+const db_SQLQueries_1 = __importDefault(require("../utils/db_SQLQueries"));
+const logger_1 = __importDefault(require("../utils/logger"));
+const database_1 = require("../config/database");
 class DatabaseService {
     constructor(config) {
         this.isConnected = false;
-        this.pool = new pg_1.Pool(config);
+        const dbConfig = config || database_1.defaultDatabaseConfig;
+        this.pool = new pg_1.Pool(dbConfig);
         this.setupEventHandlers();
-        logger_1.default.info('Database service initialized', { config: { ...config, password: '[HIDDEN]' } });
+        logger_1.default.info('Database service initialized', { config: { ...dbConfig, password: '[HIDDEN]' } });
     }
     setupEventHandlers() {
         this.pool.on('connect', (client) => {

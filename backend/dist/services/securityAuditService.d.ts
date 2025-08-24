@@ -52,7 +52,7 @@ declare class SecurityAuditService {
     private generateAuditId;
     private generateIncidentId;
 }
+export { SecurityAuditService, VulnerabilityLevel, SecurityIncidentType };
 declare const _default: SecurityAuditService;
 export default _default;
-export { SecurityAuditService, VulnerabilityLevel, SecurityIncidentType };
 //# sourceMappingURL=securityAuditService.d.ts.map

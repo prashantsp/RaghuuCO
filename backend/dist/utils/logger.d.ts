@@ -1,4 +1,5 @@
-declare const logger: any;
+import * as winston from 'winston';
+declare const logger: winston.Logger;
 declare class Logger {
     private logger;
     constructor();

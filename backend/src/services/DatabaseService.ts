@@ -29,22 +29,9 @@
  */
 
 import { Pool, PoolClient, QueryResult } from 'pg';
-import SQLQueries from '@/utils/db_SQLQueries';
-import logger from '@/utils/logger';
-
-/**
- * Database configuration interface
- */
-interface DatabaseConfig {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-  max: number;
-  idleTimeoutMillis: number;
-  connectionTimeoutMillis: number;
-}
+import SQLQueries from '../utils/db_SQLQueries';
+import logger from '../utils/logger';
+import { DatabaseConfig, defaultDatabaseConfig } from '../config/database';
 
 /**
  * Database Service Class
@@ -54,10 +41,11 @@ export class DatabaseService {
   private pool: Pool;
   private isConnected: boolean = false;
 
-  constructor(config: DatabaseConfig) {
-    this.pool = new Pool(config);
+  constructor(config?: DatabaseConfig) {
+    const dbConfig = config || defaultDatabaseConfig;
+    this.pool = new Pool(dbConfig);
     this.setupEventHandlers();
-    logger.info('Database service initialized', { config: { ...config, password: '[HIDDEN]' } });
+    logger.info('Database service initialized', { config: { ...dbConfig, password: '[HIDDEN]' } });
   }
 
   /**

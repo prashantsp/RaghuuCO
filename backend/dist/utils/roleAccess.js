@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ROLE_PERMISSIONS = exports.Permission = exports.UserRole = void 0;
 exports.hasPermission = hasPermission;
@@ -14,14 +17,15 @@ exports.getRoleHierarchyLevel = getRoleHierarchyLevel;
 exports.canManageUser = canManageUser;
 exports.hasClientAccess = hasClientAccess;
 exports.hasCaseAccess = hasCaseAccess;
-const DatabaseService_1 = require("@/services/DatabaseService");
-const logger_1 = require("@/utils/logger");
-const db_SQLQueries_1 = require("@/utils/db_SQLQueries");
+const DatabaseService_1 = require("../services/DatabaseService");
+const logger_1 = __importDefault(require("../utils/logger"));
+const db_SQLQueries_1 = require("../utils/db_SQLQueries");
 var UserRole;
 (function (UserRole) {
     UserRole["SUPER_ADMIN"] = "super_admin";
     UserRole["PARTNER"] = "partner";
     UserRole["SENIOR_ASSOCIATE"] = "senior_associate";
+    UserRole["ASSOCIATE"] = "associate";
     UserRole["JUNIOR_ASSOCIATE"] = "junior_associate";
     UserRole["PARALEGAL"] = "paralegal";
     UserRole["CLIENT"] = "client";
@@ -48,6 +52,7 @@ var Permission;
     Permission["UPDATE_DOCUMENTS"] = "update_documents";
     Permission["DELETE_DOCUMENTS"] = "delete_documents";
     Permission["DOWNLOAD_DOCUMENTS"] = "download_documents";
+    Permission["DOCUMENT_READ"] = "document_read";
     Permission["VIEW_TIME_ENTRIES"] = "view_time_entries";
     Permission["CREATE_TIME_ENTRIES"] = "create_time_entries";
     Permission["UPDATE_TIME_ENTRIES"] = "update_time_entries";
@@ -258,11 +263,11 @@ function canAccessCase(userRole, userId, caseData) {
         return true;
     }
     if (userRole === UserRole.SENIOR_ASSOCIATE) {
-        return caseData.assigned_partner === userId ||
+        return (caseData.assigned_partner === userId) ||
             (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
     }
     if (userRole === UserRole.JUNIOR_ASSOCIATE || userRole === UserRole.PARALEGAL) {
-        return caseData.assigned_partner === userId ||
+        return (caseData.assigned_partner === userId) ||
             (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
     }
     if (userRole === UserRole.CLIENT) {
@@ -309,10 +314,11 @@ function getRoleHierarchyLevel(role) {
         [UserRole.SUPER_ADMIN]: 7,
         [UserRole.PARTNER]: 6,
         [UserRole.SENIOR_ASSOCIATE]: 5,
-        [UserRole.JUNIOR_ASSOCIATE]: 4,
-        [UserRole.PARALEGAL]: 3,
-        [UserRole.CLIENT]: 2,
-        [UserRole.GUEST]: 1
+        [UserRole.ASSOCIATE]: 4,
+        [UserRole.JUNIOR_ASSOCIATE]: 3,
+        [UserRole.PARALEGAL]: 2,
+        [UserRole.CLIENT]: 1,
+        [UserRole.GUEST]: 0
     };
     return hierarchy[role] || 0;
 }
@@ -328,10 +334,10 @@ async function hasClientAccess(userRole, userId, clientId) {
         }
         const db = new DatabaseService_1.DatabaseService();
         const result = await db.query(db_SQLQueries_1.SQLQueries.ROLE_ACCESS.CHECK_CLIENT_ACCESS, [clientId, userId]);
-        return parseInt(result.rows[0].case_count) > 0;
+        return result.length > 0 && parseInt(result[0].case_count) > 0;
     }
     catch (error) {
-        logger_1.logger.error('Error checking client access:', error);
+        logger_1.default.error('Error checking client access:', error);
         return false;
     }
 }
@@ -342,14 +348,14 @@ async function hasCaseAccess(userRole, userId, caseId) {
         }
         const db = new DatabaseService_1.DatabaseService();
         const result = await db.query(db_SQLQueries_1.SQLQueries.ROLE_ACCESS.CHECK_CASE_ACCESS, [caseId]);
-        if (result.rows.length === 0) {
+        if (result.length === 0) {
             return false;
         }
-        const caseData = result.rows[0];
+        const caseData = result[0];
         return caseData.assigned_to === userId;
     }
     catch (error) {
-        logger_1.logger.error('Error checking case access:', error);
+        logger_1.default.error('Error checking case access:', error);
         return false;
     }
 }

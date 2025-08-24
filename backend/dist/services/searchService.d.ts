@@ -58,7 +58,7 @@ declare class SearchService {
     logSearchQuery(query: string, userId?: string, resultsCount?: number): Promise<void>;
     getSearchStats(): Promise<any>;
 }
+export { SearchService, SearchEntityType };
 declare const _default: SearchService;
 export default _default;
-export { SearchService, SearchEntityType };
 //# sourceMappingURL=searchService.d.ts.map

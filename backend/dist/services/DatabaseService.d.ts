@@ -1,18 +1,9 @@
 import { PoolClient } from 'pg';
-interface DatabaseConfig {
-    host: string;
-    port: number;
-    database: string;
-    user: string;
-    password: string;
-    max: number;
-    idleTimeoutMillis: number;
-    connectionTimeoutMillis: number;
-}
+import { DatabaseConfig } from '../config/database';
 export declare class DatabaseService {
     private pool;
     private isConnected;
-    constructor(config: DatabaseConfig);
+    constructor(config?: DatabaseConfig);
     private setupEventHandlers;
     query<T = any>(query: string, params?: any[]): Promise<T[]>;
     queryOne<T = any>(query: string, params?: any[]): Promise<T | null>;

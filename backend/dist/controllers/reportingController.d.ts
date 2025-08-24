@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 export declare const getReports: (req: Request, res: Response) => Promise<void>;
-export declare const getReportById: (req: Request, res: Response) => Promise<any>;
+export declare const getReportById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const createReport: (req: Request, res: Response) => Promise<void>;
 export declare const updateReport: (req: Request, res: Response) => Promise<void>;
-export declare const deleteReport: (req: Request, res: Response) => Promise<any>;
-export declare const executeReport: (req: Request, res: Response) => Promise<any>;
+export declare const deleteReport: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const executeReport: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getReportExecutions: (req: Request, res: Response) => Promise<void>;
 export declare const trackAnalyticsEvent: (req: Request, res: Response) => Promise<void>;
 export declare const getAnalyticsSummary: (req: Request, res: Response) => Promise<void>;
@@ -14,11 +14,11 @@ export declare const recordBusinessMetric: (req: Request, res: Response) => Prom
 export declare const getBusinessMetrics: (req: Request, res: Response) => Promise<void>;
 declare const _default: {
     getReports: (req: Request, res: Response) => Promise<void>;
-    getReportById: (req: Request, res: Response) => Promise<any>;
+    getReportById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     createReport: (req: Request, res: Response) => Promise<void>;
     updateReport: (req: Request, res: Response) => Promise<void>;
-    deleteReport: (req: Request, res: Response) => Promise<any>;
-    executeReport: (req: Request, res: Response) => Promise<any>;
+    deleteReport: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    executeReport: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getReportExecutions: (req: Request, res: Response) => Promise<void>;
     trackAnalyticsEvent: (req: Request, res: Response) => Promise<void>;
     getAnalyticsSummary: (req: Request, res: Response) => Promise<void>;

@@ -10,11 +10,11 @@
  * assessment, and security incident response capabilities.
  */
 
-import { DatabaseService } from '@/services/DatabaseService';
-import { logger } from '@/utils/logger';
-import cacheService from '@/services/cacheService';
-import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import { DatabaseService } from './DatabaseService';
+import logger from '../utils/logger';
+import cacheService from './cacheService';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 const db = new DatabaseService();
 
@@ -132,12 +132,12 @@ class SecurityAuditService {
         AND is_active = true
       `);
       
-      if (weakPasswords.rows.length > 0) {
+      if (weakPasswords.length > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'weak_passwords',
           severity: VulnerabilityLevel.MEDIUM,
-          description: `${weakPasswords.rows.length} users have passwords older than 90 days`,
+          description: `${weakPasswords.length} users have passwords older than 90 days`,
           recommendation: 'Enforce password change for users with old passwords',
           status: 'open',
           createdAt: new Date().toISOString()
@@ -151,7 +151,7 @@ class SecurityAuditService {
         WHERE expires_at < NOW() - INTERVAL '24 hours'
       `);
       
-      if (parseInt(inactiveSessions.rows[0].count) > 100) {
+      if (inactiveSessions.length > 0 && parseInt(inactiveSessions[0].count) > 100) {
         audits.push({
           id: this.generateAuditId(),
           type: 'inactive_sessions',
@@ -171,7 +171,7 @@ class SecurityAuditService {
         AND created_at > NOW() - INTERVAL '1 hour'
       `);
       
-      if (parseInt(failedLogins.rows[0].count) > 50) {
+      if (failedLogins.length > 0 && parseInt(failedLogins[0].count) > 50) {
         audits.push({
           id: this.generateAuditId(),
           type: 'brute_force_attempts',
@@ -206,12 +206,12 @@ class SecurityAuditService {
         AND is_active = true
       `);
       
-      if (parseInt(usersWithout2FA.rows[0].count) > 0) {
+      if (usersWithout2FA.length > 0 && parseInt(usersWithout2FA[0].count) > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'missing_2fa',
           severity: VulnerabilityLevel.HIGH,
-          description: `${usersWithout2FA.rows[0].count} privileged users without 2FA`,
+          description: `${usersWithout2FA[0].count} privileged users without 2FA`,
           recommendation: 'Enforce 2FA for all privileged users',
           status: 'open',
           createdAt: new Date().toISOString()
@@ -226,7 +226,7 @@ class SecurityAuditService {
         AND expires_at > NOW()
       `);
       
-      if (parseInt(shortTokenExpiry.rows[0].count) > 0) {
+      if (shortTokenExpiry.length > 0 && parseInt(shortTokenExpiry[0].count) > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'short_token_expiry',
@@ -262,12 +262,12 @@ class SecurityAuditService {
         HAVING COUNT(*) > 50
       `);
       
-      if (excessivePermissions.rows.length > 0) {
+      if (excessivePermissions.length > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'excessive_permissions',
           severity: VulnerabilityLevel.MEDIUM,
-          description: `${excessivePermissions.rows.length} users with excessive permissions`,
+          description: `${excessivePermissions.length} users with excessive permissions`,
           recommendation: 'Review and reduce user permissions',
           status: 'open',
           createdAt: new Date().toISOString()
@@ -282,7 +282,7 @@ class SecurityAuditService {
         AND created_at > NOW() - INTERVAL '24 hours'
       `);
       
-      if (parseInt(roleEscalation.rows[0].count) > 5) {
+      if (roleEscalation.length > 0 && parseInt(roleEscalation[0].count) > 5) {
         audits.push({
           id: this.generateAuditId(),
           type: 'role_escalation_attempts',
@@ -316,12 +316,12 @@ class SecurityAuditService {
         AND file_type IN ('pdf', 'doc', 'docx', 'xls', 'xlsx')
       `);
       
-      if (parseInt(unencryptedData.rows[0].count) > 0) {
+      if (unencryptedData.length > 0 && parseInt(unencryptedData[0].count) > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'unencrypted_documents',
           severity: VulnerabilityLevel.HIGH,
-          description: `${unencryptedData.rows[0].count} sensitive documents not encrypted`,
+          description: `${unencryptedData[0].count} sensitive documents not encrypted`,
           recommendation: 'Encrypt all sensitive documents',
           status: 'open',
           createdAt: new Date().toISOString()
@@ -343,7 +343,7 @@ class SecurityAuditService {
         )
       `);
       
-      if (parseInt(unusualAccess.rows[0].count) > 0) {
+      if (unusualAccess.length > 0 && parseInt(unusualAccess[0].count) > 0) {
         audits.push({
           id: this.generateAuditId(),
           type: 'unusual_data_access',
@@ -370,7 +370,7 @@ class SecurityAuditService {
     
     try {
       // Check for weak JWT secrets
-      const jwtSecret = process.env.JWT_SECRET;
+      const jwtSecret = (process as any).env.JWT_SECRET;
       if (jwtSecret && jwtSecret.length < 32) {
         audits.push({
           id: this.generateAuditId(),
@@ -391,7 +391,7 @@ class SecurityAuditService {
         'REDIS_PASSWORD'
       ];
       
-      const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+      const missingEnvVars = requiredEnvVars.filter(varName => !(process as any).env[varName]);
       
       if (missingEnvVars.length > 0) {
         audits.push({
@@ -406,7 +406,7 @@ class SecurityAuditService {
       }
       
       // Check for insecure configurations
-      if (process.env.NODE_ENV === 'production' && process.env.DISABLE_HTTPS === 'true') {
+      if ((process as any).env.NODE_ENV === 'production' && (process as any).env.DISABLE_HTTPS === 'true') {
         audits.push({
           id: this.generateAuditId(),
           type: 'insecure_production_config',
@@ -551,7 +551,7 @@ class SecurityAuditService {
       
       const result = await db.query(sql, params);
       
-      return result.rows.map(row => ({
+      return result.map(row => ({
         ...row,
         metadata: JSON.parse(row.metadata || '{}')
       }));
@@ -613,7 +613,7 @@ class SecurityAuditService {
         FROM security_incidents
       `);
       
-      return stats.rows[0];
+      return stats[0];
     } catch (error) {
       logger.error('Error getting security stats:', error as Error);
       throw error;
@@ -635,5 +635,5 @@ class SecurityAuditService {
   }
 }
 
-export default new SecurityAuditService();
 export { SecurityAuditService, VulnerabilityLevel, SecurityIncidentType };
+export default new SecurityAuditService();

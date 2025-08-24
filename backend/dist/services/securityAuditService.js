@@ -1,12 +1,45 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SecurityAuditService = exports.SecurityIncidentType = exports.VulnerabilityLevel = void 0;
-const DatabaseService_1 = require("@/services/DatabaseService");
-const logger_1 = require("@/utils/logger");
-const crypto_1 = __importDefault(require("crypto"));
+const DatabaseService_1 = require("./DatabaseService");
+const logger_1 = __importDefault(require("../utils/logger"));
+const crypto = __importStar(require("crypto"));
 const db = new DatabaseService_1.DatabaseService();
 var VulnerabilityLevel;
 (function (VulnerabilityLevel) {
@@ -27,7 +60,7 @@ var SecurityIncidentType;
 class SecurityAuditService {
     async performSecurityAudit() {
         try {
-            logger_1.logger.info('Starting comprehensive security audit...');
+            logger_1.default.info('Starting comprehensive security audit...');
             const audits = [];
             const dbAudits = await this.auditDatabaseSecurity();
             audits.push(...dbAudits);
@@ -40,11 +73,11 @@ class SecurityAuditService {
             const configAudits = await this.auditConfigurationSecurity();
             audits.push(...configAudits);
             await this.logSecurityAudit(audits);
-            logger_1.logger.info(`Security audit completed. Found ${audits.length} issues.`);
+            logger_1.default.info(`Security audit completed. Found ${audits.length} issues.`);
             return audits;
         }
         catch (error) {
-            logger_1.logger.error('Error performing security audit:', error);
+            logger_1.default.error('Error performing security audit:', error);
             throw error;
         }
     }
@@ -57,12 +90,12 @@ class SecurityAuditService {
         WHERE last_password_change < NOW() - INTERVAL '90 days'
         AND is_active = true
       `);
-            if (weakPasswords.rows.length > 0) {
+            if (weakPasswords.length > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'weak_passwords',
                     severity: VulnerabilityLevel.MEDIUM,
-                    description: `${weakPasswords.rows.length} users have passwords older than 90 days`,
+                    description: `${weakPasswords.length} users have passwords older than 90 days`,
                     recommendation: 'Enforce password change for users with old passwords',
                     status: 'open',
                     createdAt: new Date().toISOString()
@@ -73,7 +106,7 @@ class SecurityAuditService {
         FROM user_sessions 
         WHERE expires_at < NOW() - INTERVAL '24 hours'
       `);
-            if (parseInt(inactiveSessions.rows[0].count) > 100) {
+            if (inactiveSessions.length > 0 && parseInt(inactiveSessions[0].count) > 100) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'inactive_sessions',
@@ -90,7 +123,7 @@ class SecurityAuditService {
         WHERE action = 'login_failed' 
         AND created_at > NOW() - INTERVAL '1 hour'
       `);
-            if (parseInt(failedLogins.rows[0].count) > 50) {
+            if (failedLogins.length > 0 && parseInt(failedLogins[0].count) > 50) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'brute_force_attempts',
@@ -103,7 +136,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error auditing database security:', error);
+            logger_1.default.error('Error auditing database security:', error);
         }
         return audits;
     }
@@ -117,12 +150,12 @@ class SecurityAuditService {
         AND role IN ('super_admin', 'partner', 'senior_associate')
         AND is_active = true
       `);
-            if (parseInt(usersWithout2FA.rows[0].count) > 0) {
+            if (usersWithout2FA.length > 0 && parseInt(usersWithout2FA[0].count) > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'missing_2fa',
                     severity: VulnerabilityLevel.HIGH,
-                    description: `${usersWithout2FA.rows[0].count} privileged users without 2FA`,
+                    description: `${usersWithout2FA[0].count} privileged users without 2FA`,
                     recommendation: 'Enforce 2FA for all privileged users',
                     status: 'open',
                     createdAt: new Date().toISOString()
@@ -134,7 +167,7 @@ class SecurityAuditService {
         WHERE expires_at < NOW() + INTERVAL '1 hour'
         AND expires_at > NOW()
       `);
-            if (parseInt(shortTokenExpiry.rows[0].count) > 0) {
+            if (shortTokenExpiry.length > 0 && parseInt(shortTokenExpiry[0].count) > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'short_token_expiry',
@@ -147,7 +180,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error auditing authentication security:', error);
+            logger_1.default.error('Error auditing authentication security:', error);
         }
         return audits;
     }
@@ -162,12 +195,12 @@ class SecurityAuditService {
         GROUP BY u.id, u.email, u.role
         HAVING COUNT(*) > 50
       `);
-            if (excessivePermissions.rows.length > 0) {
+            if (excessivePermissions.length > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'excessive_permissions',
                     severity: VulnerabilityLevel.MEDIUM,
-                    description: `${excessivePermissions.rows.length} users with excessive permissions`,
+                    description: `${excessivePermissions.length} users with excessive permissions`,
                     recommendation: 'Review and reduce user permissions',
                     status: 'open',
                     createdAt: new Date().toISOString()
@@ -179,7 +212,7 @@ class SecurityAuditService {
         WHERE action = 'role_change' 
         AND created_at > NOW() - INTERVAL '24 hours'
       `);
-            if (parseInt(roleEscalation.rows[0].count) > 5) {
+            if (roleEscalation.length > 0 && parseInt(roleEscalation[0].count) > 5) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'role_escalation_attempts',
@@ -192,7 +225,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error auditing authorization security:', error);
+            logger_1.default.error('Error auditing authorization security:', error);
         }
         return audits;
     }
@@ -205,12 +238,12 @@ class SecurityAuditService {
         WHERE is_encrypted = false 
         AND file_type IN ('pdf', 'doc', 'docx', 'xls', 'xlsx')
       `);
-            if (parseInt(unencryptedData.rows[0].count) > 0) {
+            if (unencryptedData.length > 0 && parseInt(unencryptedData[0].count) > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'unencrypted_documents',
                     severity: VulnerabilityLevel.HIGH,
-                    description: `${unencryptedData.rows[0].count} sensitive documents not encrypted`,
+                    description: `${unencryptedData[0].count} sensitive documents not encrypted`,
                     recommendation: 'Encrypt all sensitive documents',
                     status: 'open',
                     createdAt: new Date().toISOString()
@@ -229,7 +262,7 @@ class SecurityAuditService {
           HAVING COUNT(*) > 100
         )
       `);
-            if (parseInt(unusualAccess.rows[0].count) > 0) {
+            if (unusualAccess.length > 0 && parseInt(unusualAccess[0].count) > 0) {
                 audits.push({
                     id: this.generateAuditId(),
                     type: 'unusual_data_access',
@@ -242,7 +275,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error auditing data security:', error);
+            logger_1.default.error('Error auditing data security:', error);
         }
         return audits;
     }
@@ -292,7 +325,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error auditing configuration security:', error);
+            logger_1.default.error('Error auditing configuration security:', error);
         }
         return audits;
     }
@@ -315,7 +348,7 @@ class SecurityAuditService {
             }
         }
         catch (error) {
-            logger_1.logger.error('Error logging security audit:', error);
+            logger_1.default.error('Error logging security audit:', error);
         }
     }
     async createSecurityIncident(type, severity, description, userId, ipAddress, userAgent, metadata = {}) {
@@ -364,11 +397,11 @@ class SecurityAuditService {
                 JSON.stringify({ type, severity, description }),
                 new Date()
             ]);
-            logger_1.logger.warn('Security incident created:', incident);
+            logger_1.default.warn('Security incident created:', incident);
             return incident;
         }
         catch (error) {
-            logger_1.logger.error('Error creating security incident:', error);
+            logger_1.default.error('Error creating security incident:', error);
             throw error;
         }
     }
@@ -391,13 +424,13 @@ class SecurityAuditService {
             sql += ` ORDER BY created_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
             params.push(limit, offset);
             const result = await db.query(sql, params);
-            return result.rows.map(row => ({
+            return result.map(row => ({
                 ...row,
                 metadata: JSON.parse(row.metadata || '{}')
             }));
         }
         catch (error) {
-            logger_1.logger.error('Error getting security incidents:', error);
+            logger_1.default.error('Error getting security incidents:', error);
             throw error;
         }
     }
@@ -420,10 +453,10 @@ class SecurityAuditService {
                 JSON.stringify({ resolution }),
                 new Date()
             ]);
-            logger_1.logger.info(`Security incident ${incidentId} resolved by ${resolvedBy}`);
+            logger_1.default.info(`Security incident ${incidentId} resolved by ${resolvedBy}`);
         }
         catch (error) {
-            logger_1.logger.error('Error resolving security incident:', error);
+            logger_1.default.error('Error resolving security incident:', error);
             throw error;
         }
     }
@@ -439,18 +472,18 @@ class SecurityAuditService {
           COUNT(CASE WHEN created_at > NOW() - INTERVAL '7 days' THEN 1 END) as incidents_7d
         FROM security_incidents
       `);
-            return stats.rows[0];
+            return stats[0];
         }
         catch (error) {
-            logger_1.logger.error('Error getting security stats:', error);
+            logger_1.default.error('Error getting security stats:', error);
             throw error;
         }
     }
     generateAuditId() {
-        return `audit_${Date.now()}_${crypto_1.default.randomBytes(8).toString('hex')}`;
+        return `audit_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
     }
     generateIncidentId() {
-        return `incident_${Date.now()}_${crypto_1.default.randomBytes(8).toString('hex')}`;
+        return `incident_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
     }
 }
 exports.SecurityAuditService = SecurityAuditService;

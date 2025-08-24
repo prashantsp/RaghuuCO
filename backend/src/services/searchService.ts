@@ -905,5 +905,5 @@ class SearchService {
   }
 }
 
-export default new SearchService();
 export { SearchService, SearchEntityType };
+export default new SearchService();

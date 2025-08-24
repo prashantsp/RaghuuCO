@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
 export declare const getCalendarEvents: (req: Request, res: Response) => Promise<void>;
-export declare const getCalendarEventById: (req: Request, res: Response) => Promise<any>;
-export declare const createCalendarEvent: (req: Request, res: Response) => Promise<any>;
-export declare const updateCalendarEvent: (req: Request, res: Response) => Promise<any>;
-export declare const deleteCalendarEvent: (req: Request, res: Response) => Promise<any>;
+export declare const getCalendarEventById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const createCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const updateCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const deleteCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getUpcomingEvents: (req: Request, res: Response) => Promise<void>;
-export declare const checkSchedulingConflicts: (req: Request, res: Response) => Promise<any>;
+export declare const checkSchedulingConflicts: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 declare const _default: {
     getCalendarEvents: (req: Request, res: Response) => Promise<void>;
-    getCalendarEventById: (req: Request, res: Response) => Promise<any>;
-    createCalendarEvent: (req: Request, res: Response) => Promise<any>;
-    updateCalendarEvent: (req: Request, res: Response) => Promise<any>;
-    deleteCalendarEvent: (req: Request, res: Response) => Promise<any>;
+    getCalendarEventById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    createCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    updateCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    deleteCalendarEvent: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getUpcomingEvents: (req: Request, res: Response) => Promise<void>;
-    checkSchedulingConflicts: (req: Request, res: Response) => Promise<any>;
+    checkSchedulingConflicts: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 };
 export default _default;
 //# sourceMappingURL=calendarController.d.ts.map

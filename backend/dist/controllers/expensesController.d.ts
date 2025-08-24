@@ -8,10 +8,10 @@ export declare const updateExpense: (req: Request, res: Response) => Promise<voi
 export declare const deleteExpense: (req: Request, res: Response) => Promise<void>;
 export declare const approveExpense: (req: Request, res: Response) => Promise<void>;
 export declare const getExpenseCategories: (req: Request, res: Response) => Promise<void>;
-export declare const getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<any>;
+export declare const getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getCaseExpenseTotals: (req: Request, res: Response) => Promise<void>;
 export declare const getClientExpenseTotals: (req: Request, res: Response) => Promise<void>;
-export declare const searchExpenses: (req: Request, res: Response) => Promise<any>;
+export declare const searchExpenses: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 declare const _default: {
     createExpense: (req: Request, res: Response) => Promise<void>;
     getExpenseById: (req: Request, res: Response) => Promise<void>;
@@ -22,10 +22,10 @@ declare const _default: {
     deleteExpense: (req: Request, res: Response) => Promise<void>;
     approveExpense: (req: Request, res: Response) => Promise<void>;
     getExpenseCategories: (req: Request, res: Response) => Promise<void>;
-    getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<any>;
+    getMonthlyExpenseTotals: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     getCaseExpenseTotals: (req: Request, res: Response) => Promise<void>;
     getClientExpenseTotals: (req: Request, res: Response) => Promise<void>;
-    searchExpenses: (req: Request, res: Response) => Promise<any>;
+    searchExpenses: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 };
 export default _default;
 //# sourceMappingURL=expensesController.d.ts.map
