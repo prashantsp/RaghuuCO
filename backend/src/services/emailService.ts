@@ -43,7 +43,7 @@ export class EmailService {
         });
 
         this.gmailTransporter = nodemailer.createTransport({
-          // service: 'gmail',
+          service: 'gmail',
           auth: {
             type: 'OAuth2',
             user: process.env["GMAIL_USER"],
@@ -52,7 +52,7 @@ export class EmailService {
             refreshToken: process.env["GMAIL_REFRESH_TOKEN"],
             accessToken: await oauth2Client.getAccessToken()
           }
-        });
+        } as any);
 
         (logger as any).info('Gmail transporter initialized successfully');
       }

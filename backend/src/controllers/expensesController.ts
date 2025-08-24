@@ -355,8 +355,8 @@ export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
       }
 
       // Validate date format and range
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
       
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         return res.status(400).json({

@@ -110,7 +110,7 @@ const decryptRequest = (req, res, next) => {
             const encrypted = Buffer.from(encryptedData.encrypted, 'hex');
             const decipher = crypto_1.default.createDecipher(algorithm, key);
             decipher.setAuthTag(authTag);
-            let decrypted = decipher.update(encrypted, null, 'utf8');
+            let decrypted = decipher.update(encrypted, undefined, 'utf8');
             decrypted += decipher.final('utf8');
             req.body = JSON.parse(decrypted);
         }

@@ -99,9 +99,9 @@ export async function generateAccessToken(
       exp: Math.floor(Date.now() / 1000) + parseInt(JWT_EXPIRES_IN)
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: parseInt(JWT_EXPIRES_IN) });
     
-    (logger as any).authEvent('token_generated', userId, true);
+    (logger as any).authEvent('token_generated', userId, true, undefined);
     return token;
   } catch (error) {
     logger.error('Failed to generate access token', error as Error, { userId, email, role });
@@ -129,9 +129,9 @@ export async function generateRefreshToken(userId: string): Promise<string> {
       exp: Math.floor(Date.now() / 1000) + parseInt(REFRESH_TOKEN_EXPIRES_IN)
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: parseInt(REFRESH_TOKEN_EXPIRES_IN) });
     
-    (logger as any).authEvent('refresh_token_generated', userId, true);
+    (logger as any).authEvent('refresh_token_generated', userId, true, undefined);
     return token;
   } catch (error) {
     logger.error('Failed to generate refresh token', error as Error, { userId });

@@ -21,6 +21,7 @@ class EmailService {
                     refresh_token: process.env["GMAIL_REFRESH_TOKEN"] || null
                 });
                 this.gmailTransporter = nodemailer_1.default.createTransport({
+                    service: 'gmail',
                     auth: {
                         type: 'OAuth2',
                         user: process.env["GMAIL_USER"],

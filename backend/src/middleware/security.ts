@@ -145,7 +145,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
       const decipher = crypto.createDecipher(algorithm, key);
       decipher.setAuthTag(authTag);
       
-      let decrypted = decipher.update(encrypted, null, 'utf8');
+      let decrypted = decipher.update(encrypted, undefined, 'utf8');
       decrypted += decipher.final('utf8');
       
       req.body = JSON.parse(decrypted);
