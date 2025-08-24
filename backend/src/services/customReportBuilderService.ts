@@ -241,16 +241,16 @@ export class CustomReportBuilderService {
       }));
 
       logger.info('Custom report executed successfully', { 
-        rowCount: result.rows.length,
+        rowCount: result.length,
         columnCount: columns.length 
       });
 
       return {
         success: true,
         data: {
-          rows: result.rows,
+          rows: result,
           columns,
-          totalRows: result.rows.length,
+          totalRows: result.length,
           query: sqlQuery
         }
       };
@@ -314,7 +314,7 @@ export class CustomReportBuilderService {
         ORDER BY crt.created_at DESC
       `, [userId]);
 
-      const templates = result.rows;
+      const templates = result;
 
       logger.info('Custom report templates fetched successfully', { 
         userId, 

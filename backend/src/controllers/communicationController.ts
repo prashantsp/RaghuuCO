@@ -50,7 +50,7 @@ export const getInternalMessages = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const messages = result.rows;
+    const messages = result;
 
     // Get total count for pagination
     const countResult = await db.query(`
@@ -121,7 +121,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
 
     // Get recipients
     const recipientsResult = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_BY_MESSAGE_ID, [id]);
-    const recipients = recipientsResult.rows;
+    const recipients = recipientsResult;
 
     logger.info('Internal message fetched successfully', { userId, messageId: id });
 
@@ -349,7 +349,7 @@ export const getReceivedMessages = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const messages = result.rows;
+    const messages = result;
 
     // Get unread count
     const unreadResult = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_UNREAD_COUNT, [userId]);
@@ -447,7 +447,7 @@ export const getEmailTemplates = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const templates = result.rows;
+    const templates = result;
 
     logger.info('Email templates fetched successfully', { userId, count: templates.length });
 

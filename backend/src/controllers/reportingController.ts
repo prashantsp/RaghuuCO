@@ -47,7 +47,7 @@ export const getReports = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const reports = result.rows;
+    const reports = result;
 
     logger.info('Reports fetched successfully', { userId, count: reports.length });
 
@@ -349,7 +349,7 @@ export const getReportExecutions = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const executions = result.rows;
+    const executions = result;
 
     logger.info('Report executions fetched successfully', { userId, reportId: id, count: executions.length });
 
@@ -445,10 +445,10 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     ]);
 
     const summary = {
-      pageViews: pageViewsResult.rows,
-      userActivity: userActivityResult.rows,
-      totalEvents: userActivityResult.rows.reduce((sum, user) => sum + parseInt(user.event_count), 0),
-      activeUsers: userActivityResult.rows.length
+      pageViews: pageViewsResult,
+      userActivity: userActivityResult,
+      totalEvents: userActivityResult.reduce((sum, user) => sum + parseInt(user.event_count), 0),
+      activeUsers: userActivityResult.length
     };
 
     logger.info('Analytics summary fetched successfully', { userId });
@@ -494,7 +494,7 @@ export const recordPerformanceMetric = async (req: Request, res: Response) => {
       tags || {}
     ]);
 
-    const metric = result.rows[0];
+    const metric = result[0];
 
     res.status(201).json({
       success: true,

@@ -22,7 +22,7 @@ const getReports = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const reports = result.rows;
+        const reports = result;
         logger_1.default.info('Reports fetched successfully', { userId, count: reports.length });
         res.json({
             success: true,
@@ -237,7 +237,7 @@ const getReportExecutions = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const executions = result.rows;
+        const executions = result;
         logger_1.default.info('Report executions fetched successfully', { userId, reportId: id, count: executions.length });
         res.json({
             success: true,
@@ -303,10 +303,10 @@ const getAnalyticsSummary = async (req, res) => {
             endDate || new Date()
         ]);
         const summary = {
-            pageViews: pageViewsResult.rows,
-            userActivity: userActivityResult.rows,
-            totalEvents: userActivityResult.rows.reduce((sum, user) => sum + parseInt(user.event_count), 0),
-            activeUsers: userActivityResult.rows.length
+            pageViews: pageViewsResult,
+            userActivity: userActivityResult,
+            totalEvents: userActivityResult.reduce((sum, user) => sum + parseInt(user.event_count), 0),
+            activeUsers: userActivityResult.length
         };
         logger_1.default.info('Analytics summary fetched successfully', { userId });
         res.json({
@@ -337,7 +337,7 @@ const recordPerformanceMetric = async (req, res) => {
             metricUnit,
             tags || {}
         ]);
-        const metric = result.rows[0];
+        const metric = result[0];
         res.status(201).json({
             success: true,
             data: { metric }

@@ -98,7 +98,7 @@ export const getRecentActivities = async (req: Request, res: Response) => {
     const activities = await db.query(SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
 
     // Format activities for frontend
-    const formattedActivities = activities.rows.map((activity: any) => ({
+    const formattedActivities = activities.map((activity: any) => ({
       id: activity.id,
       type: activity.resource_type,
       action: activity.action,

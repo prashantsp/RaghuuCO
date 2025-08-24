@@ -168,9 +168,9 @@ export const getRevenueAnalytics = async (req: Request, res: Response) => {
     `);
 
     const analytics = {
-      monthlyRevenue: monthlyRevenueResult.rows,
-      revenueByCaseType: revenueByCaseTypeResult.rows,
-      revenueByLawyer: revenueByLawyerResult.rows
+      monthlyRevenue: monthlyRevenueResult,
+      revenueByCaseType: revenueByCaseTypeResult,
+      revenueByLawyer: revenueByLawyerResult
     };
 
     logger.info('Revenue analytics fetched successfully', { userId });
@@ -241,9 +241,9 @@ export const getExpenseAnalytics = async (req: Request, res: Response) => {
     `);
 
     const analytics = {
-      monthlyExpenses: monthlyExpensesResult.rows,
-      expensesByCategory: expensesByCategoryResult.rows,
-      recentExpenses: recentExpensesResult.rows
+      monthlyExpenses: monthlyExpensesResult,
+      expensesByCategory: expensesByCategoryResult,
+      recentExpenses: recentExpensesResult
     };
 
     logger.info('Expense analytics fetched successfully', { userId });
@@ -302,8 +302,8 @@ export const getProfitLossStatement = async (req: Request, res: Response) => {
     // Calculate profit/loss for each month
     const monthlyData = [];
     for (let month = 1; month <= 12; month++) {
-      const revenue = revenueResult.rows.find(r => r.month === month)?.revenue || 0;
-      const expenses = expensesResult.rows.find(e => e.month === month)?.expenses || 0;
+      const revenue = revenueResult.find(r => r.month === month)?.revenue || 0;
+      const expenses = expensesResult.find(e => e.month === month)?.expenses || 0;
       const profit = revenue - expenses;
 
       monthlyData.push({

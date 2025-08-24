@@ -25,7 +25,7 @@ const getTasks = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const tasks = result.rows;
+        const tasks = result;
         const countResult = await db.query(`
       SELECT COUNT(*) as total
       FROM tasks t

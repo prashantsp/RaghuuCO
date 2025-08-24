@@ -292,9 +292,9 @@ export const getTeamProductivityAnalytics = async (req: Request, res: Response) 
     `);
 
     const analytics = {
-      timeTracking: teamTimeTrackingResult.rows,
-      taskCompletion: teamTaskCompletionResult.rows,
-      caseProductivity: teamCaseProductivityResult.rows
+      timeTracking: teamTimeTrackingResult,
+      taskCompletion: teamTaskCompletionResult,
+      caseProductivity: teamCaseProductivityResult
     };
 
     logger.info('Team productivity analytics fetched successfully', { userId });
@@ -388,9 +388,9 @@ export const getEfficiencyMetrics = async (req: Request, res: Response) => {
     `);
 
     const metrics = {
-      timeUtilization: timeUtilizationResult.rows,
-      taskEfficiency: taskEfficiencyResult.rows,
-      caseEfficiency: caseEfficiencyResult.rows
+      timeUtilization: timeUtilizationResult,
+      taskEfficiency: taskEfficiencyResult,
+      caseEfficiency: caseEfficiencyResult
     };
 
     logger.info('Efficiency metrics fetched successfully', { userId });
@@ -488,9 +488,9 @@ export const getPerformanceBenchmarking = async (req: Request, res: Response) =>
     `);
 
     const benchmarking = {
-      roleBenchmarks: roleBenchmarksResult.rows,
-      topPerformersByRole: topPerformersByRoleResult.rows,
-      performanceTrends: performanceTrendsResult.rows
+      roleBenchmarks: roleBenchmarksResult,
+      topPerformersByRole: topPerformersByRoleResult,
+      performanceTrends: performanceTrendsResult
     };
 
     logger.info('Performance benchmarking fetched successfully', { userId });

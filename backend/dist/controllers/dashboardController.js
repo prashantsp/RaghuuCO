@@ -64,7 +64,7 @@ const getRecentActivities = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         logger_1.default.info('Fetching recent activities', { userId, limit });
         const activities = await db.query(db_SQLQueries_1.SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
-        const formattedActivities = activities.rows.map((activity) => ({
+        const formattedActivities = activities.map((activity) => ({
             id: activity.id,
             type: activity.resource_type,
             action: activity.action,

@@ -236,9 +236,9 @@ const getTeamProductivityAnalytics = async (req, res) => {
       ORDER BY completed_cases DESC
     `);
         const analytics = {
-            timeTracking: teamTimeTrackingResult.rows,
-            taskCompletion: teamTaskCompletionResult.rows,
-            caseProductivity: teamCaseProductivityResult.rows
+            timeTracking: teamTimeTrackingResult,
+            taskCompletion: teamTaskCompletionResult,
+            caseProductivity: teamCaseProductivityResult
         };
         logger_1.default.info('Team productivity analytics fetched successfully', { userId });
         res.json({
@@ -317,9 +317,9 @@ const getEfficiencyMetrics = async (req, res) => {
       ORDER BY week DESC
     `);
         const metrics = {
-            timeUtilization: timeUtilizationResult.rows,
-            taskEfficiency: taskEfficiencyResult.rows,
-            caseEfficiency: caseEfficiencyResult.rows
+            timeUtilization: timeUtilizationResult,
+            taskEfficiency: taskEfficiencyResult,
+            caseEfficiency: caseEfficiencyResult
         };
         logger_1.default.info('Efficiency metrics fetched successfully', { userId });
         res.json({
@@ -402,9 +402,9 @@ const getPerformanceBenchmarking = async (req, res) => {
       ORDER BY month DESC
     `);
         const benchmarking = {
-            roleBenchmarks: roleBenchmarksResult.rows,
-            topPerformersByRole: topPerformersByRoleResult.rows,
-            performanceTrends: performanceTrendsResult.rows
+            roleBenchmarks: roleBenchmarksResult,
+            topPerformersByRole: topPerformersByRoleResult,
+            performanceTrends: performanceTrendsResult
         };
         logger_1.default.info('Performance benchmarking fetched successfully', { userId });
         res.json({

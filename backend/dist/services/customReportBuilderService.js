@@ -195,15 +195,15 @@ class CustomReportBuilderService {
                 label: field.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
             }));
             logger_1.default.info('Custom report executed successfully', {
-                rowCount: result.rows.length,
+                rowCount: result.length,
                 columnCount: columns.length
             });
             return {
                 success: true,
                 data: {
-                    rows: result.rows,
+                    rows: result,
                     columns,
-                    totalRows: result.rows.length,
+                    totalRows: result.length,
                     query: sqlQuery
                 }
             };
@@ -254,7 +254,7 @@ class CustomReportBuilderService {
         WHERE crt.is_public = true OR crt.created_by = $1
         ORDER BY crt.created_at DESC
       `, [userId]);
-            const templates = result.rows;
+            const templates = result;
             logger_1.default.info('Custom report templates fetched successfully', {
                 userId,
                 count: templates.length

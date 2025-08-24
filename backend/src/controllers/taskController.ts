@@ -54,7 +54,7 @@ export const getTasks = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const tasks = result.rows;
+    const tasks = result;
 
     // Get total count for pagination
     const countResult = await db.query(`

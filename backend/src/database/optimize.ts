@@ -370,7 +370,7 @@ export async function analyzeQueryPerformance(): Promise<any> {
     const results = [];
     for (const query of analysisQueries) {
       const result = await db.query(query);
-      results.push(result.rows);
+      results.push(result);
     }
     
     logger.info('Query performance analysis completed');

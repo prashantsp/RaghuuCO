@@ -271,7 +271,7 @@ async function analyzeQueryPerformance() {
         const results = [];
         for (const query of analysisQueries) {
             const result = await db.query(query);
-            results.push(result.rows);
+            results.push(result);
         }
         logger_1.logger.info('Query performance analysis completed');
         return results;

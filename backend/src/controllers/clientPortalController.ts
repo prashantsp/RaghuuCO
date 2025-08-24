@@ -244,7 +244,7 @@ export const getClientCases = async (req: Request, res: Response) => {
     logger.info('Fetching client cases', { clientId });
 
     const result = await db.query(SQLQueries.CLIENT_PORTAL_CASES.GET_BY_CLIENT_ID, [clientId]);
-    const cases = result.rows;
+    const cases = result;
 
     logger.info('Client cases fetched successfully', { clientId, count: cases.length });
 

@@ -23,7 +23,7 @@ const getInternalMessages = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const messages = result.rows;
+        const messages = result;
         const countResult = await db.query(`
       SELECT COUNT(*) as total
       FROM internal_messages im
@@ -79,7 +79,7 @@ const getInternalMessageById = async (req, res) => {
             });
         }
         const recipientsResult = await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.GET_BY_MESSAGE_ID, [id]);
-        const recipients = recipientsResult.rows;
+        const recipients = recipientsResult;
         logger_1.default.info('Internal message fetched successfully', { userId, messageId: id });
         res.json({
             success: true,
@@ -240,7 +240,7 @@ const getReceivedMessages = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const messages = result.rows;
+        const messages = result;
         const unreadResult = await db.query(db_SQLQueries_1.SQLQueries.MESSAGE_RECIPIENTS.GET_UNREAD_COUNT, [userId]);
         const unreadCount = parseInt(unreadResult[0]?.unread_count || '0');
         logger_1.default.info('Received messages fetched successfully', { userId, count: messages.length, unreadCount });
@@ -315,7 +315,7 @@ const getEmailTemplates = async (req, res) => {
             parseInt(limit),
             offset
         ]);
-        const templates = result.rows;
+        const templates = result;
         logger_1.default.info('Email templates fetched successfully', { userId, count: templates.length });
         res.json({
             success: true,
