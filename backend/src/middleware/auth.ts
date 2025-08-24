@@ -101,7 +101,7 @@ export async function generateAccessToken(
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
     
-    logger.authEvent('token_generated', userId, true, undefined);
+    logger.authEvent('token_generated', userId, true);
     return token;
   } catch (error) {
     logger.error('Failed to generate access token', error as Error, { userId, email, role });
@@ -131,7 +131,7 @@ export async function generateRefreshToken(userId: string): Promise<string> {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
     
-    logger.authEvent('refresh_token_generated', userId, true, undefined);
+    logger.authEvent('refresh_token_generated', userId, true);
     return token;
   } catch (error) {
     logger.error('Failed to generate refresh token', error as Error, { userId });

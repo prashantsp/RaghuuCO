@@ -225,7 +225,7 @@ const getMonthlyExpenseTotals = async (req, res) => {
             });
         }
         logger_1.default.info('Getting monthly expense totals', { startDate, endDate });
-        const result = await expensesService_1.expensesService.getMonthlyExpenseTotals(startDate, endDate);
+        const result = await expensesService_1.expensesService.getMonthlyExpenseTotals(startDate || '', endDate || '');
         res.json(result);
     }
     catch (error) {
