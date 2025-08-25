@@ -20,16 +20,15 @@ import logger from '@/utils/logger';
 export class PaymentService {
   private razorpayKeyId: string;
   private razorpayKeySecret: string;
-  private payuMerchantId: string;
+  // private payuMerchantId: string;
   private payuMerchantKey: string;
   private payuMerchantSalt: string;
 
   constructor() {
-    this.razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
-    this.razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
-    this.payuMerchantId = process.env.PAYU_MERCHANT_ID || '';
-    this.payuMerchantKey = process.env.PAYU_MERCHANT_KEY || '';
-    this.payuMerchantSalt = process.env.PAYU_MERCHANT_SALT || '';
+    this.razorpayKeyId = process.env["RAZORPAY_KEY_ID"] || '';
+    this.razorpayKeySecret = process.env["RAZORPAY_KEY_SECRET"] || '';
+    this.payuMerchantKey = (process as any).env.PAYU_MERCHANT_KEY || '';
+    this.payuMerchantSalt = process.env["PAYU_MERCHANT_SALT"] || '';
   }
 
   /**
@@ -101,8 +100,8 @@ export class PaymentService {
         firstname: 'Customer',
         email: customerEmail,
         phone: '',
-        surl: `${process.env.BASE_URL}/api/v1/payments/success`,
-        furl: `${process.env.BASE_URL}/api/v1/payments/failure`,
+        surl: `${process.env["BASE_URL"]}/api/v1/payments/success`,
+        furl: `${process.env["BASE_URL"]}/api/v1/payments/failure`,
         hash
       };
 
@@ -120,16 +119,16 @@ export class PaymentService {
  * Handles Gmail and Outlook integrations
  */
 export class EmailService {
-  private gmailClientId: string;
-  private gmailClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private gmailClientId: string;
+  // private gmailClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
-    this.gmailClientId = process.env.GMAIL_CLIENT_ID || '';
-    this.gmailClientSecret = process.env.GMAIL_CLIENT_SECRET || '';
-    this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
-    this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
+    // this.gmailClientId = (process as any).env.GMAIL_CLIENT_ID || '';
+    // this.gmailClientSecret = (process as any).env.GMAIL_CLIENT_SECRET || '';
+    // this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    // this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**
@@ -216,10 +215,10 @@ export class DocumentSigningService {
   private docusignPrivateKey: string;
 
   constructor() {
-    this.docusignAccountId = process.env.DOCUSIGN_ACCOUNT_ID || '';
-    this.docusignIntegrationKey = process.env.DOCUSIGN_INTEGRATION_KEY || '';
-    this.docusignUserId = process.env.DOCUSIGN_USER_ID || '';
-    this.docusignPrivateKey = process.env.DOCUSIGN_PRIVATE_KEY || '';
+    this.docusignAccountId = process.env["DOCUSIGN_ACCOUNT_ID"] || '';
+    this.docusignIntegrationKey = process.env["DOCUSIGN_INTEGRATION_KEY"] || '';
+    this.docusignUserId = process.env["DOCUSIGN_USER_ID"] || '';
+    this.docusignPrivateKey = process.env["DOCUSIGN_PRIVATE_KEY"] || '';
   }
 
   /**
@@ -327,11 +326,11 @@ export class SMSService {
   private textlocalSender: string;
 
   constructor() {
-    this.twilioAccountSid = process.env.TWILIO_ACCOUNT_SID || '';
-    this.twilioAuthToken = process.env.TWILIO_AUTH_TOKEN || '';
-    this.twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER || '';
-    this.textlocalApiKey = process.env.TEXTLOCAL_API_KEY || '';
-    this.textlocalSender = process.env.TEXTLOCAL_SENDER || '';
+    this.twilioAccountSid = process.env["TWILIO_ACCOUNT_SID"] || '';
+    this.twilioAuthToken = process.env["TWILIO_AUTH_TOKEN"] || '';
+    this.twilioPhoneNumber = process.env["TWILIO_PHONE_NUMBER"] || '';
+    this.textlocalApiKey = process.env["TEXTLOCAL_API_KEY"] || '';
+    this.textlocalSender = process.env["TEXTLOCAL_SENDER"] || '';
   }
 
   /**
@@ -390,16 +389,16 @@ export class SMSService {
  * Handles Google Calendar and Outlook Calendar integrations
  */
 export class CalendarService {
-  private googleClientId: string;
-  private googleClientSecret: string;
-  private outlookClientId: string;
-  private outlookClientSecret: string;
+  // private googleClientId: string;
+  // private googleClientSecret: string;
+  // private outlookClientId: string;
+  // private outlookClientSecret: string;
 
   constructor() {
-    this.googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    this.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-    this.outlookClientId = process.env.OUTLOOK_CLIENT_ID || '';
-    this.outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET || '';
+    // this.googleClientId = (process as any).env.GOOGLE_CLIENT_ID || '';
+    // this.googleClientSecret = (process as any).env.GOOGLE_CLIENT_SECRET || '';
+    // this.outlookClientId = (process as any).env.OUTLOOK_CLIENT_ID || '';
+    // this.outlookClientSecret = (process as any).env.OUTLOOK_CLIENT_SECRET || '';
   }
 
   /**

@@ -12,7 +12,21 @@
 import { Router } from 'express';
 import { authenticateToken, authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
-import expensesController from '@/controllers/expensesController';
+import {
+  createExpense,
+  getExpenses,
+  searchExpenses,
+  getExpenseCategories,
+  getMonthlyExpenseTotals,
+  getExpensesByCase,
+  getExpensesByClient,
+  getCaseExpenseTotals,
+  getClientExpenseTotals,
+  getExpenseById,
+  updateExpense,
+  deleteExpense,
+  approveExpense
+} from '@/controllers/expensesController';
 
 const router = Router();
 
@@ -23,8 +37,7 @@ const router = Router();
  */
 router.post('/', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EXPENSES),
-  expensesController.createExpense
+  createExpense
 );
 
 /**
@@ -34,8 +47,7 @@ router.post('/',
  */
 router.get('/', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getExpenses
+  getExpenses
 );
 
 /**
@@ -45,8 +57,7 @@ router.get('/',
  */
 router.get('/search', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.searchExpenses
+  searchExpenses
 );
 
 /**
@@ -56,8 +67,7 @@ router.get('/search',
  */
 router.get('/categories', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getExpenseCategories
+  getExpenseCategories
 );
 
 /**
@@ -67,8 +77,7 @@ router.get('/categories',
  */
 router.get('/totals/monthly', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getMonthlyExpenseTotals
+  getMonthlyExpenseTotals
 );
 
 /**
@@ -78,8 +87,7 @@ router.get('/totals/monthly',
  */
 router.get('/case/:caseId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getExpensesByCase
+  getExpensesByCase
 );
 
 /**
@@ -89,8 +97,7 @@ router.get('/case/:caseId',
  */
 router.get('/client/:clientId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getExpensesByClient
+  getExpensesByClient
 );
 
 /**
@@ -100,8 +107,7 @@ router.get('/client/:clientId',
  */
 router.get('/totals/case/:caseId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getCaseExpenseTotals
+  getCaseExpenseTotals
 );
 
 /**
@@ -111,8 +117,7 @@ router.get('/totals/case/:caseId',
  */
 router.get('/totals/client/:clientId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getClientExpenseTotals
+  getClientExpenseTotals
 );
 
 /**
@@ -122,8 +127,7 @@ router.get('/totals/client/:clientId',
  */
 router.get('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_EXPENSES),
-  expensesController.getExpenseById
+  getExpenseById
 );
 
 /**
@@ -133,8 +137,7 @@ router.get('/:id',
  */
 router.put('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EXPENSES),
-  expensesController.updateExpense
+  updateExpense
 );
 
 /**
@@ -144,8 +147,7 @@ router.put('/:id',
  */
 router.post('/:id/approve', 
   authenticateToken, 
-  authorizePermission(Permission.APPROVE_EXPENSES),
-  expensesController.approveExpense
+  approveExpense
 );
 
 /**
@@ -155,8 +157,7 @@ router.post('/:id/approve',
  */
 router.delete('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_EXPENSES),
-  expensesController.deleteExpense
+  deleteExpense
 );
 
 export default router;

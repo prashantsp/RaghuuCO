@@ -14,6 +14,7 @@ import DatabaseService from '@/services/DatabaseService';
 import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -53,7 +54,7 @@ export const getTasks = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const tasks = result.rows;
+    const tasks = result;
 
     // Get total count for pagination
     const countResult = await db.query(`
@@ -71,12 +72,12 @@ export const getTasks = async (req: Request, res: Response) => {
       AND ($7::uuid IS NULL OR t.client_id = $7)
     `, [search || null, status || null, priority || null, taskType || null, assignedTo || null, caseId || null, clientId || null]);
 
-    const total = parseInt(countResult.rows[0]?.total || '0');
+    const total = parseInt(countResult[0]?.total || '0');
     const totalPages = Math.ceil(total / parseInt(limit as string));
 
     logger.info('Tasks fetched successfully', { userId, count: tasks.length });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         tasks,
@@ -90,7 +91,7 @@ export const getTasks = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching tasks', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASKS_FETCH_ERROR',
@@ -114,7 +115,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     logger.info('Fetching task by ID', { userId, taskId: id });
 
     const result = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const task = result.rows[0];
+    const task = result[0];
 
     if (!task) {
       return res.status(404).json({
@@ -128,15 +129,15 @@ export const getTaskById = async (req: Request, res: Response) => {
 
     // Get task dependencies
     const dependenciesResult = await db.query(SQLQueries.TASKS.GET_DEPENDENCIES, [id]);
-    const dependencies = dependenciesResult.rows;
+    const dependencies = dependenciesResult;
 
     // Get task time entries
     const timeEntriesResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_BY_TASK_ID, [id]);
-    const timeEntries = timeEntriesResult.rows;
+    const timeEntries = timeEntriesResult;
 
     logger.info('Task fetched successfully', { userId, taskId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         task: {
@@ -148,7 +149,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_FETCH_ERROR',
@@ -202,7 +203,7 @@ export const createTask = async (req: Request, res: Response) => {
       tags || []
     ]);
 
-    const task = result.rows[0];
+    const task = result[0];
 
     // Create dependencies if provided
     if (dependencies && Array.isArray(dependencies)) {
@@ -217,13 +218,13 @@ export const createTask = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_created', 'task', task.id, userId);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { task }
     });
   } catch (error) {
     logger.error('Error creating task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_CREATE_ERROR',
@@ -260,11 +261,31 @@ export const updateTask = async (req: Request, res: Response) => {
       tags
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating task', { userId, taskId: id });
 
     // Check if task exists
     const currentResult = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const currentTask = currentResult.rows[0];
+    const currentTask = currentResult[0];
 
     if (!currentTask) {
       return res.status(404).json({
@@ -295,17 +316,17 @@ export const updateTask = async (req: Request, res: Response) => {
       tags || currentTask.tags
     ]);
 
-    const updatedTask = result.rows[0];
+    const updatedTask = result[0];
 
     logger.businessEvent('task_updated', 'task', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { task: updatedTask }
     });
   } catch (error) {
     logger.error('Error updating task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_UPDATE_ERROR',
@@ -326,11 +347,31 @@ export const deleteTask = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Deleting task', { userId, taskId: id });
 
     // Check if task exists
     const currentResult = await db.query(SQLQueries.TASKS.GET_BY_ID, [id]);
-    const task = currentResult.rows[0];
+    const task = currentResult[0];
 
     if (!task) {
       return res.status(404).json({
@@ -350,13 +391,13 @@ export const deleteTask = async (req: Request, res: Response) => {
 
     logger.businessEvent('task_deleted', 'task', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Task deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting task', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_DELETE_ERROR',
@@ -384,17 +425,17 @@ export const getTaskStats = async (req: Request, res: Response) => {
       caseId || null
     ]);
 
-    const stats = result.rows[0];
+    const stats = result[0];
 
     logger.info('Task statistics fetched successfully', { userId });
 
-    res.json({
+    return res.json({
       success: true,
       data: { stats }
     });
   } catch (error) {
     logger.error('Error fetching task statistics', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_STATS_ERROR',
@@ -416,11 +457,31 @@ export const startTaskTimer = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
     const { description } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TASK_ID',
+          message: 'Task ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Starting task timer', { userId, taskId: id });
 
     // Check if user has active timer
     const activeTimerResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-    const activeTimer = activeTimerResult.rows[0];
+    const activeTimer = activeTimerResult[0];
 
     if (activeTimer) {
       return res.status(400).json({
@@ -444,17 +505,17 @@ export const startTaskTimer = async (req: Request, res: Response) => {
       null
     ]);
 
-    const timeEntry = result.rows[0];
+    const timeEntry = result[0];
 
     logger.businessEvent('task_timer_started', 'task_time_entry', timeEntry.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { timeEntry }
     });
   } catch (error) {
     logger.error('Error starting task timer', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_TIMER_START_ERROR',
@@ -479,7 +540,7 @@ export const stopTaskTimer = async (req: Request, res: Response) => {
 
     // Get active timer
     const activeTimerResult = await db.query(SQLQueries.TASK_TIME_ENTRIES.GET_ACTIVE_TIMER, [userId]);
-    const activeTimer = activeTimerResult.rows[0];
+    const activeTimer = activeTimerResult[0];
 
     if (!activeTimer) {
       return res.status(400).json({
@@ -505,17 +566,17 @@ export const stopTaskTimer = async (req: Request, res: Response) => {
       activeTimer.billing_rate
     ]);
 
-    const timeEntry = result.rows[0];
+    const timeEntry = result[0];
 
     logger.businessEvent('task_timer_stopped', 'task_time_entry', timeEntry.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { timeEntry }
     });
   } catch (error) {
     logger.error('Error stopping task timer', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TASK_TIMER_STOP_ERROR',

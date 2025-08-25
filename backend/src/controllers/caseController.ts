@@ -11,12 +11,12 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
-import { UserRole, hasPermission } from '@/utils/roleAccess';
+import { UserRole, hasPermission, Permission } from '@/utils/roleAccess';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
+// import { DatabaseConfig } from '@/config/database';
 
-const db = new DatabaseService(databaseConfig);
+const db = new DatabaseService();
 
 /**
  * Get all cases with pagination and filtering
@@ -24,12 +24,12 @@ const db = new DatabaseService(databaseConfig);
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getCases(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getCases(req: Request, res: Response): Promise<void> {
   try {
     const { page = 1, limit = 20, search, status, priority, assignedTo, clientId, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -72,7 +72,7 @@ export async function getCases(req: AuthenticatedRequest, res: Response): Promis
     }
 
     const whereClause = searchConditions.length > 0 ? `WHERE ${searchConditions.join(' AND ')}` : '';
-    const orderClause = `ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}`;
+    const orderClause = `ORDER BY c.${sortBy} ${(sortOrder as string).toUpperCase()}`;
     
     // Get cases with pagination and related data
     const cases = await db.query(`
@@ -101,7 +101,7 @@ export async function getCases(req: AuthenticatedRequest, res: Response): Promis
 
     const total = parseInt(countResult[0].total);
 
-    logger.businessEvent('cases_retrieved', 'case', 'multiple', req.user?.id || 'system', {
+    logger.businessEvent('cases_retrieved', 'case', 'multiple', (req.user as any)?.id || 'system', {
       page: Number(page),
       limit: Number(limit),
       total,
@@ -138,12 +138,12 @@ export async function getCases(req: AuthenticatedRequest, res: Response): Promis
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getCaseById(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getCaseById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -154,7 +154,7 @@ export async function getCaseById(req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
-    const caseData = await db.getCaseById(id);
+    const caseData = await db.getCaseById(id || '');
     
     if (!caseData) {
       res.status(404).json({
@@ -195,7 +195,7 @@ export async function getCaseById(req: AuthenticatedRequest, res: Response): Pro
       LIMIT 50
     `, [id]);
 
-    logger.businessEvent('case_retrieved', 'case', id, req.user?.id || 'system');
+    logger.businessEvent('case_retrieved', 'case', id || '', (req.user as any)?.id || 'system');
 
     res.json({
       success: true,
@@ -224,15 +224,15 @@ export async function getCaseById(req: AuthenticatedRequest, res: Response): Pro
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function createCase(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function createCase(req: Request, res: Response): Promise<void> {
   try {
     const { 
       title, description, clientId, assignedTo, priority, dueDate, 
-      tags, category, estimatedHours, billingRate 
+      category 
     } = req.body;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:create')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.CREATE_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -278,23 +278,19 @@ export async function createCase(req: AuthenticatedRequest, res: Response): Prom
     const caseData = await db.createCase({
       caseNumber,
       title,
+      caseType: category || 'general',
       description,
       clientId,
-      assignedTo: assignedTo || req.user?.id,
-      assignedBy: req.user?.id || 'system',
-      priority: priority || 'medium',
-      dueDate,
-      tags: tags || [],
-      category: category || 'general',
-      estimatedHours,
-      billingRate
-    });
+      assignedPartner: assignedTo || (req.user as any)?.id,
+      startDate: dueDate || new Date().toISOString(),
+      priority: priority || 'medium'
+    }, (req.user as any)?.id || 'system');
 
-    logger.businessEvent('case_created', 'case', caseData.id, req.user?.id || 'system', {
+    logger.businessEvent('case_created', 'case', caseData.id, (req.user as any)?.id || 'system', {
       caseNumber,
       clientId,
       assignedTo,
-      createdBy: req.user?.id
+      createdBy: (req.user as any)?.id
     });
 
     res.status(201).json({
@@ -319,16 +315,16 @@ export async function createCase(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function updateCase(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function updateCase(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { 
       title, description, assignedTo, status, priority, dueDate, 
-      tags, category, estimatedHours, actualHours, billingRate 
+      category, estimatedHours, actualHours 
     } = req.body;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:update')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.UPDATE_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -340,7 +336,7 @@ export async function updateCase(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Get existing case
-    const existingCase = await db.getCaseById(id);
+    const existingCase = await db.getCaseById(id || '');
     if (!existingCase) {
       res.status(404).json({
         success: false,
@@ -375,17 +371,15 @@ export async function updateCase(req: AuthenticatedRequest, res: Response): Prom
     if (status) updateData.status = status;
     if (priority) updateData.priority = priority;
     if (dueDate) updateData.dueDate = dueDate;
-    if (tags) updateData.tags = tags;
     if (category) updateData.category = category;
     if (estimatedHours !== undefined) updateData.estimatedHours = estimatedHours;
     if (actualHours !== undefined) updateData.actualHours = actualHours;
-    if (billingRate !== undefined) updateData.billingRate = billingRate;
 
-    const caseData = await db.updateCase(id, updateData);
+    const caseData = await db.updateCase(id || '', updateData);
 
-    logger.businessEvent('case_updated', 'case', id, req.user?.id || 'system', {
+    logger.businessEvent('case_updated', 'case', id || '', (req.user as any)?.id || 'system', {
       updatedFields: Object.keys(updateData),
-      updatedBy: req.user?.id
+      updatedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -410,12 +404,12 @@ export async function updateCase(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function deleteCase(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function deleteCase(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:delete')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.DELETE_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -427,7 +421,7 @@ export async function deleteCase(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Get existing case
-    const existingCase = await db.getCaseById(id);
+    const existingCase = await db.getCaseById(id || '');
     if (!existingCase) {
       res.status(404).json({
         success: false,
@@ -452,11 +446,11 @@ export async function deleteCase(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Soft delete case
-    await db.query('UPDATE cases SET status = $1, updated_at = NOW() WHERE id = $2', ['deleted', id]);
+    await db.query('UPDATE cases SET status = $1, updated_at = NOW() WHERE id = $2', ['deleted', id || '']);
 
-    logger.businessEvent('case_deleted', 'case', id, req.user?.id || 'system', {
+    logger.businessEvent('case_deleted', 'case', id || '', (req.user as any)?.id || 'system', {
       deletedCase: existingCase.case_number,
-      deletedBy: req.user?.id
+      deletedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -481,10 +475,10 @@ export async function deleteCase(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getCaseStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getCaseStats(req: Request, res: Response): Promise<void> {
   try {
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'case:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, Permission.VIEW_CASES)) {
       res.status(403).json({
         success: false,
         error: {
@@ -541,7 +535,7 @@ export async function getCaseStats(req: AuthenticatedRequest, res: Response): Pr
       LIMIT 10
     `);
 
-    logger.businessEvent('case_stats_retrieved', 'case', 'statistics', req.user?.id || 'system');
+    logger.businessEvent('case_stats_retrieved', 'case', 'statistics', (req.user as any)?.id || 'system');
 
     res.json({
       success: true,

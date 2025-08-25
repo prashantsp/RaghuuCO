@@ -132,6 +132,16 @@ export const getArticleById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ARTICLE_ID',
+          message: 'Article ID is required'
+        }
+      });
+    }
+
     logger.info('Getting article by ID', { articleId: id });
 
     const result = await contentManagementService.getArticleById(id);
@@ -158,6 +168,16 @@ export const getArticleById = async (req: Request, res: Response) => {
 export const getArticleBySlug = async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
+
+    if (!slug) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ARTICLE_SLUG',
+          message: 'Article slug is required'
+        }
+      });
+    }
 
     logger.info('Getting article by slug', { slug });
 
@@ -235,10 +255,10 @@ export const searchArticles = async (req: Request, res: Response) => {
       parseInt(offset as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error searching articles', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'ARTICLE_SEARCH_ERROR',
@@ -317,6 +337,16 @@ export const createComment = async (req: Request, res: Response) => {
 export const getArticleComments = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ARTICLE_ID',
+          message: 'Article ID is required'
+        }
+      });
+    }
 
     logger.info('Getting article comments', { articleId: id });
 
@@ -523,6 +553,26 @@ export const trackContentAnalytics = async (req: Request, res: Response) => {
 export const getContentStats = async (req: Request, res: Response) => {
   try {
     const { contentType, contentId } = req.params;
+
+    if (!contentId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CONTENT_ID',
+          message: 'Content ID is required'
+        }
+      });
+    }
+
+    if (!contentType) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CONTENT_TYPE',
+          message: 'Content type is required'
+        }
+      });
+    }
 
     logger.info('Getting content statistics', { contentType, contentId });
 

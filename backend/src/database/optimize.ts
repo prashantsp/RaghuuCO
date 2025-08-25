@@ -370,7 +370,7 @@ export async function analyzeQueryPerformance(): Promise<any> {
     const results = [];
     for (const query of analysisQueries) {
       const result = await db.query(query);
-      results.push(result.rows);
+      results.push(result);
     }
     
     logger.info('Query performance analysis completed');
@@ -400,7 +400,7 @@ export async function getDatabaseMetrics(): Promise<any> {
         (SELECT pg_database_size(current_database())) as database_size_bytes
     `);
     
-    return metrics.rows[0];
+    return metrics[0];
   } catch (error) {
     logger.error('Error getting database metrics:', error as Error);
     throw error;

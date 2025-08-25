@@ -10,6 +10,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import { expensesService } from '@/services/expensesService';
 import logger from '@/utils/logger';
 
@@ -19,9 +20,9 @@ import logger from '@/utils/logger';
  * @route POST /api/v1/expenses
  * @access Private
  */
-export const createExpense = async (req: Request, res: Response) => {
+export const createExpense = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = req.user?.id;
     const expenseData = {
       ...req.body,
       createdBy: userId
@@ -53,6 +54,16 @@ export const createExpense = async (req: Request, res: Response) => {
 export const getExpenseById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_EXPENSE_ID',
+          message: 'Expense ID is required'
+        }
+      });
+    }
 
     logger.info('Getting expense by ID', { expenseId: id });
 
@@ -112,6 +123,16 @@ export const getExpensesByCase = async (req: Request, res: Response) => {
   try {
     const { caseId } = req.params;
 
+    if (!caseId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CASE_ID',
+          message: 'Case ID is required'
+        }
+      });
+    }
+
     logger.info('Getting expenses by case', { caseId });
 
     const result = await expensesService.getExpensesByCase(caseId);
@@ -138,6 +159,16 @@ export const getExpensesByCase = async (req: Request, res: Response) => {
 export const getExpensesByClient = async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
+
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CLIENT_ID',
+          message: 'Client ID is required'
+        }
+      });
+    }
 
     logger.info('Getting expenses by client', { clientId });
 
@@ -167,6 +198,16 @@ export const updateExpense = async (req: Request, res: Response) => {
     const { id } = req.params;
     const expenseData = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_EXPENSE_ID',
+          message: 'Expense ID is required'
+        }
+      });
+    }
+
     logger.info('Updating expense', { expenseId: id });
 
     const result = await expensesService.updateExpense(id, expenseData);
@@ -194,6 +235,16 @@ export const deleteExpense = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_EXPENSE_ID',
+          message: 'Expense ID is required'
+        }
+      });
+    }
+
     logger.info('Deleting expense', { expenseId: id });
 
     const result = await expensesService.deleteExpense(id);
@@ -217,10 +268,30 @@ export const deleteExpense = async (req: Request, res: Response) => {
  * @route POST /api/v1/expenses/:id/approve
  * @access Private
  */
-export const approveExpense = async (req: Request, res: Response) => {
+export const approveExpense = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req.user as any)?.id;
+    const userId = req.user?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_EXPENSE_ID',
+          message: 'Expense ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Approving expense', { expenseId: id, userId });
 
@@ -285,8 +356,8 @@ export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
       }
 
       // Validate date format and range
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
       
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         return res.status(400).json({
@@ -320,14 +391,14 @@ export const getMonthlyExpenseTotals = async (req: Request, res: Response) => {
         });
       }
 
-    logger.info('Getting monthly expense totals', { startDate, endDate });
+    (logger as any).info('Getting monthly expense totals', { startDate, endDate });
 
-    const result = await expensesService.getMonthlyExpenseTotals(startDate as string, endDate as string);
+    const result = await expensesService.getMonthlyExpenseTotals(startDate as string || '', endDate as string || '');
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
-    logger.error('Error getting monthly expense totals', error as Error);
-    res.status(500).json({
+    (logger as any).error('Error getting monthly expense totals', error as Error);
+    return res.status(500).json({
       success: false,
       error: {
         code: 'MONTHLY_EXPENSE_TOTALS_ERROR',
@@ -347,14 +418,24 @@ export const getCaseExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { caseId } = req.params;
 
+    if (!caseId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CASE_ID',
+          message: 'Case ID is required'
+        }
+      });
+    }
+
     logger.info('Getting case expense totals', { caseId });
 
     const result = await expensesService.getCaseExpenseTotals(caseId);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting case expense totals', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CASE_EXPENSE_TOTALS_ERROR',
@@ -374,14 +455,24 @@ export const getClientExpenseTotals = async (req: Request, res: Response) => {
   try {
     const { clientId } = req.params;
 
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CLIENT_ID',
+          message: 'Client ID is required'
+        }
+      });
+    }
+
     logger.info('Getting client expense totals', { clientId });
 
     const result = await expensesService.getClientExpenseTotals(clientId);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting client expense totals', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_EXPENSE_TOTALS_ERROR',
@@ -419,10 +510,10 @@ export const searchExpenses = async (req: Request, res: Response) => {
       parseInt(offset as string)
     );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error searching expenses', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'EXPENSE_SEARCH_ERROR',

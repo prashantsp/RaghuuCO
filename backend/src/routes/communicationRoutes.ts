@@ -10,9 +10,19 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import communicationController from '@/controllers/communicationController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getInternalMessages,
+  getReceivedMessages,
+  getInternalMessageById,
+  createInternalMessage,
+  updateInternalMessage,
+  deleteInternalMessage,
+  updateMessageStatus,
+  getEmailTemplates,
+  createEmailTemplate,
+  updateEmailTemplate
+} from '@/controllers/communicationController';
 
 const router = Router();
 
@@ -23,8 +33,7 @@ const router = Router();
  */
 router.get('/messages', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_COMMUNICATION),
-  communicationController.getInternalMessages
+  getInternalMessages
 );
 
 /**
@@ -34,8 +43,7 @@ router.get('/messages',
  */
 router.get('/messages/received', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_COMMUNICATION),
-  communicationController.getReceivedMessages
+  getReceivedMessages
 );
 
 /**
@@ -45,8 +53,7 @@ router.get('/messages/received',
  */
 router.get('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_COMMUNICATION),
-  communicationController.getInternalMessageById
+  getInternalMessageById
 );
 
 /**
@@ -56,8 +63,7 @@ router.get('/messages/:id',
  */
 router.post('/messages', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_COMMUNICATION),
-  communicationController.createInternalMessage
+  createInternalMessage
 );
 
 /**
@@ -67,8 +73,7 @@ router.post('/messages',
  */
 router.put('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_COMMUNICATION),
-  communicationController.updateInternalMessage
+  updateInternalMessage
 );
 
 /**
@@ -78,8 +83,7 @@ router.put('/messages/:id',
  */
 router.delete('/messages/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_COMMUNICATION),
-  communicationController.deleteInternalMessage
+  deleteInternalMessage
 );
 
 /**
@@ -89,8 +93,7 @@ router.delete('/messages/:id',
  */
 router.put('/messages/:id/status', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_COMMUNICATION),
-  communicationController.updateMessageStatus
+  updateMessageStatus
 );
 
 /**
@@ -100,8 +103,7 @@ router.put('/messages/:id/status',
  */
 router.get('/email-templates', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_COMMUNICATION),
-  communicationController.getEmailTemplates
+  getEmailTemplates
 );
 
 /**
@@ -111,8 +113,7 @@ router.get('/email-templates',
  */
 router.post('/email-templates', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_COMMUNICATION),
-  communicationController.createEmailTemplate
+  createEmailTemplate
 );
 
 /**
@@ -122,8 +123,7 @@ router.post('/email-templates',
  */
 router.put('/email-templates/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EVENTS), // Using events permission for now
-  communicationController.updateEmailTemplate
+  updateEmailTemplate
 );
 
 export default router;

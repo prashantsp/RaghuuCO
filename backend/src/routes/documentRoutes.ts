@@ -21,7 +21,7 @@ import {
   searchDocuments,
   getDocumentStats
 } from '@/controllers/documentController';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
+import { authenticateToken } from '@/middleware/auth';
 import logger from '@/utils/logger';
 
 const router = Router();
@@ -33,14 +33,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken,
-  authorizePermission('document:read'),
-  async (req, res, next) => {
-    try {
-      await getDocuments(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getDocuments
 );
 
 /**
@@ -50,14 +43,7 @@ router.get('/',
  */
 router.get('/stats',
   authenticateToken,
-  authorizePermission('document:read'),
-  async (req, res, next) => {
-    try {
-      await getDocumentStats(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getDocumentStats
 );
 
 /**
@@ -67,14 +53,7 @@ router.get('/stats',
  */
 router.get('/search',
   authenticateToken,
-  authorizePermission('document:read'),
-  async (req, res, next) => {
-    try {
-      await searchDocuments(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  searchDocuments
 );
 
 /**
@@ -84,14 +63,7 @@ router.get('/search',
  */
 router.get('/:id',
   authenticateToken,
-  authorizePermission('document:read'),
-  async (req, res, next) => {
-    try {
-      await getDocumentById(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getDocumentById
 );
 
 /**
@@ -101,14 +73,7 @@ router.get('/:id',
  */
 router.get('/:id/download',
   authenticateToken,
-  authorizePermission('document:read'),
-  async (req, res, next) => {
-    try {
-      await downloadDocument(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  downloadDocument
 );
 
 /**
@@ -118,7 +83,6 @@ router.get('/:id/download',
  */
 router.post('/',
   authenticateToken,
-  authorizePermission('document:create'),
   uploadDocument
 );
 
@@ -129,14 +93,7 @@ router.post('/',
  */
 router.put('/:id',
   authenticateToken,
-  authorizePermission('document:update'),
-  async (req, res, next) => {
-    try {
-      await updateDocument(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateDocument
 );
 
 /**
@@ -146,14 +103,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateToken,
-  authorizePermission('document:delete'),
-  async (req, res, next) => {
-    try {
-      await deleteDocument(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  deleteDocument
 );
 
 export default router;

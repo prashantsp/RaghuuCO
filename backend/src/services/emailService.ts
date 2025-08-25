@@ -31,48 +31,48 @@ export class EmailService {
   private async initializeTransporters() {
     try {
       // Initialize Gmail transporter
-      if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET) {
+              if (process.env["GMAIL_CLIENT_ID"] && process.env["GMAIL_CLIENT_SECRET"]) {
         const oauth2Client = new google.auth.OAuth2(
-          process.env.GMAIL_CLIENT_ID,
-          process.env.GMAIL_CLIENT_SECRET,
-          process.env.GMAIL_REDIRECT_URI
+          process.env["GMAIL_CLIENT_ID"],
+          process.env["GMAIL_CLIENT_SECRET"],
+          process.env["GMAIL_REDIRECT_URI"]
         );
 
         oauth2Client.setCredentials({
-          refresh_token: process.env.GMAIL_REFRESH_TOKEN
+          refresh_token: (process as any).env["GMAIL_REFRESH_TOKEN"] || null
         });
 
-        this.gmailTransporter = nodemailer.createTransporter({
+        this.gmailTransporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             type: 'OAuth2',
-            user: process.env.GMAIL_USER,
-            clientId: process.env.GMAIL_CLIENT_ID,
-            clientSecret: process.env.GMAIL_CLIENT_SECRET,
-            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+            user: process.env["GMAIL_USER"],
+            clientId: process.env["GMAIL_CLIENT_ID"],
+            clientSecret: process.env["GMAIL_CLIENT_SECRET"],
+            refreshToken: process.env["GMAIL_REFRESH_TOKEN"],
             accessToken: await oauth2Client.getAccessToken()
           }
-        });
+        } as any);
 
-        logger.info('Gmail transporter initialized successfully');
+        (logger as any).info('Gmail transporter initialized successfully');
       }
 
       // Initialize Outlook transporter
-      if (process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
-        this.outlookTransporter = nodemailer.createTransporter({
+      if (process.env["OUTLOOK_USER"] && process.env["OUTLOOK_PASSWORD"]) {
+        this.outlookTransporter = nodemailer.createTransport({
           host: 'smtp-mail.outlook.com',
           port: 587,
           secure: false,
           auth: {
-            user: process.env.OUTLOOK_USER,
-            pass: process.env.OUTLOOK_PASSWORD
+            user: process.env["OUTLOOK_USER"],
+            pass: process.env["OUTLOOK_PASSWORD"]
           }
         });
 
-        logger.info('Outlook transporter initialized successfully');
+        (logger as any).info('Outlook transporter initialized successfully');
       }
     } catch (error) {
-      logger.error('Error initializing email transporters', error as Error);
+      (logger as any).error('Error initializing email transporters', error as Error);
     }
   }
 
@@ -95,13 +95,13 @@ export class EmailService {
         throw new Error('Gmail transporter not initialized');
       }
 
-      logger.info('Sending Gmail email', { 
+      (logger as any).info('Sending Gmail email', { 
         to: emailData.to, 
         subject: emailData.subject 
       });
 
       const mailOptions = {
-        from: process.env.GMAIL_USER,
+        from: process.env["GMAIL_USER"],
         to: Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to,
         subject: emailData.subject,
         html: emailData.html,
@@ -111,7 +111,7 @@ export class EmailService {
 
       const result = await this.gmailTransporter.sendMail(mailOptions);
 
-      logger.info('Gmail email sent successfully', { 
+      (logger as any).info('Gmail email sent successfully', { 
         messageId: result.messageId,
         to: emailData.to 
       });
@@ -125,7 +125,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error sending Gmail email', error as Error);
+      (logger as any).error('Error sending Gmail email', error as Error);
       throw new Error('Failed to send Gmail email');
     }
   }
@@ -149,13 +149,13 @@ export class EmailService {
         throw new Error('Outlook transporter not initialized');
       }
 
-      logger.info('Sending Outlook email', { 
+      (logger as any).info('Sending Outlook email', { 
         to: emailData.to, 
         subject: emailData.subject 
       });
 
       const mailOptions = {
-        from: process.env.OUTLOOK_USER,
+        from: process.env["OUTLOOK_USER"],
         to: Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to,
         subject: emailData.subject,
         html: emailData.html,
@@ -165,7 +165,7 @@ export class EmailService {
 
       const result = await this.outlookTransporter.sendMail(mailOptions);
 
-      logger.info('Outlook email sent successfully', { 
+      (logger as any).info('Outlook email sent successfully', { 
         messageId: result.messageId,
         to: emailData.to 
       });
@@ -179,7 +179,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error sending Outlook email', error as Error);
+      (logger as any).error('Error sending Outlook email', error as Error);
       throw new Error('Failed to send Outlook email');
     }
   }
@@ -210,7 +210,7 @@ export class EmailService {
         throw new Error('Invalid email provider');
       }
     } catch (error) {
-      logger.error('Error sending email', error as Error);
+      (logger as any).error('Error sending email', error as Error);
       throw new Error('Failed to send email');
     }
   }
@@ -226,7 +226,7 @@ export class EmailService {
     provider?: 'gmail' | 'outlook';
   }): Promise<any> {
     try {
-      logger.info('Sending template email', { 
+      (logger as any).info('Sending template email', { 
         to: templateData.to, 
         template: templateData.template 
       });
@@ -249,10 +249,10 @@ export class EmailService {
         subject: templateData.subject,
         html,
         text,
-        provider: templateData.provider
+        provider: templateData.provider || undefined
       });
     } catch (error) {
-      logger.error('Error sending template email', error as Error);
+      (logger as any).error('Error sending template email', error as Error);
       throw new Error('Failed to send template email');
     }
   }
@@ -335,7 +335,7 @@ export class EmailService {
 
       return template;
     } catch (error) {
-      logger.error('Error loading email template', error as Error);
+      (logger as any).error('Error loading email template', error as Error);
       throw new Error('Failed to load email template');
     }
   }
@@ -345,7 +345,7 @@ export class EmailService {
    */
   async verifyConfiguration(provider: 'gmail' | 'outlook'): Promise<any> {
     try {
-      logger.info('Verifying email configuration', { provider });
+      (logger as any).info('Verifying email configuration', { provider });
 
       if (provider === 'gmail') {
         if (!this.gmailTransporter) {
@@ -359,7 +359,7 @@ export class EmailService {
         await this.outlookTransporter.verify();
       }
 
-      logger.info('Email configuration verified successfully', { provider });
+      (logger as any).info('Email configuration verified successfully', { provider });
 
       return {
         success: true,
@@ -369,7 +369,7 @@ export class EmailService {
         }
       };
     } catch (error) {
-      logger.error('Error verifying email configuration', error as Error);
+      (logger as any).error('Error verifying email configuration', error as Error);
       throw new Error('Failed to verify email configuration');
     }
   }
@@ -379,7 +379,7 @@ export class EmailService {
    */
   async getEmailStatistics(): Promise<any> {
     try {
-      logger.info('Getting email statistics');
+      (logger as any).info('Getting email statistics');
 
       // This would typically query a database for email statistics
       // For now, we'll return mock data
@@ -398,7 +398,7 @@ export class EmailService {
         data: { stats }
       };
     } catch (error) {
-      logger.error('Error getting email statistics', error as Error);
+      (logger as any).error('Error getting email statistics', error as Error);
       throw new Error('Failed to get email statistics');
     }
   }

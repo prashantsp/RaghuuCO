@@ -20,9 +20,9 @@
  * ```
  */
 
-import { DatabaseService } from '@/services/DatabaseService';
-import { logger } from '@/utils/logger';
-import { SQLQueries } from '@/utils/db_SQLQueries';
+import { DatabaseService } from '../services/DatabaseService';
+import logger from '../utils/logger';
+import { SQLQueries } from '../utils/db_SQLQueries';
 
 /**
  * User roles enumeration defining all possible user types in the system
@@ -35,6 +35,8 @@ export enum UserRole {
   PARTNER = 'partner', 
   /** Senior Associate - Case strategy and client consultations */
   SENIOR_ASSOCIATE = 'senior_associate',
+  /** Associate - General case work and client interactions */
+  ASSOCIATE = 'associate',
   /** Junior Associate - Research and document preparation */
   JUNIOR_ASSOCIATE = 'junior_associate',
   /** Paralegal - Administrative support and case coordination */
@@ -72,6 +74,7 @@ export enum Permission {
   UPDATE_DOCUMENTS = 'update_documents',
   DELETE_DOCUMENTS = 'delete_documents',
   DOWNLOAD_DOCUMENTS = 'download_documents',
+  DOCUMENT_READ = 'document_read',
 
   // Time tracking
   VIEW_TIME_ENTRIES = 'view_time_entries',
@@ -157,7 +160,19 @@ export enum Permission {
 
   // Global Search Permissions
   USE_GLOBAL_SEARCH = 'USE_GLOBAL_SEARCH',
-  VIEW_SEARCH_STATISTICS = 'VIEW_SEARCH_STATISTICS'
+  VIEW_SEARCH_STATISTICS = 'VIEW_SEARCH_STATISTICS',
+
+  // Support and Feedback Permissions
+  SUPPORT_READ_ALL = 'support:read_all',
+  SUPPORT_ASSIGN = 'support:assign',
+  SUPPORT_UPDATE = 'support:update',
+  SUPPORT_VIEW_STATS = 'support:view_stats',
+  FEEDBACK_READ_ALL = 'feedback:read_all',
+  FEEDBACK_UPDATE = 'feedback:update',
+  FEEDBACK_VIEW_STATS = 'feedback:view_stats',
+  FEEDBACK_SEARCH = 'feedback:search',
+  FEEDBACK_VIEW_TRENDS = 'feedback:view_trends',
+  FEEDBACK_VIEW_ANALYTICS = 'feedback:view_analytics'
 }
 
 /**
@@ -186,7 +201,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
     Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
     Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+    Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+    Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
   ],
 
   [UserRole.PARTNER]: [
@@ -210,7 +227,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
     Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
     Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+    Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+    Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
   ],
 
   [UserRole.SENIOR_ASSOCIATE]: [
@@ -233,7 +252,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS, Permission.EXPORT_FINANCIAL_REPORTS,
     Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS, Permission.EXPORT_PRODUCTIVITY_REPORTS,
     Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.DELETE_REPORTS, Permission.EXPORT_REPORTS,
-    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS
+    Permission.USE_GLOBAL_SEARCH, Permission.VIEW_SEARCH_STATISTICS,
+    Permission.SUPPORT_READ_ALL, Permission.SUPPORT_ASSIGN, Permission.SUPPORT_UPDATE, Permission.SUPPORT_VIEW_STATS,
+    Permission.FEEDBACK_READ_ALL, Permission.FEEDBACK_UPDATE, Permission.FEEDBACK_VIEW_STATS, Permission.FEEDBACK_SEARCH, Permission.FEEDBACK_VIEW_TRENDS, Permission.FEEDBACK_VIEW_ANALYTICS
   ],
 
   [UserRole.ASSOCIATE]: [
@@ -256,6 +277,28 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.VIEW_FINANCIAL_REPORTS, Permission.CREATE_FINANCIAL_REPORTS,
     Permission.VIEW_PRODUCTIVITY_REPORTS, Permission.CREATE_PRODUCTIVITY_REPORTS,
     Permission.CREATE_REPORTS, Permission.UPDATE_REPORTS, Permission.EXPORT_REPORTS,
+    Permission.USE_GLOBAL_SEARCH
+  ],
+
+  [UserRole.JUNIOR_ASSOCIATE]: [
+    // Limited access for junior associates
+    Permission.VIEW_USERS,
+    Permission.VIEW_CLIENTS, Permission.UPDATE_CLIENTS,
+    Permission.VIEW_CASES, Permission.UPDATE_CASES,
+    Permission.VIEW_DOCUMENTS, Permission.UPLOAD_DOCUMENTS, Permission.UPDATE_DOCUMENTS, Permission.DOWNLOAD_DOCUMENTS,
+    Permission.VIEW_TIME_ENTRIES, Permission.CREATE_TIME_ENTRIES, Permission.UPDATE_TIME_ENTRIES,
+    Permission.VIEW_INVOICES,
+    Permission.VIEW_BILLING_RATES,
+    Permission.VIEW_PAYMENTS,
+    Permission.VIEW_CALENDAR, Permission.CREATE_EVENTS, Permission.UPDATE_EVENTS,
+    Permission.VIEW_REPORTS,
+    Permission.CREATE_CONTENT, Permission.VIEW_CONTENT, Permission.UPDATE_CONTENT,
+    Permission.VIEW_EXPENSES, Permission.CREATE_EXPENSES, Permission.UPDATE_EXPENSES,
+    Permission.VIEW_TASKS, Permission.CREATE_TASKS, Permission.UPDATE_TASKS,
+    Permission.VIEW_COMMUNICATION, Permission.CREATE_COMMUNICATION, Permission.SEND_MESSAGES,
+    Permission.VIEW_FINANCIAL_REPORTS,
+    Permission.VIEW_PRODUCTIVITY_REPORTS,
+    Permission.CREATE_REPORTS, Permission.EXPORT_REPORTS,
     Permission.USE_GLOBAL_SEARCH
   ],
 
@@ -384,14 +427,14 @@ export function canAccessCase(
 
   // Senior associate can access cases they're assigned to
   if (userRole === UserRole.SENIOR_ASSOCIATE) {
-    return caseData.assigned_partner === userId || 
-           (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+    return (caseData.assigned_partner === userId) || 
+           (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
   }
 
   // Junior associate and paralegal can access cases they're assigned to
   if (userRole === UserRole.JUNIOR_ASSOCIATE || userRole === UserRole.PARALEGAL) {
-    return caseData.assigned_partner === userId || 
-           (caseData.assigned_associates && caseData.assigned_associates.includes(userId));
+    return (caseData.assigned_partner === userId) || 
+           (caseData.assigned_associates && caseData.assigned_associates.includes(userId)) || false;
   }
 
   // Client can only access their own cases
@@ -413,7 +456,7 @@ export function canAccessCase(
  */
 export function canAccessDocument(
   userRole: UserRole,
-  userId: string,
+  _userId: string,
   documentData: {
     case_id?: string;
     uploaded_by?: string;
@@ -486,10 +529,11 @@ export function getRoleHierarchyLevel(role: UserRole): number {
     [UserRole.SUPER_ADMIN]: 7,
     [UserRole.PARTNER]: 6,
     [UserRole.SENIOR_ASSOCIATE]: 5,
-    [UserRole.JUNIOR_ASSOCIATE]: 4,
-    [UserRole.PARALEGAL]: 3,
-    [UserRole.CLIENT]: 2,
-    [UserRole.GUEST]: 1
+    [UserRole.ASSOCIATE]: 4,
+    [UserRole.JUNIOR_ASSOCIATE]: 3,
+    [UserRole.PARALEGAL]: 2,
+    [UserRole.CLIENT]: 1,
+    [UserRole.GUEST]: 0
   };
   
   return hierarchy[role] || 0;
@@ -526,7 +570,7 @@ export async function hasClientAccess(userRole: UserRole, userId: string, client
     const db = new DatabaseService();
     const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CLIENT_ACCESS, [clientId, userId]);
 
-    return parseInt(result.rows[0].case_count) > 0;
+    return result.length > 0 && parseInt(result[0].case_count) > 0;
   } catch (error) {
     logger.error('Error checking client access:', error as Error);
     return false;
@@ -551,11 +595,11 @@ export async function hasCaseAccess(userRole: UserRole, userId: string, caseId: 
     const db = new DatabaseService();
     const result = await db.query(SQLQueries.ROLE_ACCESS.CHECK_CASE_ACCESS, [caseId]);
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return false;
     }
 
-    const caseData = result.rows[0];
+    const caseData = result[0];
     return caseData.assigned_to === userId;
   } catch (error) {
     logger.error('Error checking case access:', error as Error);

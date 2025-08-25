@@ -15,6 +15,7 @@ import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import { reportExecutionService } from '@/services/reportExecutionService';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -46,7 +47,7 @@ export const getReports = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const reports = result.rows;
+    const reports = result;
 
     logger.info('Reports fetched successfully', { userId, count: reports.length });
 
@@ -80,7 +81,7 @@ export const getReportById = async (req: Request, res: Response) => {
     logger.info('Fetching report by ID', { userId, reportId: id });
 
     const result = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = result.rows[0];
+    const report = result[0];
 
     if (!report) {
       return res.status(404).json({
@@ -94,13 +95,13 @@ export const getReportById = async (req: Request, res: Response) => {
 
     logger.info('Report fetched successfully', { userId, reportId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: { report }
     });
   } catch (error) {
     logger.error('Error fetching report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_FETCH_ERROR',
@@ -138,7 +139,7 @@ export const createReport = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const report = result.rows[0];
+    const report = result[0];
 
     logger.businessEvent('report_created', 'report', report.id, userId);
 
@@ -177,6 +178,26 @@ export const updateReport = async (req: Request, res: Response) => {
       isActive
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating report', { userId, reportId: id });
 
     const result = await db.query(SQLQueries.REPORTS.UPDATE, [
@@ -189,7 +210,7 @@ export const updateReport = async (req: Request, res: Response) => {
       isActive !== undefined ? isActive : true
     ]);
 
-    const report = result.rows[0];
+    const report = result[0];
 
     logger.businessEvent('report_updated', 'report', id, userId);
 
@@ -220,11 +241,31 @@ export const deleteReport = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Deleting report', { userId, reportId: id });
 
     // Check if report exists
     const currentResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = currentResult.rows[0];
+    const report = currentResult[0];
 
     if (!report) {
       return res.status(404).json({
@@ -241,13 +282,13 @@ export const deleteReport = async (req: Request, res: Response) => {
 
     logger.businessEvent('report_deleted', 'report', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Report deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_DELETE_ERROR',
@@ -269,11 +310,31 @@ export const executeReport = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
     const { parameters } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Executing report', { userId, reportId: id });
 
     // Check if report exists
     const reportResult = await db.query(SQLQueries.REPORTS.GET_BY_ID, [id]);
-    const report = reportResult.rows[0];
+    const report = reportResult[0];
 
     if (!report) {
       return res.status(404).json({
@@ -293,7 +354,7 @@ export const executeReport = async (req: Request, res: Response) => {
       parameters || {}
     ]);
 
-    const execution = executionResult.rows[0];
+    const execution = executionResult[0];
 
     // Execute report using the report execution service
     const reportResult = await reportExecutionService.executeReport(
@@ -306,7 +367,7 @@ export const executeReport = async (req: Request, res: Response) => {
 
     logger.businessEvent('report_executed', 'report_execution', execution.id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { 
         execution: reportResult,
@@ -315,7 +376,7 @@ export const executeReport = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error executing report', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REPORT_EXECUTION_ERROR',
@@ -338,6 +399,26 @@ export const getReportExecutions = async (req: Request, res: Response) => {
     const { page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REPORT_ID',
+          message: 'Report ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Fetching report executions', { userId, reportId: id });
 
     const result = await db.query(SQLQueries.REPORT_EXECUTIONS.SEARCH, [
@@ -348,7 +429,7 @@ export const getReportExecutions = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const executions = result.rows;
+    const executions = result;
 
     logger.info('Report executions fetched successfully', { userId, reportId: id, count: executions.length });
 
@@ -400,7 +481,7 @@ export const trackAnalyticsEvent = async (req: Request, res: Response) => {
       eventData || {}
     ]);
 
-    const event = result.rows[0];
+    const event = result[0];
 
     res.status(201).json({
       success: true,
@@ -444,10 +525,10 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     ]);
 
     const summary = {
-      pageViews: pageViewsResult.rows,
-      userActivity: userActivityResult.rows,
-      totalEvents: userActivityResult.rows.reduce((sum, user) => sum + parseInt(user.event_count), 0),
-      activeUsers: userActivityResult.rows.length
+      pageViews: pageViewsResult,
+      userActivity: userActivityResult,
+      totalEvents: userActivityResult.reduce((sum, user) => sum + parseInt(user.event_count), 0),
+      activeUsers: userActivityResult.length
     };
 
     logger.info('Analytics summary fetched successfully', { userId });
@@ -493,7 +574,7 @@ export const recordPerformanceMetric = async (req: Request, res: Response) => {
       tags || {}
     ]);
 
-    const metric = result.rows[0];
+    const metric = result[0];
 
     res.status(201).json({
       success: true,
@@ -538,7 +619,7 @@ export const getPerformanceMetrics = async (req: Request, res: Response) => {
       ]);
     }
 
-    const metrics = result.rows;
+    const metrics = result;
 
     logger.info('Performance metrics fetched successfully', { userId, count: metrics.length });
 
@@ -585,7 +666,7 @@ export const recordBusinessMetric = async (req: Request, res: Response) => {
       additionalData || {}
     ]);
 
-    const metric = result.rows[0];
+    const metric = result[0];
 
     res.status(201).json({
       success: true,
@@ -630,7 +711,7 @@ export const getBusinessMetrics = async (req: Request, res: Response) => {
       ]);
     }
 
-    const metrics = result.rows;
+    const metrics = result;
 
     logger.info('Business metrics fetched successfully', { userId, count: metrics.length });
 

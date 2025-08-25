@@ -88,11 +88,11 @@ export const getFinancialOverview = async (req: Request, res: Response) => {
     `);
 
     const overview = {
-      currentMonth: currentMonthResult.rows[0],
-      previousMonth: previousMonthResult.rows[0],
-      yearly: yearlyResult.rows[0],
-      topClients: topClientsResult.rows,
-      recentInvoices: recentInvoicesResult.rows
+      currentMonth: currentMonthResult[0],
+      previousMonth: previousMonthResult[0],
+      yearly: yearlyResult[0],
+              topClients: topClientsResult,
+        recentInvoices: recentInvoicesResult
     };
 
     logger.info('Financial dashboard overview fetched successfully', { userId });
@@ -168,9 +168,9 @@ export const getRevenueAnalytics = async (req: Request, res: Response) => {
     `);
 
     const analytics = {
-      monthlyRevenue: monthlyRevenueResult.rows,
-      revenueByCaseType: revenueByCaseTypeResult.rows,
-      revenueByLawyer: revenueByLawyerResult.rows
+      monthlyRevenue: monthlyRevenueResult,
+      revenueByCaseType: revenueByCaseTypeResult,
+      revenueByLawyer: revenueByLawyerResult
     };
 
     logger.info('Revenue analytics fetched successfully', { userId });
@@ -241,9 +241,9 @@ export const getExpenseAnalytics = async (req: Request, res: Response) => {
     `);
 
     const analytics = {
-      monthlyExpenses: monthlyExpensesResult.rows,
-      expensesByCategory: expensesByCategoryResult.rows,
-      recentExpenses: recentExpensesResult.rows
+      monthlyExpenses: monthlyExpensesResult,
+      expensesByCategory: expensesByCategoryResult,
+      recentExpenses: recentExpensesResult
     };
 
     logger.info('Expense analytics fetched successfully', { userId });
@@ -302,8 +302,8 @@ export const getProfitLossStatement = async (req: Request, res: Response) => {
     // Calculate profit/loss for each month
     const monthlyData = [];
     for (let month = 1; month <= 12; month++) {
-      const revenue = revenueResult.rows.find(r => r.month === month)?.revenue || 0;
-      const expenses = expensesResult.rows.find(e => e.month === month)?.expenses || 0;
+      const revenue = revenueResult.find(r => r.month === month)?.revenue || 0;
+      const expenses = expensesResult.find(e => e.month === month)?.expenses || 0;
       const profit = revenue - expenses;
 
       monthlyData.push({
@@ -324,7 +324,7 @@ export const getProfitLossStatement = async (req: Request, res: Response) => {
       WHERE EXTRACT(YEAR FROM created_at) = $1
     `, [year]);
 
-    const totals = yearlyTotalsResult.rows[0];
+    const totals = yearlyTotalsResult[0];
     const totalProfit = totals.total_revenue - totals.total_expenses;
     const profitMargin = totals.total_revenue > 0 ? (totalProfit / totals.total_revenue) * 100 : 0;
 
@@ -403,9 +403,9 @@ export const getCashFlowAnalysis = async (req: Request, res: Response) => {
 
     // Get cash flow summary
     const cashFlowSummary = {
-      cashInflows: cashInflowsResult.rows,
-      cashOutflows: cashOutflowsResult.rows,
-      outstandingReceivables: outstandingReceivablesResult.rows[0]
+              cashInflows: cashInflowsResult,
+        cashOutflows: cashOutflowsResult,
+      outstandingReceivables: outstandingReceivablesResult[0]
     };
 
     logger.info('Cash flow analysis fetched successfully', { userId });

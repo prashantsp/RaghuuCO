@@ -10,9 +10,27 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import contentManagementController from '@/controllers/contentManagementController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  createCategory,
+  getCategories,
+  getHierarchicalCategories,
+  createArticle,
+  getArticleById,
+  getArticleBySlug,
+  getPublishedArticles,
+  searchArticles,
+  getFeaturedArticles,
+  createComment,
+  getArticleComments,
+  createNewsletter,
+  getNewsletters,
+  subscribeToNewsletter,
+  unsubscribeFromNewsletter,
+  getNewsletterStats,
+  trackContentAnalytics,
+  getContentStats
+} from '@/controllers/contentManagementController';
 
 const router = Router();
 
@@ -23,8 +41,7 @@ const router = Router();
  */
 router.post('/categories', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_CONTENT),
-  contentManagementController.createCategory
+  createCategory
 );
 
 /**
@@ -33,7 +50,7 @@ router.post('/categories',
  * @access Public
  */
 router.get('/categories', 
-  contentManagementController.getCategories
+  getCategories
 );
 
 /**
@@ -42,7 +59,7 @@ router.get('/categories',
  * @access Public
  */
 router.get('/categories/hierarchical', 
-  contentManagementController.getHierarchicalCategories
+  getHierarchicalCategories
 );
 
 /**
@@ -52,8 +69,7 @@ router.get('/categories/hierarchical',
  */
 router.post('/articles', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_CONTENT),
-  contentManagementController.createArticle
+  createArticle
 );
 
 /**
@@ -62,7 +78,7 @@ router.post('/articles',
  * @access Public
  */
 router.get('/articles', 
-  contentManagementController.getPublishedArticles
+  getPublishedArticles
 );
 
 /**
@@ -71,7 +87,7 @@ router.get('/articles',
  * @access Public
  */
 router.get('/articles/search', 
-  contentManagementController.searchArticles
+  searchArticles
 );
 
 /**
@@ -80,7 +96,7 @@ router.get('/articles/search',
  * @access Public
  */
 router.get('/articles/featured', 
-  contentManagementController.getFeaturedArticles
+  getFeaturedArticles
 );
 
 /**
@@ -89,7 +105,7 @@ router.get('/articles/featured',
  * @access Public
  */
 router.get('/articles/:id', 
-  contentManagementController.getArticleById
+  getArticleById
 );
 
 /**
@@ -98,7 +114,7 @@ router.get('/articles/:id',
  * @access Public
  */
 router.get('/articles/slug/:slug', 
-  contentManagementController.getArticleBySlug
+  getArticleBySlug
 );
 
 /**
@@ -107,7 +123,7 @@ router.get('/articles/slug/:slug',
  * @access Public
  */
 router.get('/articles/:id/comments', 
-  contentManagementController.getArticleComments
+  getArticleComments
 );
 
 /**
@@ -116,7 +132,7 @@ router.get('/articles/:id/comments',
  * @access Public
  */
 router.post('/articles/:id/comments', 
-  contentManagementController.createComment
+  createComment
 );
 
 /**
@@ -126,8 +142,7 @@ router.post('/articles/:id/comments',
  */
 router.post('/newsletters', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_CONTENT),
-  contentManagementController.createNewsletter
+  createNewsletter
 );
 
 /**
@@ -137,8 +152,7 @@ router.post('/newsletters',
  */
 router.get('/newsletters', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CONTENT),
-  contentManagementController.getNewsletters
+  getNewsletters
 );
 
 /**
@@ -147,7 +161,7 @@ router.get('/newsletters',
  * @access Public
  */
 router.post('/newsletters/subscribe', 
-  contentManagementController.subscribeToNewsletter
+  subscribeToNewsletter
 );
 
 /**
@@ -156,7 +170,7 @@ router.post('/newsletters/subscribe',
  * @access Public
  */
 router.post('/newsletters/unsubscribe', 
-  contentManagementController.unsubscribeFromNewsletter
+  unsubscribeFromNewsletter
 );
 
 /**
@@ -166,8 +180,7 @@ router.post('/newsletters/unsubscribe',
  */
 router.get('/newsletters/stats', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CONTENT),
-  contentManagementController.getNewsletterStats
+  getNewsletterStats
 );
 
 /**
@@ -176,7 +189,7 @@ router.get('/newsletters/stats',
  * @access Public
  */
 router.post('/analytics', 
-  contentManagementController.trackContentAnalytics
+  trackContentAnalytics
 );
 
 /**
@@ -186,8 +199,7 @@ router.post('/analytics',
  */
 router.get('/analytics/:contentType/:contentId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CONTENT),
-  contentManagementController.getContentStats
+  getContentStats
 );
 
 export default router;

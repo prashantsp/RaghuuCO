@@ -14,6 +14,7 @@ import DatabaseService from '@/services/DatabaseService';
 import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -49,7 +50,7 @@ export const getInternalMessages = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const messages = result.rows;
+    const messages = result;
 
     // Get total count for pagination
     const countResult = await db.query(`
@@ -63,7 +64,7 @@ export const getInternalMessages = async (req: Request, res: Response) => {
       AND ($5::boolean IS NULL OR im.is_urgent = $5)
     `, [search || null, messageType || null, priority || null, senderId || null, isUrgent || null]);
 
-    const total = parseInt(countResult.rows[0]?.total || '0');
+    const total = parseInt(countResult[0]?.total || '0');
     const totalPages = Math.ceil(total / parseInt(limit as string));
 
     logger.info('Internal messages fetched successfully', { userId, count: messages.length });
@@ -106,7 +107,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
     logger.info('Fetching internal message by ID', { userId, messageId: id });
 
     const result = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const message = result.rows[0];
+    const message = result[0];
 
     if (!message) {
       return res.status(404).json({
@@ -120,11 +121,11 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
 
     // Get recipients
     const recipientsResult = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_BY_MESSAGE_ID, [id]);
-    const recipients = recipientsResult.rows;
+    const recipients = recipientsResult;
 
     logger.info('Internal message fetched successfully', { userId, messageId: id });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         message: {
@@ -135,7 +136,7 @@ export const getInternalMessageById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_FETCH_ERROR',
@@ -179,7 +180,7 @@ export const createInternalMessage = async (req: Request, res: Response) => {
       responseDeadline || null
     ]);
 
-    const message = messageResult.rows[0];
+    const message = messageResult[0];
 
     // Create recipients
     if (recipients && Array.isArray(recipients)) {
@@ -232,11 +233,31 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
       responseDeadline
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating internal message', { userId, messageId: id });
 
     // Get current message
     const currentResult = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const currentMessage = currentResult.rows[0];
+    const currentMessage = currentResult[0];
 
     if (!currentMessage) {
       return res.status(404).json({
@@ -260,17 +281,17 @@ export const updateInternalMessage = async (req: Request, res: Response) => {
       responseDeadline || currentMessage.response_deadline
     ]);
 
-    const updatedMessage = result.rows[0];
+    const updatedMessage = result[0];
 
     logger.businessEvent('internal_message_updated', 'internal_message', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       data: { message: updatedMessage }
     });
   } catch (error) {
     logger.error('Error updating internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_UPDATE_ERROR',
@@ -291,11 +312,31 @@ export const deleteInternalMessage = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Deleting internal message', { userId, messageId: id });
 
     // Check if message exists
     const currentResult = await db.query(SQLQueries.INTERNAL_MESSAGES.GET_BY_ID, [id]);
-    const message = currentResult.rows[0];
+    const message = currentResult[0];
 
     if (!message) {
       return res.status(404).json({
@@ -312,13 +353,13 @@ export const deleteInternalMessage = async (req: Request, res: Response) => {
 
     logger.businessEvent('internal_message_deleted', 'internal_message', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Internal message deleted successfully'
     });
   } catch (error) {
     logger.error('Error deleting internal message', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'INTERNAL_MESSAGE_DELETE_ERROR',
@@ -340,6 +381,16 @@ export const getReceivedMessages = async (req: Request, res: Response) => {
     const { page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Fetching received messages', { userId });
 
     const result = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_BY_RECIPIENT_ID, [
@@ -348,11 +399,11 @@ export const getReceivedMessages = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const messages = result.rows;
+    const messages = result;
 
     // Get unread count
     const unreadResult = await db.query(SQLQueries.MESSAGE_RECIPIENTS.GET_UNREAD_COUNT, [userId]);
-    const unreadCount = parseInt(unreadResult.rows[0]?.unread_count || '0');
+    const unreadCount = parseInt(unreadResult[0]?.unread_count || '0');
 
     logger.info('Received messages fetched successfully', { userId, count: messages.length, unreadCount });
 
@@ -391,6 +442,26 @@ export const updateMessageStatus = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
     const { status, responseContent } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_MESSAGE_ID',
+          message: 'Message ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating message status', { userId, messageId: id, status });
 
     const readAt = status === 'read' ? new Date() : null;
@@ -404,7 +475,7 @@ export const updateMessageStatus = async (req: Request, res: Response) => {
       responseContent || null
     ]);
 
-    const updatedRecipient = result.rows[0];
+    const updatedRecipient = result[0];
 
     logger.businessEvent('message_status_updated', 'message_recipient', id, userId);
 
@@ -446,7 +517,7 @@ export const getEmailTemplates = async (req: Request, res: Response) => {
       offset
     ]);
 
-    const templates = result.rows;
+    const templates = result;
 
     logger.info('Email templates fetched successfully', { userId, count: templates.length });
 
@@ -494,7 +565,7 @@ export const createEmailTemplate = async (req: Request, res: Response) => {
       userId
     ]);
 
-    const template = result.rows[0];
+    const template = result[0];
 
     logger.businessEvent('email_template_created', 'email_template', template.id, userId);
 
@@ -533,6 +604,26 @@ export const updateEmailTemplate = async (req: Request, res: Response) => {
       isActive
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_TEMPLATE_ID',
+          message: 'Template ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Updating email template', { userId, templateId: id });
 
     const result = await db.query(SQLQueries.EMAIL_TEMPLATES.UPDATE, [
@@ -545,7 +636,7 @@ export const updateEmailTemplate = async (req: Request, res: Response) => {
       isActive !== undefined ? isActive : true
     ]);
 
-    const template = result.rows[0];
+    const template = result[0];
 
     logger.businessEvent('email_template_updated', 'email_template', id, userId);
 

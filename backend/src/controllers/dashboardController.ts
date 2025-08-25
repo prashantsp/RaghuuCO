@@ -14,6 +14,7 @@ import DatabaseService from '@/services/DatabaseService';
 import { authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -32,7 +33,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     // Get counts for different entities
     // Get user statistics using centralized query
     const statsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_STATS, [userId]);
-    const userStats = statsResult.rows[0];
+    const userStats = statsResult[0];
 
     // Calculate trends (simplified - in production, you'd compare with previous period)
     const stats = {
@@ -97,7 +98,7 @@ export const getRecentActivities = async (req: Request, res: Response) => {
     const activities = await db.query(SQLQueries.DASHBOARD.GET_RECENT_ACTIVITIES, [userId, limit]);
 
     // Format activities for frontend
-    const formattedActivities = activities.rows.map((activity: any) => ({
+    const formattedActivities = activities.map((activity: any) => ({
       id: activity.id,
       type: activity.resource_type,
       action: activity.action,
@@ -141,7 +142,7 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
 
     // Get summary data using centralized query
     const trendsResult = await db.query(SQLQueries.DASHBOARD.GET_USER_TRENDS, ['active', userId]);
-    const trends = trendsResult.rows[0];
+    const trends = trendsResult[0];
 
     const summary = {
       activeCases: parseInt(trends.active_cases || '0'),

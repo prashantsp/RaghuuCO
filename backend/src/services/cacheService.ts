@@ -44,10 +44,10 @@ class CacheService {
 
   constructor() {
     const config: CacheConfig = {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_DB || '0'),
+      host: (process as any).env.REDIS_HOST || 'localhost',
+      port: parseInt((process as any).env.REDIS_PORT || '6379'),
+      password: (process as any).env.REDIS_PASSWORD,
+      db: parseInt((process as any).env.REDIS_DB || '0'),
       keyPrefix: 'raghuuco:',
       retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3
@@ -225,7 +225,7 @@ class CacheService {
     for (const line of lines) {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
-        result[key] = value;
+        result[key as string] = value;
       }
     }
 
@@ -239,7 +239,7 @@ class CacheService {
    * @param ttl - Time to live in seconds
    */
   cache<T>(key: string, ttl: number = 3600) {
-    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+    return function (_target: any, _propertyName: string, descriptor: PropertyDescriptor) {
       const method = descriptor.value;
 
       descriptor.value = async function (...args: any[]): Promise<T> {

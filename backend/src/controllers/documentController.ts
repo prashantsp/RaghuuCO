@@ -185,6 +185,17 @@ export async function getDocumentById(req: AuthenticatedRequest, res: Response):
   try {
     const { id } = req.params;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:read')) {
       res.status(403).json({
@@ -287,7 +298,7 @@ export const uploadDocument = [
       }
 
       // Validate case exists (if provided)
-      if (caseId) {
+      if (caseId && caseId.trim() !== '') {
         const caseData = await db.getCaseById(caseId);
         if (!caseData) {
           res.status(400).json({
@@ -368,6 +379,17 @@ export async function updateDocument(req: AuthenticatedRequest, res: Response): 
     const { id } = req.params;
     const { title, description, category, tags, isPublic } = req.body;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:update')) {
       res.status(403).json({
@@ -434,6 +456,17 @@ export async function deleteDocument(req: AuthenticatedRequest, res: Response): 
   try {
     const { id } = req.params;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:delete')) {
       res.status(403).json({
@@ -492,6 +525,17 @@ export async function deleteDocument(req: AuthenticatedRequest, res: Response): 
 export async function downloadDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+      return;
+    }
     
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:read')) {
@@ -557,6 +601,17 @@ export async function searchDocuments(req: AuthenticatedRequest, res: Response):
   try {
     const { q, page = 1, limit = 20 } = req.query;
     
+    if (!q) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'SEARCH_QUERY_REQUIRED',
+          message: 'Search query is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
     if (!hasPermission(req.user?.role as UserRole, 'document:read')) {
       res.status(403).json({
@@ -564,17 +619,6 @@ export async function searchDocuments(req: AuthenticatedRequest, res: Response):
         error: {
           code: 'FORBIDDEN',
           message: 'You do not have permission to search documents'
-        }
-      });
-      return;
-    }
-
-    if (!q) {
-      res.status(400).json({
-        success: false,
-        error: {
-          code: 'SEARCH_QUERY_REQUIRED',
-          message: 'Search query is required'
         }
       });
       return;
@@ -597,7 +641,7 @@ export async function searchDocuments(req: AuthenticatedRequest, res: Response):
       AND to_tsvector('english', d.title || ' ' || COALESCE(d.description, '')) @@ plainto_tsquery('english', $1)
       ORDER BY rank DESC, d.created_at DESC
       LIMIT $2 OFFSET $3
-    `, [q, Number(limit), offset]);
+    `, [q as string, Number(limit), offset]);
 
     // Get total count
     const countResult = await db.query(`

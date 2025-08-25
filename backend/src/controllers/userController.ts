@@ -25,12 +25,12 @@ const db = new DatabaseService(databaseConfig);
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getUsers(req: Request, res: Response): Promise<void> {
   try {
     const { page = 1, limit = 20, search, role, isActive, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'user:read')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, 'user:read')) {
       res.status(403).json({
         success: false,
         error: {
@@ -85,7 +85,7 @@ export async function getUsers(req: AuthenticatedRequest, res: Response): Promis
 
     const total = parseInt(countResult[0].total);
 
-    logger.businessEvent('users_retrieved', 'user', 'multiple', req.user?.id || 'system', {
+    logger.businessEvent('users_retrieved', 'user', 'multiple', (req.user as any)?.id || 'system', {
       page: Number(page),
       limit: Number(limit),
       total,
@@ -122,17 +122,28 @@ export async function getUsers(req: AuthenticatedRequest, res: Response): Promis
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getUserById(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getUserById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
     // Check permissions - users can view their own profile or if they have user:read permission
-    if (req.user?.id !== id && !hasPermission(req.user?.role as UserRole, 'user:read')) {
+    if ((req.user as any)?.id !== id && !hasPermission((req.user as any)?.role as UserRole, 'user:read')) {
       res.status(403).json({
         success: false,
         error: {
           code: 'FORBIDDEN',
           message: 'You do not have permission to view this user'
+        }
+      });
+      return;
+    }
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
         }
       });
       return;
@@ -154,7 +165,7 @@ export async function getUserById(req: AuthenticatedRequest, res: Response): Pro
     // Remove sensitive information
     delete user.password_hash;
 
-    logger.businessEvent('user_retrieved', 'user', id, req.user?.id || 'system');
+    logger.businessEvent('user_retrieved', 'user', id, (req.user as any)?.id || 'system');
 
     res.json({
       success: true,
@@ -178,12 +189,12 @@ export async function getUserById(req: AuthenticatedRequest, res: Response): Pro
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function createUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function createUser(req: Request, res: Response): Promise<void> {
   try {
     const { email, password, firstName, lastName, role, phone } = req.body;
     
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'user:create')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, 'user:create')) {
       res.status(403).json({
         success: false,
         error: {
@@ -195,12 +206,23 @@ export async function createUser(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Check if user can manage the specified role
-    if (!canManageUser(req.user?.role as UserRole, role as UserRole)) {
+    if (!canManageUser((req.user as any)?.role as UserRole, role as UserRole)) {
       res.status(403).json({
         success: false,
         error: {
           code: 'FORBIDDEN',
           message: 'You do not have permission to assign this role'
+        }
+      });
+      return;
+    }
+
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'EMAIL_REQUIRED',
+          message: 'Email is required'
         }
       });
       return;
@@ -235,10 +257,10 @@ export async function createUser(req: AuthenticatedRequest, res: Response): Prom
     // Remove sensitive information
     delete user.password_hash;
 
-    logger.businessEvent('user_created', 'user', user.id, req.user?.id || 'system', {
+    logger.businessEvent('user_created', 'user', user.id, (req.user as any)?.id || 'system', {
       email,
       role,
-      createdBy: req.user?.id
+      createdBy: (req.user as any)?.id
     });
 
     res.status(201).json({
@@ -263,13 +285,24 @@ export async function createUser(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function updateUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function updateUser(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { firstName, lastName, phone, role, isActive } = req.body;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+
     // Check permissions - users can update their own profile or if they have user:update permission
-    if (req.user?.id !== id && !hasPermission(req.user?.role as UserRole, 'user:update')) {
+    if ((req.user as any)?.id !== id && !hasPermission((req.user as any)?.role as UserRole, 'user:update')) {
       res.status(403).json({
         success: false,
         error: {
@@ -294,7 +327,7 @@ export async function updateUser(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Check role management permissions
-    if (role && !canManageUser(req.user?.role as UserRole, role as UserRole)) {
+    if (role && !canManageUser((req.user as any)?.role as UserRole, role as UserRole)) {
       res.status(403).json({
         success: false,
         error: {
@@ -318,9 +351,9 @@ export async function updateUser(req: AuthenticatedRequest, res: Response): Prom
     // Remove sensitive information
     delete user.password_hash;
 
-    logger.businessEvent('user_updated', 'user', id, req.user?.id || 'system', {
+    logger.businessEvent('user_updated', 'user', id, (req.user as any)?.id || 'system', {
       updatedFields: Object.keys(updateData),
-      updatedBy: req.user?.id
+      updatedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -345,12 +378,23 @@ export async function updateUser(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function deleteUser(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
-    if (!hasPermission(req.user?.role as UserRole, 'user:delete')) {
+    if (!hasPermission((req.user as any)?.role as UserRole, 'user:delete')) {
       res.status(403).json({
         success: false,
         error: {
@@ -362,7 +406,7 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Prevent self-deletion
-    if (req.user?.id === id) {
+    if ((req.user as any)?.id === id) {
       res.status(400).json({
         success: false,
         error: {
@@ -387,7 +431,7 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
     }
 
     // Check if user can manage the target user's role
-    if (!canManageUser(req.user?.role as UserRole, existingUser.role as UserRole)) {
+    if (!canManageUser((req.user as any)?.role as UserRole, existingUser.role as UserRole)) {
       res.status(403).json({
         success: false,
         error: {
@@ -401,9 +445,9 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
     // Soft delete user
     await db.query('UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1', [id]);
 
-    logger.businessEvent('user_deleted', 'user', id, req.user?.id || 'system', {
+    logger.businessEvent('user_deleted', 'user', id, (req.user as any)?.id || 'system', {
       deletedUser: existingUser.email,
-      deletedBy: req.user?.id
+      deletedBy: (req.user as any)?.id
     });
 
     res.json({
@@ -428,13 +472,24 @@ export async function deleteUser(req: AuthenticatedRequest, res: Response): Prom
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getUserActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getUserActivity(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { days = 30 } = req.query;
     
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_USER_ID',
+          message: 'User ID is required'
+        }
+      });
+      return;
+    }
+    
     // Check permissions
-    if (req.user?.id !== id && !hasPermission(req.user?.role as UserRole, 'user:read')) {
+    if ((req.user as any)?.id !== id && !hasPermission((req.user as any)?.role as UserRole, 'user:read')) {
       res.status(403).json({
         success: false,
         error: {
@@ -479,7 +534,7 @@ export async function getUserActivity(req: AuthenticatedRequest, res: Response):
       ORDER BY count DESC
     `, [id]);
 
-    logger.businessEvent('user_activity_retrieved', 'user', id, req.user?.id || 'system');
+    logger.businessEvent('user_activity_retrieved', 'user', id, (req.user as any)?.id || 'system');
 
     res.json({
       success: true,
@@ -508,10 +563,22 @@ export async function getUserActivity(req: AuthenticatedRequest, res: Response):
  * @param req - Express request object
  * @param res - Express response object
  */
-export async function getAssignableRoles(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function getAssignableRoles(req: Request, res: Response): Promise<void> {
   try {
+    const userRole = (req.user as any)?.role as UserRole;
+    if (!userRole) {
+      res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User role is required'
+        }
+      });
+      return;
+    }
+
     const { getAssignableRoles } = await import('@/utils/roleAccess');
-    const assignableRoles = getAssignableRoles(req.user?.role as UserRole);
+    const assignableRoles = getAssignableRoles(userRole);
 
     res.json({
       success: true,

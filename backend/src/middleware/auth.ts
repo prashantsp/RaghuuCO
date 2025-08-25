@@ -57,19 +57,19 @@ interface JWTPayload {
 /**
  * JWT secret key from environment variables
  */
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
 
 /**
  * JWT token expiration time in seconds
  * @default 3600 (1 hour)
  */
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '3600';
+const JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN'] || '3600';
 
 /**
  * Refresh token expiration time in seconds
  * @default 604800 (7 days)
  */
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '604800';
+const REFRESH_TOKEN_EXPIRES_IN = process.env['REFRESH_TOKEN_EXPIRES_IN'] || '604800';
 
 /**
  * Generates a JWT access token for a user
@@ -99,9 +99,9 @@ export async function generateAccessToken(
       exp: Math.floor(Date.now() / 1000) + parseInt(JWT_EXPIRES_IN)
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: parseInt(JWT_EXPIRES_IN) });
     
-    logger.authEvent('token_generated', userId, true);
+    (logger as any).authEvent('token_generated', userId, true, undefined);
     return token;
   } catch (error) {
     logger.error('Failed to generate access token', error as Error, { userId, email, role });
@@ -129,9 +129,9 @@ export async function generateRefreshToken(userId: string): Promise<string> {
       exp: Math.floor(Date.now() / 1000) + parseInt(REFRESH_TOKEN_EXPIRES_IN)
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: parseInt(REFRESH_TOKEN_EXPIRES_IN) });
     
-    logger.authEvent('refresh_token_generated', userId, true);
+    (logger as any).authEvent('refresh_token_generated', userId, true, undefined);
     return token;
   } catch (error) {
     logger.error('Failed to generate refresh token', error as Error, { userId });
@@ -177,7 +177,7 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
  * ```
  */
 export function authenticateToken(
-  req: AuthenticatedRequest, 
+  req: Request, 
   res: Response, 
   next: NextFunction
 ): void {
@@ -212,8 +212,8 @@ export function authenticateToken(
       return;
     }
 
-    req.user = decoded;
-    logger.authEvent('token_validated', decoded.id, true, req.ip);
+    (req as AuthenticatedRequest).user = decoded;
+    logger.authEvent('token_validated', decoded.id as string, true, req.ip);
     next();
   });
 }
@@ -262,7 +262,7 @@ export function authorizeRole(roles: UserRole[]) {
       return;
     }
 
-    logger.authEvent('authorization_success', req.user.id, true, req.ip);
+    logger.authEvent('authorization_success', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -311,7 +311,7 @@ export function authorizePermission(permission: Permission) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -364,7 +364,7 @@ export function authorizeAnyPermission(permissions: Permission[]) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }
@@ -417,7 +417,7 @@ export function authorizeAllPermissions(permissions: Permission[]) {
       return;
     }
 
-    logger.authEvent('permission_granted', req.user.id, true, req.ip);
+    logger.authEvent('permission_granted', req.user.id as string, true, req.ip);
     next();
   };
 }

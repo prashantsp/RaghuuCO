@@ -10,9 +10,17 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import taskController from '@/controllers/taskController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getTasks,
+  getTaskStats,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+  startTaskTimer,
+  stopTaskTimer
+} from '@/controllers/taskController';
 
 const router = Router();
 
@@ -23,8 +31,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TASKS),
-  taskController.getTasks
+  getTasks
 );
 
 /**
@@ -34,8 +41,7 @@ router.get('/',
  */
 router.get('/stats', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TASKS),
-  taskController.getTaskStats
+  getTaskStats
 );
 
 /**
@@ -45,8 +51,7 @@ router.get('/stats',
  */
 router.get('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_TASKS),
-  taskController.getTaskById
+  getTaskById
 );
 
 /**
@@ -56,8 +61,7 @@ router.get('/:id',
  */
 router.post('/', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_TASKS),
-  taskController.createTask
+  createTask
 );
 
 /**
@@ -67,8 +71,7 @@ router.post('/',
  */
 router.put('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_TASKS),
-  taskController.updateTask
+  updateTask
 );
 
 /**
@@ -78,8 +81,7 @@ router.put('/:id',
  */
 router.delete('/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_TASKS),
-  taskController.deleteTask
+  deleteTask
 );
 
 /**
@@ -89,8 +91,7 @@ router.delete('/:id',
  */
 router.post('/:id/start-timer', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_TIME_ENTRIES), // This is correct for time tracking
-  taskController.startTaskTimer
+  startTaskTimer
 );
 
 /**
@@ -100,8 +101,7 @@ router.post('/:id/start-timer',
  */
 router.post('/:id/stop-timer', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_TIME_ENTRIES), // This is correct for time tracking
-  taskController.stopTaskTimer
+  stopTaskTimer
 );
 
 export default router;

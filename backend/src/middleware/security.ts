@@ -39,7 +39,7 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
 
     // Get user's 2FA secret from database
     const userResult = await db.query('SELECT two_factor_secret FROM users WHERE id = $1', [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user?.two_factor_secret) {
       return res.status(400).json({
@@ -58,7 +58,7 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
     });
 
     if (!isValid) {
-      logger.warn('Invalid TOTP token provided', { userId, ip: req.ip });
+              (logger as any).warn('Invalid TOTP token provided', { userId, ip: req.ip });
       return res.status(401).json({
         success: false,
         error: {
@@ -68,11 +68,11 @@ export const require2FA = async (req: Request, res: Response, next: NextFunction
       });
     }
 
-    logger.info('2FA validation successful', { userId });
-    next();
+          (logger as any).info('2FA validation successful', { userId });
+    return next();
   } catch (error) {
-    logger.error('Error in 2FA middleware', error as Error);
-    res.status(500).json({
+          (logger as any).error('Error in 2FA middleware', error as Error);
+    return res.status(500).json({
       success: false,
       error: {
         code: 'TOTP_VALIDATION_ERROR',
@@ -90,11 +90,22 @@ export const ipWhitelist = async (req: Request, res: Response, next: NextFunctio
   try {
     const clientIP = req.ip || req.connection.remoteAddress;
     
+    if (!clientIP) {
+      (logger as any).warn('Unable to determine client IP address');
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_CLIENT_IP',
+          message: 'Unable to determine client IP address'
+        }
+      });
+    }
+    
     // Get IP whitelist from environment or database
     const whitelistedIPs = process.env.IP_WHITELIST?.split(',') || [];
     
     if (whitelistedIPs.length > 0 && !whitelistedIPs.includes(clientIP)) {
-      logger.warn('Access denied from non-whitelisted IP', { 
+      (logger as any).warn('Access denied from non-whitelisted IP', { 
         clientIP, 
         whitelistedIPs,
         userAgent: req.get('User-Agent')
@@ -111,8 +122,8 @@ export const ipWhitelist = async (req: Request, res: Response, next: NextFunctio
 
     next();
   } catch (error) {
-    logger.error('Error in IP whitelist middleware', error as Error);
-    next();
+    (logger as any).error('Error in IP whitelist middleware', error as Error);
+    return next();
   }
 };
 
@@ -134,7 +145,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
       const decipher = crypto.createDecipher(algorithm, key);
       decipher.setAuthTag(authTag);
       
-      let decrypted = decipher.update(encrypted, null, 'utf8');
+      let decrypted = decipher.update(encrypted, undefined, 'utf8');
       decrypted += decipher.final('utf8');
       
       req.body = JSON.parse(decrypted);
@@ -142,7 +153,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
     
     next();
   } catch (error) {
-    logger.error('Error decrypting request', error as Error);
+    (logger as any).error('Error decrypting request', error as Error);
     res.status(400).json({
       success: false,
       error: {
@@ -185,7 +196,7 @@ export const encryptResponse = (req: Request, res: Response, next: NextFunction)
         
         return originalJson.call(this, encryptedResponse);
       } catch (error) {
-        logger.error('Error encrypting response', error as Error);
+        (logger as any).error('Error encrypting response', error as Error);
         return originalJson.call(this, {
           success: false,
           error: {
@@ -223,7 +234,7 @@ export const sessionSecurity = (req: Request, res: Response, next: NextFunction)
     
     next();
   } catch (error) {
-    logger.error('Error in session security middleware', error as Error);
+    (logger as any).error('Error in session security middleware', error as Error);
     next();
   }
 };
@@ -264,7 +275,7 @@ export const sensitiveOperationRateLimit = (req: Request, res: Response, next: N
   // Implement rate limiting logic here
   // This is a simplified version - in production, use Redis or similar
   
-  logger.info('Sensitive operation rate limit check', { clientIP, operation });
+      (logger as any).info('Sensitive operation rate limit check', { clientIP, operation });
   next();
 };
 
@@ -277,7 +288,7 @@ export const securityAudit = (req: Request, res: Response, next: NextFunction) =
   res.send = function(data) {
     // Log security-relevant events
     if (res.statusCode >= 400) {
-      logger.security('Security event detected', {
+      (logger as any).security('Security event detected', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         method: req.method,
@@ -314,7 +325,7 @@ export const rateLimit = (options: {
       const count = currentCount ? parseInt(currentCount) : 0;
       
       if (count >= options.maxRequests) {
-        logger.warn('Rate limit exceeded', {
+        (logger as any).warn('Rate limit exceeded', {
           ip: req.ip,
           key,
           count,
@@ -342,9 +353,9 @@ export const rateLimit = (options: {
       
       next();
     } catch (error) {
-      logger.error('Rate limiting error:', error as Error);
+      (logger as any).error('Rate limiting error:', error as Error);
       // Continue without rate limiting if Redis is unavailable
-      next();
+      return next();
     }
   };
 };

@@ -81,13 +81,13 @@ export const uploadSecureDocument = async (req: Request, res: Response) => {
 
     logger.businessEvent('secure_document_uploaded', 'document', document.id, userId);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { document }
     });
   } catch (error) {
     logger.error('Error uploading secure document', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'SECURE_DOCUMENT_UPLOAD_ERROR',
@@ -107,6 +107,26 @@ export const downloadSecureDocument = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Downloading secure document', { userId, documentId: id });
 
@@ -138,9 +158,11 @@ export const downloadSecureDocument = async (req: Request, res: Response) => {
     res.send(documentContent);
 
     logger.businessEvent('secure_document_downloaded', 'document', id, userId);
+    
+    return;
   } catch (error) {
     logger.error('Error downloading secure document', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'SECURE_DOCUMENT_DOWNLOAD_ERROR',
@@ -165,6 +187,26 @@ export const updateDocumentSecurity = async (req: Request, res: Response) => {
       watermarkText,
       watermarkPosition
     } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Updating document security settings', { userId, documentId: id });
 
@@ -200,13 +242,13 @@ export const updateDocumentSecurity = async (req: Request, res: Response) => {
 
     logger.businessEvent('document_security_updated', 'document', id, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Document security settings updated successfully'
     });
   } catch (error) {
     logger.error('Error updating document security', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DOCUMENT_SECURITY_UPDATE_ERROR',
@@ -226,6 +268,26 @@ export const getDocumentSecurityMetadata = async (req: Request, res: Response) =
   try {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
 
     logger.info('Getting document security metadata', { userId, documentId: id });
 
@@ -248,7 +310,7 @@ export const getDocumentSecurityMetadata = async (req: Request, res: Response) =
     // Get security metadata
     const securityMetadata = await documentSecurityService.getDocumentSecurityMetadata(id);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         document,
@@ -257,7 +319,7 @@ export const getDocumentSecurityMetadata = async (req: Request, res: Response) =
     });
   } catch (error) {
     logger.error('Error getting document security metadata', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DOCUMENT_SECURITY_METADATA_ERROR',
@@ -278,14 +340,34 @@ export const getDocumentAuditLog = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Getting document audit log', { documentId: id, userId });
 
     const result = await documentSecurityService.getDocumentAuditLog(id);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error getting document audit log', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DOCUMENT_AUDIT_LOG_ERROR',
@@ -306,14 +388,34 @@ export const checkDocumentAccess = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req.user as any)?.id;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_DOCUMENT_ID',
+          message: 'Document ID is required'
+        }
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User ID is required'
+        }
+      });
+    }
+
     logger.info('Checking document access permissions', { documentId: id, userId });
 
     const result = await documentSecurityService.checkDocumentAccess(id, userId);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error checking document access', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DOCUMENT_ACCESS_CHECK_ERROR',

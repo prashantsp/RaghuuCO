@@ -229,15 +229,15 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND (c.created_by = $3 OR c.assigned_to = $3)' : ''}
-        ${filters.status ? 'AND c.status = $4' : ''}
-        ${filters.priority ? 'AND c.priority = $5' : ''}
+        ${filters["status"] ? 'AND c.status = $4' : ''}
+        ${filters["priority"] ? 'AND c.priority = $5' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.status, filters.priority].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["status"], filters["priority"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.CASES,
       title: row.title,
@@ -293,14 +293,14 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND c.created_by = $3' : ''}
-        ${filters.clientType ? 'AND c.client_type = $4' : ''}
+        ${filters["clientType"] ? 'AND c.client_type = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.clientType].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["clientType"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.CLIENTS,
       title: `${row.first_name} ${row.last_name}`.trim() || row.company_name,
@@ -354,15 +354,15 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND d.uploaded_by = $3' : ''}
-        ${filters.fileType ? 'AND d.file_type = $4' : ''}
-        ${filters.caseId ? 'AND d.case_id = $5' : ''}
+        ${filters["fileType"] ? 'AND d.file_type = $4' : ''}
+        ${filters["caseId"] ? 'AND d.case_id = $5' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, userId, filters.fileType, filters.caseId].filter(Boolean);
+    const params = [query, includeArchived, userId, filters["fileType"], filters["caseId"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.DOCUMENTS,
       title: row.title || row.file_name,
@@ -383,7 +383,7 @@ class SearchService {
   /**
    * Search users
    */
-  private async searchUsers(query: string, filters: Record<string, any>, userId?: string): Promise<SearchResult[]> {
+  private async searchUsers(query: string, filters: Record<string, any>, _userId?: string): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         u.id,
@@ -411,14 +411,14 @@ class SearchService {
             COALESCE(u.email, '')
           ) @@ plainto_tsquery('english', $1)
         )
-        ${filters.role ? 'AND u.role = $2' : ''}
+        ${filters["role"] ? 'AND u.role = $2' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, filters.role].filter(Boolean);
+    const params = [query, filters["role"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.USERS,
       title: `${row.first_name} ${row.last_name}`,
@@ -440,7 +440,7 @@ class SearchService {
   /**
    * Search expenses
    */
-  private async searchExpenses(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchExpenses(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         e.id,
@@ -471,15 +471,15 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND e.created_by = $2' : ''}
-        ${filters.category ? 'AND e.category = $3' : ''}
-        ${filters.isApproved !== undefined ? 'AND e.is_approved = $4' : ''}
+        ${filters["category"] ? 'AND e.category = $3' : ''}
+        ${filters["isApproved"] !== undefined ? 'AND e.is_approved = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.category, filters.isApproved].filter(Boolean);
+    const params = [query, userId, filters["category"], filters["isApproved"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.EXPENSES,
       title: row.description,
@@ -533,15 +533,15 @@ class SearchService {
             COALESCE(a.excerpt, '')
           ) @@ plainto_tsquery('english', $1)
         )
-        ${filters.status ? 'AND a.status = $3' : ''}
-        ${filters.categoryId ? 'AND a.category_id = $4' : ''}
+        ${filters["status"] ? 'AND a.status = $3' : ''}
+        ${filters["categoryId"] ? 'AND a.category_id = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, includeArchived, filters.status, filters.categoryId].filter(Boolean);
+    const params = [query, includeArchived, filters["status"], filters["categoryId"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.ARTICLES,
       title: row.title,
@@ -563,7 +563,7 @@ class SearchService {
   /**
    * Search tasks
    */
-  private async searchTasks(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchTasks(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         t.id,
@@ -592,15 +592,15 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND t.assigned_to = $2' : ''}
-        ${filters.status ? 'AND t.status = $3' : ''}
-        ${filters.priority ? 'AND t.priority = $4' : ''}
+        ${filters["status"] ? 'AND t.status = $3' : ''}
+        ${filters["priority"] ? 'AND t.priority = $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.status, filters.priority].filter(Boolean);
+    const params = [query, userId, filters["status"], filters["priority"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.TASKS,
       title: row.title,
@@ -622,7 +622,7 @@ class SearchService {
   /**
    * Search invoices
    */
-  private async searchInvoices(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchInvoices(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         i.id,
@@ -657,14 +657,14 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND i.created_by = $2' : ''}
-        ${filters.status ? 'AND i.status = $3' : ''}
+        ${filters["status"] ? 'AND i.status = $3' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.status].filter(Boolean);
+    const params = [query, userId, filters["status"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.INVOICES,
       title: `Invoice ${row.invoice_number}`,
@@ -688,7 +688,7 @@ class SearchService {
   /**
    * Search time entries
    */
-  private async searchTimeEntries(query: string, filters: Record<string, any>, userId?: string, includeArchived = false): Promise<SearchResult[]> {
+  private async searchTimeEntries(query: string, filters: Record<string, any>, userId?: string, _includeArchived = false): Promise<SearchResult[]> {
     const sql = `
       SELECT 
         te.id,
@@ -719,15 +719,15 @@ class SearchService {
           ) @@ plainto_tsquery('english', $1)
         )
         ${userId ? 'AND te.user_id = $2' : ''}
-        ${filters.dateFrom ? 'AND te.date >= $3' : ''}
-        ${filters.dateTo ? 'AND te.date <= $4' : ''}
+        ${filters["dateFrom"] ? 'AND te.date >= $3' : ''}
+        ${filters["dateTo"] ? 'AND te.date <= $4' : ''}
       ORDER BY relevance DESC
     `;
 
-    const params = [query, userId, filters.dateFrom, filters.dateTo].filter(Boolean);
+    const params = [query, userId, filters["dateFrom"], filters["dateTo"]].filter(Boolean);
     const result = await db.query(sql, params);
 
-    return result.rows.map(row => ({
+    return result.map((row: any) => ({
       id: row.id,
       type: SearchEntityType.TIME_ENTRIES,
       title: row.description,
@@ -782,7 +782,7 @@ class SearchService {
       `;
       
       const historyResult = await db.query(historySql, [`%${query}%`]);
-      suggestions.push(...historyResult.rows.map(row => row.query));
+      suggestions.push(...historyResult.map((row: any) => row.query));
 
       // Get suggestions from popular terms
       const popularSql = `
@@ -795,7 +795,7 @@ class SearchService {
       `;
       
       const popularResult = await db.query(popularSql, [`%${query}%`]);
-      suggestions.push(...popularResult.rows.map(row => row.term));
+      suggestions.push(...popularResult.map((row: any) => row.term));
 
       // Remove duplicates and limit results
       const uniqueSuggestions = [...new Set(suggestions)].slice(0, 10);
@@ -831,7 +831,7 @@ class SearchService {
       `;
       
       const result = await db.query(sql);
-      const terms = result.rows.map(row => row.term);
+      const terms = result.map((row: any) => row.term);
 
       // Cache for 1 hour
       await cacheService.set(cacheKey, terms, 3600);
@@ -892,7 +892,7 @@ class SearchService {
         WHERE created_at > NOW() - INTERVAL '30 days'
       `);
 
-      const result = stats.rows[0];
+      const result = stats[0];
 
       // Cache for 1 hour
       await cacheService.set(cacheKey, result, 3600);
@@ -905,5 +905,5 @@ class SearchService {
   }
 }
 
+export { SearchService };
 export default new SearchService();
-export { SearchService, SearchEntityType };

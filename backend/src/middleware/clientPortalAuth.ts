@@ -42,7 +42,7 @@ export const authenticateClientUser = async (req: Request, res: Response, next: 
       WHERE cps.session_token = $1 AND cps.expires_at > NOW()
     `, [sessionToken]);
 
-    const session = sessionResult.rows[0];
+    const session = sessionResult[0];
 
     if (!session) {
       return res.status(401).json({
@@ -59,7 +59,7 @@ export const authenticateClientUser = async (req: Request, res: Response, next: 
       SELECT * FROM client_portal_users WHERE id = $1 AND status = 'active'
     `, [session.client_user_id]);
 
-    const clientUser = userResult.rows[0];
+    const clientUser = userResult[0];
 
     if (!clientUser) {
       return res.status(401).json({
@@ -88,10 +88,10 @@ export const authenticateClientUser = async (req: Request, res: Response, next: 
       ip: req.ip
     });
 
-    next();
+    return next();
   } catch (error) {
     logger.error('Error authenticating client user', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CLIENT_AUTHENTICATION_ERROR',
@@ -119,14 +119,14 @@ export const optionalClientAuth = async (req: Request, res: Response, next: Next
         WHERE cps.session_token = $1 AND cps.expires_at > NOW()
       `, [sessionToken]);
 
-      const session = sessionResult.rows[0];
+      const session = sessionResult[0];
 
       if (session) {
         const userResult = await db.query(`
           SELECT * FROM client_portal_users WHERE id = $1 AND status = 'active'
         `, [session.client_user_id]);
 
-        const clientUser = userResult.rows[0];
+        const clientUser = userResult[0];
 
         if (clientUser) {
           req.clientUser = {
@@ -145,7 +145,7 @@ export const optionalClientAuth = async (req: Request, res: Response, next: Next
   } catch (error) {
     // Don't fail the request, just continue without authentication
     logger.warn('Optional client authentication failed', error as Error);
-    next();
+    return next();
   }
 };
 
@@ -188,7 +188,7 @@ export const clientPortalRateLimit = (req: Request, res: Response, next: NextFun
     });
   }
 
-  next();
+  return next();
 };
 
 /**
@@ -215,7 +215,7 @@ export const validateCaseAccess = async (req: Request, res: Response, next: Next
       SELECT id FROM cases WHERE id = $1 AND client_id = $2
     `, [caseId, clientId]);
 
-    if (!caseResult.rows[0]) {
+    if (!caseResult[0]) {
       return res.status(403).json({
         success: false,
         error: {
@@ -225,10 +225,10 @@ export const validateCaseAccess = async (req: Request, res: Response, next: Next
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     logger.error('Error validating case access', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'CASE_ACCESS_VALIDATION_ERROR',
@@ -264,7 +264,7 @@ export const validateDocumentAccess = async (req: Request, res: Response, next: 
       WHERE d.id = $1 AND c.client_id = $2
     `, [documentId, clientId]);
 
-    if (!documentResult.rows[0]) {
+    if (!documentResult[0]) {
       return res.status(403).json({
         success: false,
         error: {
@@ -274,10 +274,10 @@ export const validateDocumentAccess = async (req: Request, res: Response, next: 
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     logger.error('Error validating document access', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DOCUMENT_ACCESS_VALIDATION_ERROR',

@@ -178,7 +178,7 @@ export class ReportExecutionService {
         parameters
       };
 
-      await this.logExecutionError(result.executionId, templateId, userId, result.error);
+      await this.logExecutionError(result.executionId, templateId, userId, result.error || 'Unknown error');
       
       throw error;
     }
@@ -205,11 +205,11 @@ export class ReportExecutionService {
         SELECT * FROM custom_report_templates WHERE id = $1
       `, [templateId]);
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
 
-      const template = result.rows[0];
+      const template = result[0];
       return {
         id: template.id,
         name: template.name,
@@ -314,11 +314,11 @@ export class ReportExecutionService {
       // Replace parameter placeholders with actual values
       for (let i = 0; i < parameters.length; i++) {
         const param = parameters[i];
-        const placeholder = `$${i + 1}`;
+        // const placeholder = `$${i + 1}`;
         
         // Handle different parameter types
-        let value = param.value;
-        if (param.type === 'date' && typeof value === 'string') {
+        let value = param?.value;
+        if (param?.type === 'date' && typeof value === 'string') {
           value = new Date(value);
         }
         
@@ -328,11 +328,11 @@ export class ReportExecutionService {
       // Execute the query
       const result = await db.query(processedQuery, queryParams);
 
-      logger.info('Query executed successfully', { rowCount: result.rows.length });
+      logger.info('Query executed successfully', { rowCount: result.length });
 
       return {
-        data: result.rows,
-        rowCount: result.rows.length
+        data: result,
+        rowCount: result.length
       };
     } catch (error) {
       logger.error('Error executing query', error as Error);
@@ -348,12 +348,12 @@ export class ReportExecutionService {
       logger.info('Generating output file', { format, executionId: result.executionId });
 
       const fileName = `report_${result.executionId}.${format}`;
-      const outputDir = process.env.REPORT_OUTPUT_DIR || 'reports';
+      const outputDir = (process as any).env.REPORT_OUTPUT_DIR || 'reports';
       const filePath = `${outputDir}/${fileName}`;
 
       // Ensure output directory exists
       const fs = require('fs');
-      const path = require('path');
+      // const path = require('path');
       
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -516,7 +516,7 @@ ${JSON.stringify(result.data.slice(0, 5), null, 2)}
   /**
    * Log execution error
    */
-  async logExecutionError(executionId: string, templateId: string, userId: string, error: string): Promise<void> {
+  async logExecutionError(executionId: string, _templateId: string, _userId: string, error: string): Promise<void> {
     try {
       await db.query(`
         UPDATE report_executions 
@@ -564,8 +564,8 @@ ${JSON.stringify(result.data.slice(0, 5), null, 2)}
       `, templateId ? [userId, templateId] : [userId]);
 
       return {
-        executions: result.rows,
-        total: parseInt(countResult.rows[0]?.total || '0')
+        executions: result,
+        total: parseInt(countResult[0]?.total || '0')
       };
     } catch (error) {
       logger.error('Error getting execution history', error as Error);
@@ -584,7 +584,7 @@ ${JSON.stringify(result.data.slice(0, 5), null, 2)}
         WHERE execution_id = $3 AND user_id = $4 AND status = 'running'
       `, ['cancelled', new Date(), executionId, userId]);
 
-      if (result.rowCount === 0) {
+      if (result.length === 0) {
         throw new Error('Execution not found or cannot be cancelled');
       }
 

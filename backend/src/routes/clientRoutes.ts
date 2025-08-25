@@ -20,7 +20,7 @@ import {
   checkClientConflicts,
   getClientStats
 } from '@/controllers/clientController';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
+import { authenticateToken } from '@/middleware/auth';
 import logger from '@/utils/logger';
 
 const router = Router();
@@ -32,14 +32,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken,
-  authorizePermission('client:read'),
-  async (req, res, next) => {
-    try {
-      await getClients(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getClients
 );
 
 /**
@@ -49,14 +42,7 @@ router.get('/',
  */
 router.get('/stats',
   authenticateToken,
-  authorizePermission('client:read'),
-  async (req, res, next) => {
-    try {
-      await getClientStats(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getClientStats
 );
 
 /**
@@ -66,14 +52,7 @@ router.get('/stats',
  */
 router.get('/conflicts',
   authenticateToken,
-  authorizePermission('client:read'),
-  async (req, res, next) => {
-    try {
-      await checkClientConflicts(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  checkClientConflicts
 );
 
 /**
@@ -83,14 +62,7 @@ router.get('/conflicts',
  */
 router.get('/:id',
   authenticateToken,
-  authorizePermission('client:read'),
-  async (req, res, next) => {
-    try {
-      await getClientById(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getClientById
 );
 
 /**
@@ -100,14 +72,7 @@ router.get('/:id',
  */
 router.post('/',
   authenticateToken,
-  authorizePermission('client:create'),
-  async (req, res, next) => {
-    try {
-      await createClient(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  createClient
 );
 
 /**
@@ -117,14 +82,7 @@ router.post('/',
  */
 router.put('/:id',
   authenticateToken,
-  authorizePermission('client:update'),
-  async (req, res, next) => {
-    try {
-      await updateClient(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateClient
 );
 
 /**
@@ -134,14 +92,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateToken,
-  authorizePermission('client:delete'),
-  async (req, res, next) => {
-    try {
-      await deleteClient(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  deleteClient
 );
 
 export default router;

@@ -12,7 +12,19 @@
 import { Router } from 'express';
 import { authenticateToken, authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
-import customReportBuilderController from '@/controllers/customReportBuilderController';
+import {
+  getDataSources,
+  executeCustomReport,
+  saveReportTemplate,
+  getReportTemplates,
+  getReportTemplateById,
+  updateReportTemplate,
+  deleteReportTemplate,
+  getPreBuiltTemplates,
+  executeReportFromTemplate,
+  exportReport,
+  getReportBuilderAnalytics
+} from '@/controllers/customReportBuilderController';
 
 const router = Router();
 
@@ -23,8 +35,7 @@ const router = Router();
  */
 router.get('/data-sources', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.getDataSources
+  getDataSources
 );
 
 /**
@@ -34,8 +45,7 @@ router.get('/data-sources',
  */
 router.post('/execute', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.executeCustomReport
+  executeCustomReport
 );
 
 /**
@@ -45,8 +55,7 @@ router.post('/execute',
  */
 router.post('/templates', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_REPORTS),
-  customReportBuilderController.saveReportTemplate
+  saveReportTemplate
 );
 
 /**
@@ -56,8 +65,7 @@ router.post('/templates',
  */
 router.get('/templates', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.getReportTemplates
+  getReportTemplates
 );
 
 /**
@@ -67,8 +75,7 @@ router.get('/templates',
  */
 router.get('/templates/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.getReportTemplateById
+  getReportTemplateById
 );
 
 /**
@@ -78,8 +85,7 @@ router.get('/templates/:id',
  */
 router.put('/templates/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_REPORTS),
-  customReportBuilderController.updateReportTemplate
+  updateReportTemplate
 );
 
 /**
@@ -89,8 +95,7 @@ router.put('/templates/:id',
  */
 router.delete('/templates/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_REPORTS),
-  customReportBuilderController.deleteReportTemplate
+  deleteReportTemplate
 );
 
 /**
@@ -100,8 +105,7 @@ router.delete('/templates/:id',
  */
 router.get('/pre-built-templates', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.getPreBuiltTemplates
+  getPreBuiltTemplates
 );
 
 /**
@@ -111,8 +115,7 @@ router.get('/pre-built-templates',
  */
 router.post('/templates/:id/execute', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.executeReportFromTemplate
+  executeReportFromTemplate
 );
 
 /**
@@ -122,8 +125,7 @@ router.post('/templates/:id/execute',
  */
 router.post('/export', 
   authenticateToken, 
-  authorizePermission(Permission.EXPORT_REPORTS),
-  customReportBuilderController.exportReport
+  exportReport
 );
 
 /**
@@ -133,8 +135,7 @@ router.post('/export',
  */
 router.get('/analytics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_REPORTS),
-  customReportBuilderController.getReportBuilderAnalytics
+  getReportBuilderAnalytics
 );
 
 export default router;

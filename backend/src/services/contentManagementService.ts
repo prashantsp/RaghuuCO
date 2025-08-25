@@ -11,6 +11,7 @@
 
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -37,9 +38,9 @@ export class ContentManagementService {
         sortOrder || 0
       ]);
 
-      const category = result.rows[0];
+      const category = result[0];
 
-      logger.businessEvent('content_category_created', 'content_category', category.id, null);
+      logger.businessEvent('content_category_created', 'content_category', category.id, '');
 
       return {
         success: true,
@@ -59,7 +60,7 @@ export class ContentManagementService {
       logger.info('Getting content categories');
 
       const result = await db.query(SQLQueries.CONTENT_CATEGORIES.GET_ALL);
-      const categories = result.rows;
+      const categories = result;
 
       logger.info('Content categories fetched successfully', { count: categories.length });
 
@@ -81,7 +82,7 @@ export class ContentManagementService {
       logger.info('Getting hierarchical content categories');
 
       const result = await db.query(SQLQueries.CONTENT_CATEGORIES.GET_HIERARCHICAL);
-      const categories = result.rows;
+      const categories = result;
 
       logger.info('Hierarchical categories fetched successfully', { count: categories.length });
 
@@ -132,7 +133,7 @@ export class ContentManagementService {
         tags || []
       ]);
 
-      const article = result.rows[0];
+      const article = result[0];
 
       logger.businessEvent('article_created', 'article', article.id, authorId);
 
@@ -154,7 +155,7 @@ export class ContentManagementService {
       logger.info('Getting article by ID', { articleId });
 
       const result = await db.query(SQLQueries.ARTICLES.GET_BY_ID, [articleId]);
-      const article = result.rows[0];
+      const article = result[0];
 
       if (!article) {
         throw new Error('Article not found');
@@ -180,7 +181,7 @@ export class ContentManagementService {
       logger.info('Getting article by slug', { slug });
 
       const result = await db.query(SQLQueries.ARTICLES.GET_BY_SLUG, [slug]);
-      const article = result.rows[0];
+      const article = result[0];
 
       if (!article) {
         throw new Error('Article not found');
@@ -214,7 +215,7 @@ export class ContentManagementService {
         offset
       ]);
 
-      const articles = result.rows;
+      const articles = result;
 
       logger.info('Published articles fetched successfully', { count: articles.length });
 
@@ -241,7 +242,7 @@ export class ContentManagementService {
         offset
       ]);
 
-      const articles = result.rows;
+      const articles = result;
 
       logger.info('Article search completed successfully', { query, count: articles.length });
 
@@ -263,7 +264,7 @@ export class ContentManagementService {
       logger.info('Getting featured articles', { limit });
 
       const result = await db.query(SQLQueries.ARTICLES.GET_FEATURED, [limit]);
-      const articles = result.rows;
+      const articles = result;
 
       logger.info('Featured articles fetched successfully', { count: articles.length });
 
@@ -304,9 +305,9 @@ export class ContentManagementService {
         userAgent || null
       ]);
 
-      const comment = result.rows[0];
+      const comment = result[0];
 
-      logger.businessEvent('article_comment_created', 'article_comment', comment.id, null);
+      logger.businessEvent('article_comment_created', 'article_comment', comment.id, '');
 
       return {
         success: true,
@@ -326,7 +327,7 @@ export class ContentManagementService {
       logger.info('Getting article comments', { articleId });
 
       const result = await db.query(SQLQueries.ARTICLE_COMMENTS.GET_BY_ARTICLE_ID, [articleId]);
-      const comments = result.rows;
+      const comments = result;
 
       logger.info('Article comments fetched successfully', { articleId, count: comments.length });
 
@@ -367,7 +368,7 @@ export class ContentManagementService {
         createdBy
       ]);
 
-      const newsletter = result.rows[0];
+      const newsletter = result[0];
 
       logger.businessEvent('newsletter_created', 'newsletter', newsletter.id, createdBy);
 
@@ -389,7 +390,7 @@ export class ContentManagementService {
       logger.info('Getting newsletters', { limit, offset });
 
       const result = await db.query(SQLQueries.NEWSLETTERS.GET_ALL, [limit, offset]);
-      const newsletters = result.rows;
+      const newsletters = result;
 
       logger.info('Newsletters fetched successfully', { count: newsletters.length });
 
@@ -420,7 +421,7 @@ export class ContentManagementService {
 
       // Check if already subscribed
       const existingResult = await db.query(SQLQueries.NEWSLETTER_SUBSCRIBERS.GET_BY_EMAIL, [email]);
-      const existing = existingResult.rows[0];
+      const existing = existingResult[0];
 
       if (existing) {
         if (existing.is_active) {
@@ -428,9 +429,9 @@ export class ContentManagementService {
         } else {
           // Resubscribe
           const result = await db.query(SQLQueries.NEWSLETTER_SUBSCRIBERS.RESUBSCRIBE, [email]);
-          const subscriber = result.rows[0];
+          const subscriber = result[0];
 
-          logger.businessEvent('newsletter_resubscribed', 'newsletter_subscriber', subscriber.id, null);
+          logger.businessEvent('newsletter_resubscribed', 'newsletter_subscriber', subscriber.id, '');
 
           return {
             success: true,
@@ -448,9 +449,9 @@ export class ContentManagementService {
         ipAddress || null
       ]);
 
-      const subscriber = result.rows[0];
+      const subscriber = result[0];
 
-      logger.businessEvent('newsletter_subscribed', 'newsletter_subscriber', subscriber.id, null);
+      logger.businessEvent('newsletter_subscribed', 'newsletter_subscriber', subscriber.id, '');
 
       return {
         success: true,
@@ -470,13 +471,13 @@ export class ContentManagementService {
       logger.info('Unsubscribing from newsletter', { email });
 
       const result = await db.query(SQLQueries.NEWSLETTER_SUBSCRIBERS.UNSUBSCRIBE, [email, reason || null]);
-      const subscriber = result.rows[0];
+      const subscriber = result[0];
 
       if (!subscriber) {
         throw new Error('Subscriber not found');
       }
 
-      logger.businessEvent('newsletter_unsubscribed', 'newsletter_subscriber', subscriber.id, null);
+      logger.businessEvent('newsletter_unsubscribed', 'newsletter_subscriber', subscriber.id, '');
 
       return {
         success: true,
@@ -496,7 +497,7 @@ export class ContentManagementService {
       logger.info('Getting newsletter statistics');
 
       const result = await db.query(SQLQueries.NEWSLETTER_SUBSCRIBERS.GET_STATS);
-      const stats = result.rows[0];
+      const stats = result[0];
 
       logger.info('Newsletter statistics fetched successfully');
 
@@ -539,7 +540,7 @@ export class ContentManagementService {
         sessionId || null
       ]);
 
-      const analytics = result.rows[0];
+      const analytics = result[0];
 
       return {
         success: true,
@@ -559,7 +560,7 @@ export class ContentManagementService {
       logger.info('Getting content statistics', { contentId, contentType });
 
       const result = await db.query(SQLQueries.CONTENT_ANALYTICS.GET_CONTENT_STATS, [contentId, contentType]);
-      const stats = result.rows;
+      const stats = result;
 
       logger.info('Content statistics fetched successfully', { contentId, contentType });
 

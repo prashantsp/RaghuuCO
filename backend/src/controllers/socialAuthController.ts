@@ -20,6 +20,7 @@
  */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import passport from 'passport';
 import { generateAccessToken, generateRefreshToken } from '@/middleware/auth';
 import { UserRole } from '@/utils/roleAccess';
@@ -408,7 +409,7 @@ export async function microsoftAuth(req: Request, res: Response): Promise<void> 
  * app.post('/api/v1/auth/link-social', authenticateToken, linkSocialAccount);
  * ```
  */
-export async function linkSocialAccount(req: Request, res: Response): Promise<void> {
+export async function linkSocialAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { provider, accessToken, refreshToken } = req.body;
     const userId = req.user?.id;
@@ -512,7 +513,7 @@ export async function linkSocialAccount(req: Request, res: Response): Promise<vo
  * app.delete('/api/v1/auth/unlink-social/:provider', authenticateToken, unlinkSocialAccount);
  * ```
  */
-export async function unlinkSocialAccount(req: Request, res: Response): Promise<void> {
+export async function unlinkSocialAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { provider } = req.params;
     const userId = req.user?.id;

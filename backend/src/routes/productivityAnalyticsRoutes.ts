@@ -10,9 +10,14 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import productivityAnalyticsController from '@/controllers/productivityAnalyticsController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  getProductivityOverview,
+  getUserProductivityAnalytics,
+  getTeamProductivityAnalytics,
+  getEfficiencyMetrics,
+  getPerformanceBenchmarking
+} from '@/controllers/productivityAnalyticsController';
 
 const router = Router();
 
@@ -23,8 +28,7 @@ const router = Router();
  */
 router.get('/overview', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_PRODUCTIVITY_REPORTS),
-  productivityAnalyticsController.getProductivityOverview
+  getProductivityOverview
 );
 
 /**
@@ -34,8 +38,7 @@ router.get('/overview',
  */
 router.get('/user/:userId', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_PRODUCTIVITY_REPORTS),
-  productivityAnalyticsController.getUserProductivityAnalytics
+  getUserProductivityAnalytics
 );
 
 /**
@@ -45,8 +48,7 @@ router.get('/user/:userId',
  */
 router.get('/team', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_PRODUCTIVITY_REPORTS),
-  productivityAnalyticsController.getTeamProductivityAnalytics
+  getTeamProductivityAnalytics
 );
 
 /**
@@ -56,8 +58,7 @@ router.get('/team',
  */
 router.get('/efficiency', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_PRODUCTIVITY_REPORTS),
-  productivityAnalyticsController.getEfficiencyMetrics
+  getEfficiencyMetrics
 );
 
 /**
@@ -67,8 +68,7 @@ router.get('/efficiency',
  */
 router.get('/benchmarking', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_PRODUCTIVITY_REPORTS),
-  productivityAnalyticsController.getPerformanceBenchmarking
+  getPerformanceBenchmarking
 );
 
 export default router;

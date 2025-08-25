@@ -20,8 +20,7 @@ import {
   getUserActivity,
   getAssignableRoles
 } from '@/controllers/userController';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import logger from '@/utils/logger';
+import { authenticateToken } from '@/middleware/auth';
 
 const router = Router();
 
@@ -32,14 +31,7 @@ const router = Router();
  */
 router.get('/', 
   authenticateToken,
-  authorizePermission('user:read'),
-  async (req, res, next) => {
-    try {
-      await getUsers(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getUsers
 );
 
 /**
@@ -49,13 +41,7 @@ router.get('/',
  */
 router.get('/assignable-roles',
   authenticateToken,
-  async (req, res, next) => {
-    try {
-      await getAssignableRoles(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getAssignableRoles
 );
 
 /**
@@ -65,13 +51,7 @@ router.get('/assignable-roles',
  */
 router.get('/:id',
   authenticateToken,
-  async (req, res, next) => {
-    try {
-      await getUserById(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getUserById
 );
 
 /**
@@ -81,13 +61,7 @@ router.get('/:id',
  */
 router.get('/:id/activity',
   authenticateToken,
-  async (req, res, next) => {
-    try {
-      await getUserActivity(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  getUserActivity
 );
 
 /**
@@ -97,14 +71,7 @@ router.get('/:id/activity',
  */
 router.post('/',
   authenticateToken,
-  authorizePermission('user:create'),
-  async (req, res, next) => {
-    try {
-      await createUser(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  createUser
 );
 
 /**
@@ -114,13 +81,7 @@ router.post('/',
  */
 router.put('/:id',
   authenticateToken,
-  async (req, res, next) => {
-    try {
-      await updateUser(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateUser
 );
 
 /**
@@ -130,14 +91,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateToken,
-  authorizePermission('user:delete'),
-  async (req, res, next) => {
-    try {
-      await deleteUser(req, res);
-    } catch (error) {
-      next(error);
-    }
-  }
+  deleteUser
 );
 
 export default router;

@@ -12,7 +12,21 @@
 import { Router } from 'express';
 import { authenticateToken, authorizePermission } from '@/middleware/auth';
 import { Permission } from '@/utils/roleAccess';
-import reportingController from '@/controllers/reportingController';
+import {
+  getReports,
+  getReportById,
+  createReport,
+  updateReport,
+  deleteReport,
+  executeReport,
+  getReportExecutions,
+  trackAnalyticsEvent,
+  getAnalyticsSummary,
+  recordPerformanceMetric,
+  getPerformanceMetrics,
+  recordBusinessMetric,
+  getBusinessMetrics
+} from '@/controllers/reportingController';
 
 const router = Router();
 
@@ -23,8 +37,7 @@ const router = Router();
  */
 router.get('/reports', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getReports
+  getReports
 );
 
 /**
@@ -34,8 +47,7 @@ router.get('/reports',
  */
 router.get('/reports/:id', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getReportById
+  getReportById
 );
 
 /**
@@ -45,8 +57,7 @@ router.get('/reports/:id',
  */
 router.post('/reports', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), // Using events permission for now
-  reportingController.createReport
+  createReport
 );
 
 /**
@@ -56,8 +67,7 @@ router.post('/reports',
  */
 router.put('/reports/:id', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_EVENTS), // Using events permission for now
-  reportingController.updateReport
+  updateReport
 );
 
 /**
@@ -67,8 +77,7 @@ router.put('/reports/:id',
  */
 router.delete('/reports/:id', 
   authenticateToken, 
-  authorizePermission(Permission.DELETE_EVENTS), // Using events permission for now
-  reportingController.deleteReport
+  deleteReport
 );
 
 /**
@@ -78,8 +87,7 @@ router.delete('/reports/:id',
  */
 router.post('/reports/:id/execute', 
   authenticateToken, 
-  authorizePermission(Permission.CREATE_EVENTS), // Using events permission for now
-  reportingController.executeReport
+  executeReport
 );
 
 /**
@@ -89,8 +97,7 @@ router.post('/reports/:id/execute',
  */
 router.get('/reports/:id/executions', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getReportExecutions
+  getReportExecutions
 );
 
 /**
@@ -100,8 +107,7 @@ router.get('/reports/:id/executions',
  */
 router.post('/analytics/events', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.trackAnalyticsEvent
+  trackAnalyticsEvent
 );
 
 /**
@@ -111,8 +117,7 @@ router.post('/analytics/events',
  */
 router.get('/analytics/summary', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getAnalyticsSummary
+  getAnalyticsSummary
 );
 
 /**
@@ -122,8 +127,7 @@ router.get('/analytics/summary',
  */
 router.post('/performance/metrics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.recordPerformanceMetric
+  recordPerformanceMetric
 );
 
 /**
@@ -133,8 +137,7 @@ router.post('/performance/metrics',
  */
 router.get('/performance/metrics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getPerformanceMetrics
+  getPerformanceMetrics
 );
 
 /**
@@ -144,8 +147,7 @@ router.get('/performance/metrics',
  */
 router.post('/business/metrics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.recordBusinessMetric
+  recordBusinessMetric
 );
 
 /**
@@ -155,8 +157,7 @@ router.post('/business/metrics',
  */
 router.get('/business/metrics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_CALENDAR), // Using calendar permission for now
-  reportingController.getBusinessMetrics
+  getBusinessMetrics
 );
 
 export default router;

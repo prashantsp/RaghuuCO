@@ -11,6 +11,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '@/middleware/auth';
 import compression from 'compression';
 import { logger } from '@/utils/logger';
 import cacheService from '@/services/cacheService';
@@ -115,7 +116,7 @@ export const etagMiddleware = (req: Request, res: Response, next: NextFunction) 
   }
   
   // Generate ETag based on request URL and user
-  const etag = `"${Buffer.from(`${req.originalUrl}:${req.user?.id || 'anonymous'}`).toString('base64')}"`;
+  const etag = `"${Buffer.from(`${req.originalUrl}:${(req as AuthenticatedRequest).user?.id || 'anonymous'}`).toString('base64')}"`;
   
   // Check if client has the same ETag
   if (req.headers['if-none-match'] === etag) {
@@ -144,7 +145,7 @@ export const requestSizeLimit = (limit: string = '10mb') => {
       });
     }
     
-    next();
+    return next();
   };
 };
 
@@ -165,6 +166,9 @@ function parseSize(size: string): number {
   }
   
   const [, value, unit] = match;
+  if (!unit || !value) {
+    return 1024 * 1024; // Default to 1MB
+  }
   return parseFloat(value) * units[unit];
 }
 
@@ -191,8 +195,8 @@ export const queryOptimization = (req: Request, res: Response, next: NextFunctio
   req.query.page = req.query.page || '1';
   
   // Optimize search queries
-  if (req.query.search) {
-    const search = req.query.search as string;
+  if (req.query.search && typeof req.query.search === 'string') {
+    const search = req.query.search;
     if (search.length < 2) {
       return res.status(400).json({
         success: false,
@@ -204,7 +208,7 @@ export const queryOptimization = (req: Request, res: Response, next: NextFunctio
     }
   }
   
-  next();
+  return next();
 };
 
 /**
@@ -317,7 +321,7 @@ export const cacheWarming = (req: Request, res: Response, next: NextFunction) =>
     // Warm dashboard cache in background
     setImmediate(async () => {
       try {
-        const cacheKey = `dashboard:${req.user?.id || 'anonymous'}`;
+        const cacheKey = `dashboard:${(req as AuthenticatedRequest).user?.id || 'anonymous'}`;
         const cached = await cacheService.get(cacheKey);
         if (!cached) {
           // Cache will be populated by the actual request

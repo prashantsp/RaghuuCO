@@ -10,9 +10,13 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import globalSearchController from '@/controllers/globalSearchController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  globalSearch,
+  getSearchSuggestions,
+  getSearchStatistics,
+  getPopularSearchTerms
+} from '@/controllers/globalSearchController';
 
 const router = Router();
 
@@ -23,8 +27,7 @@ const router = Router();
  */
 router.get('/global', 
   authenticateToken, 
-  authorizePermission(Permission.USE_GLOBAL_SEARCH),
-  globalSearchController.globalSearch
+  globalSearch
 );
 
 /**
@@ -34,8 +37,7 @@ router.get('/global',
  */
 router.get('/suggestions', 
   authenticateToken, 
-  authorizePermission(Permission.USE_GLOBAL_SEARCH),
-  globalSearchController.getSearchSuggestions
+  getSearchSuggestions
 );
 
 /**
@@ -45,8 +47,7 @@ router.get('/suggestions',
  */
 router.get('/statistics', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_SEARCH_STATISTICS),
-  globalSearchController.getSearchStatistics
+  getSearchStatistics
 );
 
 /**
@@ -56,8 +57,7 @@ router.get('/statistics',
  */
 router.get('/popular', 
   authenticateToken, 
-  authorizePermission(Permission.USE_GLOBAL_SEARCH),
-  globalSearchController.getPopularSearchTerms
+  getPopularSearchTerms
 );
 
 export default router;

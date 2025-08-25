@@ -11,9 +11,15 @@
 
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticateToken, authorizePermission } from '@/middleware/auth';
-import { Permission } from '@/utils/roleAccess';
-import documentSecurityController from '@/controllers/documentSecurityController';
+import { authenticateToken } from '@/middleware/auth';
+import {
+  uploadSecureDocument,
+  downloadSecureDocument,
+  updateDocumentSecurity,
+  getDocumentSecurityMetadata,
+  getDocumentAuditLog,
+  checkDocumentAccess
+} from '@/controllers/documentSecurityController';
 
 const router = Router();
 
@@ -32,9 +38,8 @@ const upload = multer({
  */
 router.post('/upload', 
   authenticateToken, 
-  authorizePermission(Permission.UPLOAD_DOCUMENTS),
   upload.single('file'),
-  documentSecurityController.uploadSecureDocument
+  uploadSecureDocument
 );
 
 /**
@@ -44,8 +49,7 @@ router.post('/upload',
  */
 router.get('/:id/download', 
   authenticateToken, 
-  authorizePermission(Permission.DOWNLOAD_DOCUMENTS),
-  documentSecurityController.downloadSecureDocument
+  downloadSecureDocument
 );
 
 /**
@@ -55,8 +59,7 @@ router.get('/:id/download',
  */
 router.put('/:id/security', 
   authenticateToken, 
-  authorizePermission(Permission.UPDATE_DOCUMENTS),
-  documentSecurityController.updateDocumentSecurity
+  updateDocumentSecurity
 );
 
 /**
@@ -66,8 +69,7 @@ router.put('/:id/security',
  */
 router.get('/:id/metadata', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_DOCUMENTS),
-  documentSecurityController.getDocumentSecurityMetadata
+  getDocumentSecurityMetadata
 );
 
 /**
@@ -77,8 +79,7 @@ router.get('/:id/metadata',
  */
 router.get('/:id/audit', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_AUDIT_LOGS),
-  documentSecurityController.getDocumentAuditLog
+  getDocumentAuditLog
 );
 
 /**
@@ -88,8 +89,7 @@ router.get('/:id/audit',
  */
 router.get('/:id/access', 
   authenticateToken, 
-  authorizePermission(Permission.VIEW_DOCUMENTS),
-  documentSecurityController.checkDocumentAccess
+  checkDocumentAccess
 );
 
 export default router;

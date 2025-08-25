@@ -14,6 +14,7 @@ import { authenticator } from 'otplib';
 import crypto from 'crypto';
 import DatabaseService from '@/services/DatabaseService';
 import logger from '@/utils/logger';
+import { SQLQueries } from '@/utils/db_SQLQueries';
 
 const db = new DatabaseService();
 
@@ -118,13 +119,13 @@ export const verify2FA = async (req: Request, res: Response) => {
 
     logger.businessEvent('2fa_enabled', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Two-factor authentication enabled successfully'
     });
   } catch (error) {
     logger.error('Error verifying 2FA', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: '2FA_VERIFICATION_ERROR',
@@ -157,7 +158,7 @@ export const disable2FA = async (req: Request, res: Response) => {
 
     // Get current 2FA secret using centralized query
     const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_SECRET, [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user?.two_factor_secret) {
       return res.status(400).json({
@@ -191,13 +192,13 @@ export const disable2FA = async (req: Request, res: Response) => {
 
     logger.businessEvent('2fa_disabled', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Two-factor authentication disabled successfully'
     });
   } catch (error) {
     logger.error('Error disabling 2FA', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: '2FA_DISABLE_ERROR',
@@ -218,7 +219,7 @@ export const get2FAStatus = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
 
     const userResult = await db.query(SQLQueries.SECURITY.GET_2FA_STATUS, [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     res.json({
       success: true,
@@ -304,7 +305,7 @@ export const verifyBackupCode = async (req: Request, res: Response) => {
 
     // Get user's backup codes using centralized query
     const userResult = await db.query(SQLQueries.SECURITY.GET_BACKUP_CODES, [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user?.backup_codes || user.backup_codes.length === 0) {
       return res.status(400).json({
@@ -338,13 +339,13 @@ export const verifyBackupCode = async (req: Request, res: Response) => {
 
     logger.businessEvent('backup_code_used', 'user', userId, userId);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Backup code verified successfully'
     });
   } catch (error) {
     logger.error('Error verifying backup code', error as Error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'BACKUP_CODE_VERIFICATION_ERROR',
@@ -365,7 +366,7 @@ export const getSecuritySettings = async (req: Request, res: Response) => {
     const userId = (req.user as any)?.id;
 
     const userResult = await db.query(SQLQueries.SECURITY.GET_USER_SECURITY_SETTINGS, [userId]);
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     res.json({
       success: true,
